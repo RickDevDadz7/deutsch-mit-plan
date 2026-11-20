@@ -202,13 +202,86 @@
     if (M.adapt(S.st, now())) commit({ profile: true });
     S.store.autoBackup(now()).then((r) => { if (r && r.saved) log('info', 'backup automático ' + r.saved); if (r && r.tooBig) log('warn', 'histórico grande demais para backup automático; exporte manualmente'); }).catch((e) => log('warn', 'backup automático falhou: ' + (e.code || e.message)));
     route();
+    setTimeout(() => autoSync('abertura'), 1500);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') autoSync('app em segundo plano'); else autoSync('app reaberto'); });
+    setInterval(() => autoSync('periódica'), 10 * 60000);
+  }
+
+  /* ---------------- Sincronização ---------------- */
+  const syncOn = () => !!(GF.sync && GF.sync.available() && GF.sync.cfg().token);
+  function syncBadge() { if (!syncOn()) return ''; const c = GF.sync.cfg(); return c.lastError ? ' <span class="pill bad">erro</span>' : c.lastSync ? ' <span class="pill ok">' + new Date(c.lastSync).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</span>' : ''; }
+  let lastAuto = 0;
+  async function autoSync(why) {
+    if (!syncOn() || S.session || !S.store) return;
+    if (why !== 'fim da sessão' && why !== 'app em segundo plano' && Date.now() - lastAuto < 60000) return;
+    lastAuto = Date.now();
+    try {
+      await S.store.flush();
+      const r = await GF.sync.run(S.store);
+      log('info', 'sincronizado (' + why + '): ' + r.merged + ' mudanças recebidas');
+      S.st = S.store.state;
+      const h = (location.hash || '#hoje').slice(1);
+      const idle = !$('#e-home') && !$('#o-go') && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName));
+      if (r.merged && !S.session && document.visibilityState !== 'hidden' && S.st.profile.diag && idle && ['hoje', 'progresso', 'calendario', 'curriculo', 'vocabulario'].includes(h)) route();
+    } catch (e) { log('warn', 'sincronização (' + why + '): ' + e.message); }
+  }
+  function renderSync() {
+    const nav = $('nav.tabs'); const fresh = !S.st.profile.diag;
+    if (!GF.sync || !GF.sync.available()) {
+      shell('mais', `<div class="card"><h2>Sincronização</h2><p class="small">Esta é a versão dentro do Claude.ai, que já guarda seus dados na nuvem do Claude. Ela não conversa com a versão instalada (PC/celular).</p>
+        <p class="small">Para levar o progresso daqui para o app instalado: <b>Mais → Dados → Exportar backup</b> aqui, e <b>Restaurar de arquivo</b> no app instalado. Depois disso, ative a sincronização lá.</p></div>`); return;
+    }
+    const c = GF.sync.cfg(); const on = !!c.token;
+    const dev = /Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Celular' : (GF.local && GF.local.isElectron ? 'PC (programa)' : 'PC');
+    const html = on ? `<div class="card"><h2>Sincronização ativa ✅</h2>
+        <p class="small">Este aparelho: <b>${esc(c.name)}</b>. Última sincronização: <b>${c.lastSync ? new Date(c.lastSync).toLocaleString('pt-BR') : 'ainda não'}</b>.</p>
+        ${c.lastError ? `<div class="fb bad">${esc(c.lastError)}</div>` : ''}
+        ${(c.devices || []).length ? `<h3>Aparelhos conectados</h3><table class="t">${c.devices.map((d) => `<tr><td>${d.me ? '📍 ' : ''}${esc(d.name)}</td><td class="small mut">${new Date(d.at).toLocaleString('pt-BR')}</td></tr>`).join('')}</table>` : ''}
+        <p class="tiny mut">Sincroniza sozinho ao abrir o app, ao terminar uma sessão, ao sair do app e a cada 10 minutos (com internet).</p>
+        <div class="row"><button class="btn pri" id="sy-now">Sincronizar agora</button><button class="btn" id="sy-off">Desativar neste aparelho</button></div></div>`
+      : `<div class="card"><h2>Sincronizar PC e celular</h2>
+        <p class="small">Seu progresso fica num <b>Gist secreto</b> da sua conta do GitHub, <b>criptografado</b> com uma senha que só você sabe. Cada aparelho envia o que fez e junta o que os outros fizeram — nada é apagado.</p>
+        <h3>1. Crie um token (uma vez só)</h3>
+        <p class="small">Abra <a href="https://github.com/settings/tokens/new?scopes=gist&description=Deutsch%20mit%20Plan%20sync" target="_blank" rel="noopener">este link do GitHub</a> → em <b>Expiration</b> escolha <b>No expiration</b> (ou 1 ano) → confira que <b>gist</b> está marcado → <b>Generate token</b> → copie o código (começa com <code>ghp_</code>). Use o mesmo token em todos os aparelhos.</p>
+        <input type="text" id="sy-token" placeholder="ghp_..." autocomplete="off" spellcheck="false" autocapitalize="off">
+        <h3>2. Senha de sincronização</h3><p class="small mut">Mínimo 8 caracteres. Use <b>a mesma</b> em todos os aparelhos. Se esquecer, os dados deste aparelho continuam aqui, mas não dá para ler os da nuvem.</p>
+        <input type="text" id="sy-pass" placeholder="senha" autocomplete="off" spellcheck="false" autocapitalize="off" style="-webkit-text-security:disc">
+        <h3>3. Nome deste aparelho</h3><input type="text" id="sy-name" value="${esc(dev)}">
+        <div style="height:12px"></div><button class="btn pri big" id="sy-go">Ativar e sincronizar</button>
+        <p class="tiny mut">O token e a senha ficam só neste aparelho e nunca entram nos backups.</p></div>`;
+    if (fresh) { if (nav) nav.classList.add('hide'); app().innerHTML = `<header class="top"><div class="brand">Deutsch mit Plan<small>Trazer progresso de outro aparelho</small></div></header>${html}<button class="btn ghost big" id="sy-back">← Voltar ao diagnóstico</button>`; $('#sy-back').onclick = renderOnboarding; }
+    else shell('mais', html);
+    const after = async () => {
+      const b = $('#sy-go') || $('#sy-now'); if (b) { b.disabled = true; b.textContent = 'Sincronizando…'; }
+      try {
+        await S.store.flush(); const r = await GF.sync.run(S.store); S.st = S.store.state;
+        toast(r.merged ? 'Sincronizado: ' + r.merged + ' atualizações recebidas.' : 'Sincronizado. Tudo em dia.');
+        if (!S.st.profile.diag) { toast('Nenhum progresso encontrado na nuvem ainda. Faça o diagnóstico.', 4000); return renderOnboarding(); }
+        location.hash = '#sync'; renderSync();
+      } catch (e) { toast(e.message, 6000); renderSync(); }
+    };
+    const go = $('#sy-go'); if (go) go.onclick = async () => {
+      try { await GF.sync.setup({ token: $('#sy-token').value, pass: $('#sy-pass').value, name: $('#sy-name').value }); } catch (e) { return toast(e.message, 4000); }
+      after();
+    };
+    const now = $('#sy-now'); if (now) now.onclick = after;
+    const off = $('#sy-off'); if (off) off.onclick = () => { GF.sync.disable(); toast('Desativada neste aparelho. Seus dados locais continuam aqui.'); renderSync(); };
   }
 
   /* ---------------- Layout & rotas ---------------- */
   const TABS = [['hoje', '◉', 'Hoje'], ['praticar', '✎', 'Praticar'], ['progresso', '▤', 'Progresso'], ['curriculo', '☰', 'Currículo'], ['mais', '⋯', 'Mais']];
+  /* Celular com "Versão para computador" ligada: a página fica minúscula. */
+  function desktopModeWarn() {
+    try {
+      const touch = window.matchMedia('(pointer:coarse)').matches;
+      if (touch && Math.min(screen.width, screen.height) < 700 && document.documentElement.clientWidth >= 900)
+        return '<div class="desk-warn"><b>Está tudo pequeno?</b> O Chrome está em “Versão para computador”. Toque em ⋮ e desmarque <b>Versão para computador</b>.</div>';
+    } catch (e) { /* */ }
+    return '';
+  }
   function shell(active, inner) {
     const lvl = M.estimateLevel(S.st);
-    app().innerHTML = `<header class="top"><div class="brand">Deutsch mit Plan<small>${esc(S.st.profile.name || '')} · ${esc(lvl.label)}</small></div><span id="savestate" class="pill"></span></header>${inner}`;
+    app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">Deutsch mit Plan<small>${esc(S.st.profile.name || '')} · ${esc(lvl.label)}</small></div><span id="savestate" class="pill"></span></header>${inner}`;
     let nav = $('nav.tabs'); if (!nav) { nav = document.createElement('nav'); nav.className = 'tabs'; document.body.appendChild(nav); }
     nav.innerHTML = TABS.map(([id, ic, l]) => `<a href="#${id}" class="${active === id ? 'on' : ''}"><b>${ic}</b>${l}</a>`).join('');
     nav.classList.remove('hide');
@@ -218,7 +291,7 @@
   function route() {
     if (S.session) return; // durante a aula não troca de tela
     const h = (location.hash || '#hoje').slice(1);
-    const r = { hoje: renderHome, praticar: renderPractice, progresso: renderProgress, curriculo: renderCurriculum, mais: renderMore, calendario: renderCalendar, metodo: renderMethod, dados: renderData, vocabulario: renderVocab, ajustes: renderSettings }[h] || renderHome;
+    const r = { sync: renderSync, hoje: renderHome, praticar: renderPractice, progresso: renderProgress, curriculo: renderCurriculum, mais: renderMore, calendario: renderCalendar, metodo: renderMethod, dados: renderData, vocabulario: renderVocab, ajustes: renderSettings }[h] || renderHome;
     r();
   }
 
@@ -227,7 +300,7 @@
     const nav = $('nav.tabs'); if (nav) nav.classList.add('hide');
     const D = { name: 'Rick', prior: 'zero', minutes: 20, days: [1, 2, 3, 4, 5], goals: [], pref: 'equilibrado', focus: 20 };
     const chips = (key, opts, multi) => `<div class="chips" data-k="${key}">${opts.map(([v, l]) => `<button class="chip" data-v="${v}">${l}</button>`).join('')}</div>`;
-    app().innerHTML = `<header class="top"><div class="brand">Deutsch mit Plan<small>Diagnóstico inicial · ~2 min</small></div></header>${installCardHtml()}
+    app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">Deutsch mit Plan<small>Diagnóstico inicial · ~2 min</small></div></header>${installCardHtml()}
     <div class="card"><h2>Vamos configurar seu professor</h2><p class="mut small">Só o necessário para montar o plano. Tudo pode ser mudado depois. Seu progresso fica salvo num banco de dados seu, independente da IA usada.</p>
     <h3>Como quer ser chamado?</h3><input type="text" id="o-name" value="${esc(D.name)}">
     <h3>Seu contato com alemão até hoje</h3>${chips('prior', [['zero', 'Nunca estudei'], ['words', 'Sei algumas palavras'], ['some', 'Já estudei um pouco']])}
@@ -236,13 +309,15 @@
     <h3>Para que você quer o alemão? <span class="mut small">(marque quantos quiser)</span></h3>${chips('goals', [['viagem', 'Viagens'], ['trabalho', 'Trabalho'], ['morar', 'Morar num país germanófono'], ['exame', 'Goethe-Zertifikat'], ['estudo', 'Estudar'], ['midia', 'Filmes, séries, livros'], ['pessoas', 'Amigos ou família']], true)}
     <h3>O que você quer priorizar?</h3>${chips('pref', [['fala', 'Falar'], ['escuta', 'Entender ouvindo'], ['escrita', 'Ler e escrever'], ['equilibrado', 'Equilibrado']])}
     <h3>Quanto tempo você mantém a concentração sem pausa?</h3>${chips('focus', [[10, '~10 min'], [20, '~20 min'], [30, '30 min ou mais']])}
-    <div style="height:14px"></div><button class="btn pri big" id="o-go">Continuar</button></div>`;
+    <div style="height:14px"></div><button class="btn pri big" id="o-go">Continuar</button>
+    ${GF.sync && GF.sync.available() ? '<button class="btn ghost big" id="o-sync" style="margin-top:6px">Já estudo em outro aparelho → sincronizar</button>' : ''}</div>`;
     const sync = () => $$('.chips').forEach((c) => { const k = c.dataset.k; $$('.chip', c).forEach((b) => { const v = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v; b.classList.toggle('on', Array.isArray(D[k]) ? D[k].includes(v) : D[k] === v); }); });
     $$('.chips').forEach((c) => c.addEventListener('click', (e) => {
       const b = e.target.closest('.chip'); if (!b) return; const k = c.dataset.k; const v = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v;
       if (Array.isArray(D[k])) D[k] = D[k].includes(v) ? D[k].filter((x) => x !== v) : D[k].concat(v); else D[k] = v; sync();
     }));
     sync(); bindInstall();
+    const os = $('#o-sync'); if (os) os.onclick = () => renderSync();
     $('#o-go').onclick = () => {
       D.name = $('#o-name').value.trim() || 'Aluno';
       if (!D.days.length) return toast('Escolha ao menos um dia.');
@@ -394,6 +469,7 @@
     M.adapt(S.st, t);
     S.session = null;
     await commit({ profile: true, day: true });
+    autoSync('fim da sessão');
     const mins = Math.round((t - s.started) / 60000);
     app().innerHTML = `<header class="top"><div class="brand">${quit ? 'Sessão interrompida' : 'Sessão concluída'}</div><span id="savestate" class="pill"></span></header>
     <div class="card"><h2>${quit ? 'Tudo que você fez foi salvo.' : 'Bom trabalho!'}</h2>
@@ -990,6 +1066,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
     shell('mais', `<div class="card"><a class="btn big" href="#calendario" style="display:block;text-align:left;margin-bottom:8px">📅 Calendário e previsão de revisões</a>
       <a class="btn big" href="#metodo" style="display:block;text-align:left;margin-bottom:8px">🔬 Método, evidências e referências</a>
       <a class="btn big" href="#dados" style="display:block;text-align:left;margin-bottom:8px">💾 Dados, backup e restauração</a>
+      <a class="btn big" href="#sync" style="display:block;text-align:left;margin-bottom:8px">🔄 Sincronizar entre aparelhos${syncBadge()}</a>
       <a class="btn big" href="#ajustes" style="display:block;text-align:left">⚙️ Ajustes</a></div>
       <div class="card small"><b>O que funciona aqui</b><ul class="list">
         <li>Armazenamento: ${{ db: '✅ banco na nuvem do Claude (privado)', native: '✅ arquivo no seu PC, com cópias automáticas', device: '✅ neste aparelho (exporte backups de vez em quando)', local: '⚠️ banco indisponível — usando o navegador (pode ser perdido)' }[S.mode]}</li>
@@ -1005,8 +1082,9 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
     const t = now(), st = S.st, p = st.profile;
     const fc = M.forecast(st, t, 14); const mx = Math.max(1, ...fc.map((d) => d.n));
     const wd = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-    const cells = []; for (let i = 27; i >= 0; i--) { const k = M.dayKey(t - i * 86400000); const d = st.days[k]; const m = d ? d.minutes : 0; cells.push(`<div class="cell ${m >= 20 ? 'l3' : m >= 10 ? 'l2' : m > 0 ? 'l1' : ''}" title="${k}: ${m.toFixed ? m.toFixed(0) : m} min">${new Date(t - i * 86400000).getDate()}</div>`); }
-    const weekMin = Object.values(st.days).filter((d) => t - new Date(d.date + 'T12:00:00').getTime() < 7 * 86400000).reduce((a, d) => a + d.minutes, 0);
+    const AD = M.allDays(st);
+    const cells = []; for (let i = 27; i >= 0; i--) { const k = M.dayKey(t - i * 86400000); const d = AD[k]; const m = d ? d.minutes : 0; cells.push(`<div class="cell ${m >= 20 ? 'l3' : m >= 10 ? 'l2' : m > 0 ? 'l1' : ''}" title="${k}: ${m.toFixed ? m.toFixed(0) : m} min">${new Date(t - i * 86400000).getDate()}</div>`); }
+    const weekMin = Object.values(AD).filter((d) => t - new Date(d.date + 'T12:00:00').getTime() < 7 * 86400000).reduce((a, d) => a + d.minutes, 0);
     const goal = p.diag.minutes * p.diag.days.length;
     shell('mais', `<div class="card"><h2>Esta semana</h2><p>${Math.round(weekMin)} de ${goal} min planejados</p><div class="prog"><i style="width:${Math.min(100, 100 * weekMin / goal)}%"></i></div>
       <p class="small mut">Dias planejados: ${p.diag.days.map((d) => wd[d]).join(', ')}. Perdeu um dia? Nada é cobrado em dobro: o FSRS só reprioriza.</p></div>

@@ -12,6 +12,14 @@
 
   const dayKey = (t) => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 
+  /** Dias de estudo de TODOS os aparelhos (próprios + sincronizados), somados por data. */
+  function allDays(state) {
+    const out = {};
+    const add = (d) => { if (!d || !d.date) return; const o = out[d.date] || (out[d.date] = { date: d.date }); for (const [k, v] of Object.entries(d)) if (typeof v === 'number') o[k] = (o[k] || 0) + v; };
+    for (const d of Object.values(state.days || {})) add(d);
+    for (const e of Object.values(state.ext || {})) for (const d of Object.values(e.days || {})) add(d);
+    return out;
+  }
   function newProfile(now) {
     return {
       schema: 1, createdAt: now, name: '', diag: null,
@@ -162,7 +170,7 @@
   /** Adaptação da quantidade de conteúdo novo (registrada com motivo). */
   function adapt(state, now) {
     const p = state.profile;
-    const days = Object.values(state.days).filter((d) => now - new Date(d.date + 'T12:00:00').getTime() <= 7 * DAY);
+    const days = Object.values(allDays(state)).filter((d) => now - new Date(d.date + 'T12:00:00').getTime() <= 7 * DAY);
     const n = days.reduce((s, d) => s + d.reviews, 0), ok = days.reduce((s, d) => s + d.correct, 0);
     const backlog = dueList(state, now).length;
     const old = p.settings.newPerDay;
@@ -288,7 +296,7 @@
   }
 
   function streak(state, now) {
-    const set = new Set(Object.values(state.days).filter((d) => d.minutes > 0 || d.reviews > 0 || d.newItems > 0).map((d) => d.date));
+    const set = new Set(Object.values(allDays(state)).filter((d) => d.minutes > 0 || d.reviews > 0 || d.newItems > 0).map((d) => d.date));
     let n = 0; let t = now;
     if (!set.has(dayKey(t))) t -= DAY; // hoje ainda pode ser feito
     while (set.has(dayKey(t))) { n++; t -= DAY; }
@@ -300,7 +308,7 @@
     const cards = Object.values(state.cards).filter((c) => GF.content.items[c.id]);
     const m = cards.map((c) => mastery(c, now));
     const retained = cards.filter((c) => c.stages.recall.reps > 0 && fsrs.currentR(c.stages.recall, now) >= 0.9).length;
-    const days = Object.values(state.days);
+    const days = Object.values(allDays(state));
     const sum = (k) => days.reduce((s, d) => s + (d[k] || 0), 0);
     const recentDays = days.filter((d) => now - new Date(d.date + 'T12:00:00').getTime() <= 7 * DAY);
     const rs = (k) => recentDays.reduce((s, d) => s + (d[k] || 0), 0);
@@ -310,7 +318,7 @@
       recalledPlus: m.filter((x) => x >= 2).length,
       retained,
       forgetting: cards.filter((c) => forgetting(c, now)).map((c) => c.id),
-      minutes: sum('minutes'), sessions: state.profile.sessions || 0,
+      minutes: sum('minutes'), sessions: Math.max(sum('sessions'), state.profile.sessions || 0),
       acc7: rs('shortN') + rs('longN') ? (rs('shortOk') + rs('longOk')) / (rs('shortN') + rs('longN')) : null,
       longRet: sum('longN') ? sum('longOk') / sum('longN') : null, longN: sum('longN'),
       shortAcc: sum('shortN') ? sum('shortOk') / sum('shortN') : null,
@@ -333,5 +341,5 @@
     return hits;
   }
 
-  GF.model = { STAGES, STAGE_PT, SKILLS, SKILL_PT, MASTERY_PT, dayKey, newProfile, newCard, stagesFor, stageUnlocked, mastery, forgetting, recordAnswer, unitStatus, checkpointPass, currentUnit, estimateLevel, adapt, dueList, buildSession, forecast, streak, stats, recentRate, spontaneousHits, EST };
+  GF.model = { allDays, STAGES, STAGE_PT, SKILLS, SKILL_PT, MASTERY_PT, dayKey, newProfile, newCard, stagesFor, stageUnlocked, mastery, forgetting, recordAnswer, unitStatus, checkpointPass, currentUnit, estimateLevel, adapt, dueList, buildSession, forecast, streak, stats, recentRate, spontaneousHits, EST };
 })(globalThis.GF = globalThis.GF || {});

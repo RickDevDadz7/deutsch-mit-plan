@@ -52,17 +52,18 @@
   }
   Store.prototype.load = async function (now) {
     const b = this.b, M = GF.model;
-    const st = { profile: null, cards: {}, mistakes: {}, days: {}, assess: [], integrity: { dropped: 0 } };
+    const st = { profile: null, cards: {}, mistakes: {}, days: {}, assess: [], ext: {}, integrity: { dropped: 0 } };
     st.profile = await b.get('profile');
     if (st.profile && st.profile.schema !== SCHEMA) this.log('warn', 'schema diferente: ' + st.profile.schema);
     const levels = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-    const lists = await Promise.all([...levels.map((l) => b.list('srs/' + l)), b.list('mistakes/m'), b.list('days/' + new Date(now).getFullYear()), b.list('days/' + (new Date(now).getFullYear() - 1)), b.list('assess/a')]);
+    const lists = await Promise.all([...levels.map((l) => b.list('srs/' + l)), b.list('mistakes/m'), b.list('days/' + new Date(now).getFullYear()), b.list('days/' + (new Date(now).getFullYear() - 1)), b.list('assess/a'), b.list('ext/d')]);
     for (let i = 0; i < levels.length; i++) for (const { data } of lists[i]) {
       if (validCard(data)) st.cards[data.id] = data; else st.integrity.dropped++;
     }
     for (const { data } of lists[levels.length]) if (data && data.key) st.mistakes[data.key] = data;
     for (const { data } of [...lists[levels.length + 1], ...lists[levels.length + 2]]) if (data && data.date) st.days[data.date] = data;
     st.assess = lists[levels.length + 3].map((x) => x.data).filter(Boolean).sort((a, b) => a.at - b.at);
+    for (const { data } of lists[levels.length + 4]) if (data && data.id) st.ext[data.id] = data;
     if (!st.profile) st.profile = M.newProfile(now);
     // migrações leves
     st.profile.pronStats = st.profile.pronStats || { pairs: [], done: {} };
@@ -94,7 +95,8 @@
     this.tail[path] = entry.promise;
     return entry.promise;
   };
-  Store.prototype.saveProfile = function () { return this._write('profile', this.state.profile); };
+  Store.prototype.saveProfile = function (o) { if (!(o && o.keepStamp)) this.state.profile._u = Date.now(); return this._write('profile', this.state.profile); };
+  Store.prototype.saveExt = function (id) { return this._write('ext/d/' + safeId(id), this.state.ext[id]); };
   Store.prototype.saveCard = function (id) { const c = this.state.cards[id]; return this._write('srs/' + (c.level || 'A1') + '/' + safeId(id), c); };
   Store.prototype.saveMistake = function (key) { return this._write('mistakes/m/' + safeId(key), this.state.mistakes[key]); };
   Store.prototype.saveDay = function (date) { return this._write('days/' + date.slice(0, 4) + '/' + date, this.state.days[date]); };
@@ -112,7 +114,7 @@
   /* ---------- Backup / restauração ---------- */
   Store.prototype.exportData = function (now) {
     const s = this.state;
-    const data = { profile: s.profile, cards: Object.values(s.cards), mistakes: Object.values(s.mistakes), days: Object.values(s.days), assess: s.assess };
+    const data = { profile: s.profile, cards: Object.values(s.cards), mistakes: Object.values(s.mistakes), days: Object.values(s.days), assess: s.assess, ext: Object.values(s.ext || {}) };
     return { app: 'german-fluency-system', schema: SCHEMA, contentVersion: GF.content.version, exportedAt: now, checksum: fnv(stable(data)), data };
   };
   function validateBackup(obj) {
@@ -127,7 +129,8 @@
   Store.prototype.importData = async function (obj) {
     const err = validateBackup(obj); if (err) throw new Error(err);
     const d = obj.data;
-    const st = { profile: d.profile, cards: {}, mistakes: {}, days: {}, assess: d.assess || [], integrity: { dropped: 0 } };
+    const st = { profile: d.profile, cards: {}, mistakes: {}, days: {}, assess: d.assess || [], ext: {}, integrity: { dropped: 0 } };
+    for (const e of d.ext || []) st.ext[e.id] = e;
     for (const c of d.cards) st.cards[c.id] = c;
     for (const m of d.mistakes || []) st.mistakes[m.key] = m;
     for (const x of d.days || []) st.days[x.date] = x;
@@ -137,6 +140,7 @@
     for (const k of Object.keys(st.mistakes)) ps.push(this.saveMistake(k));
     for (const k of Object.keys(st.days)) ps.push(this.saveDay(k));
     for (const a of st.assess) ps.push(this.saveAssess(a));
+    for (const k of Object.keys(st.ext)) ps.push(this.saveExt(k));
     const res = await Promise.allSettled(ps);
     const failed = res.filter((r) => r.status === 'rejected').length;
     if (failed) throw new Error(failed + ' documentos não puderam ser gravados.');

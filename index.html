@@ -18,7 +18,7 @@ nav.tabs a{flex:1;max-width:150px;text-align:center;padding:9px 4px 10px;color:v
 nav.tabs a b{display:block;font-size:19px;line-height:1.2;font-weight:400}nav.tabs a.on{color:var(--acc);font-weight:600}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:0 0 12px;box-shadow:var(--sh)}
 .card h2{margin:0 0 6px;font-size:18px;letter-spacing:-.01em}.card h3{margin:14px 0 6px;font-size:15px}
-.mut{color:var(--mut)}.small{font-size:13px}.tiny{font-size:12px}.center{text-align:center}
+.mut{color:var(--mut)}.small{font-size:14.5px}.tiny{font-size:13px}.center{text-align:center}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.grow{flex:1}.sp{justify-content:space-between}
 .btn{border:1px solid var(--line);background:var(--card);border-radius:11px;padding:10px 15px;cursor:pointer;min-height:44px}
 .btn.pri{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}.btn.big{width:100%;padding:14px;font-size:17px}
@@ -60,6 +60,13 @@ details{border-top:1px solid var(--line);padding:8px 0}details summary{cursor:po
 .ev-A{background:var(--okb);color:var(--ok)}.ev-B{background:var(--acc2);color:var(--acc)}.ev-C{background:var(--warnb);color:var(--warn)}
 .mic.on{background:var(--bad);color:#fff}
 a.btn{color:inherit;text-decoration:none}
+
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}body{overflow-x:hidden}
+img,svg,table,input,textarea,select{max-width:100%}td,th,p,li,summary,.bubble{overflow-wrap:anywhere}
+.row>*{min-width:0}
+input[type=text],textarea,select{font-size:17px}
+@media (max-width:480px){#app{padding:10px 12px 96px}.card{padding:14px}.de{font-size:28px}.bar{grid-template-columns:minmax(0,42%) 1fr 42px}.kpi b{font-size:21px}.chip{padding:9px 14px}.btn{min-height:46px}.step-k{font-size:12.5px}}
+.desk-warn{background:var(--warnb);color:var(--warn);border-radius:12px;padding:12px 14px;margin:0 0 12px;font-size:28px;line-height:1.4}
 </style></head><body><div id="app"></div>
 <script>/* FSRS-5 — Free Spaced Repetition Scheduler (Ye et al.; open-spaced-repetition).
  * Implementação própria, sem dependências, seguindo as fórmulas públicas do FSRS-5
@@ -720,6 +727,14 @@ a.btn{color:inherit;text-decoration:none}
 
   const dayKey = (t) => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 
+  /** Dias de estudo de TODOS os aparelhos (próprios + sincronizados), somados por data. */
+  function allDays(state) {
+    const out = {};
+    const add = (d) => { if (!d || !d.date) return; const o = out[d.date] || (out[d.date] = { date: d.date }); for (const [k, v] of Object.entries(d)) if (typeof v === 'number') o[k] = (o[k] || 0) + v; };
+    for (const d of Object.values(state.days || {})) add(d);
+    for (const e of Object.values(state.ext || {})) for (const d of Object.values(e.days || {})) add(d);
+    return out;
+  }
   function newProfile(now) {
     return {
       schema: 1, createdAt: now, name: '', diag: null,
@@ -870,7 +885,7 @@ a.btn{color:inherit;text-decoration:none}
   /** Adaptação da quantidade de conteúdo novo (registrada com motivo). */
   function adapt(state, now) {
     const p = state.profile;
-    const days = Object.values(state.days).filter((d) => now - new Date(d.date + 'T12:00:00').getTime() <= 7 * DAY);
+    const days = Object.values(allDays(state)).filter((d) => now - new Date(d.date + 'T12:00:00').getTime() <= 7 * DAY);
     const n = days.reduce((s, d) => s + d.reviews, 0), ok = days.reduce((s, d) => s + d.correct, 0);
     const backlog = dueList(state, now).length;
     const old = p.settings.newPerDay;
@@ -996,7 +1011,7 @@ a.btn{color:inherit;text-decoration:none}
   }
 
   function streak(state, now) {
-    const set = new Set(Object.values(state.days).filter((d) => d.minutes > 0 || d.reviews > 0 || d.newItems > 0).map((d) => d.date));
+    const set = new Set(Object.values(allDays(state)).filter((d) => d.minutes > 0 || d.reviews > 0 || d.newItems > 0).map((d) => d.date));
     let n = 0; let t = now;
     if (!set.has(dayKey(t))) t -= DAY; // hoje ainda pode ser feito
     while (set.has(dayKey(t))) { n++; t -= DAY; }
@@ -1008,7 +1023,7 @@ a.btn{color:inherit;text-decoration:none}
     const cards = Object.values(state.cards).filter((c) => GF.content.items[c.id]);
     const m = cards.map((c) => mastery(c, now));
     const retained = cards.filter((c) => c.stages.recall.reps > 0 && fsrs.currentR(c.stages.recall, now) >= 0.9).length;
-    const days = Object.values(state.days);
+    const days = Object.values(allDays(state));
     const sum = (k) => days.reduce((s, d) => s + (d[k] || 0), 0);
     const recentDays = days.filter((d) => now - new Date(d.date + 'T12:00:00').getTime() <= 7 * DAY);
     const rs = (k) => recentDays.reduce((s, d) => s + (d[k] || 0), 0);
@@ -1018,7 +1033,7 @@ a.btn{color:inherit;text-decoration:none}
       recalledPlus: m.filter((x) => x >= 2).length,
       retained,
       forgetting: cards.filter((c) => forgetting(c, now)).map((c) => c.id),
-      minutes: sum('minutes'), sessions: state.profile.sessions || 0,
+      minutes: sum('minutes'), sessions: Math.max(sum('sessions'), state.profile.sessions || 0),
       acc7: rs('shortN') + rs('longN') ? (rs('shortOk') + rs('longOk')) / (rs('shortN') + rs('longN')) : null,
       longRet: sum('longN') ? sum('longOk') / sum('longN') : null, longN: sum('longN'),
       shortAcc: sum('shortN') ? sum('shortOk') / sum('shortN') : null,
@@ -1041,7 +1056,7 @@ a.btn{color:inherit;text-decoration:none}
     return hits;
   }
 
-  GF.model = { STAGES, STAGE_PT, SKILLS, SKILL_PT, MASTERY_PT, dayKey, newProfile, newCard, stagesFor, stageUnlocked, mastery, forgetting, recordAnswer, unitStatus, checkpointPass, currentUnit, estimateLevel, adapt, dueList, buildSession, forecast, streak, stats, recentRate, spontaneousHits, EST };
+  GF.model = { allDays, STAGES, STAGE_PT, SKILLS, SKILL_PT, MASTERY_PT, dayKey, newProfile, newCard, stagesFor, stageUnlocked, mastery, forgetting, recordAnswer, unitStatus, checkpointPass, currentUnit, estimateLevel, adapt, dueList, buildSession, forecast, streak, stats, recentRate, spontaneousHits, EST };
 })(globalThis.GF = globalThis.GF || {});
 
 ;
@@ -1099,17 +1114,18 @@ a.btn{color:inherit;text-decoration:none}
   }
   Store.prototype.load = async function (now) {
     const b = this.b, M = GF.model;
-    const st = { profile: null, cards: {}, mistakes: {}, days: {}, assess: [], integrity: { dropped: 0 } };
+    const st = { profile: null, cards: {}, mistakes: {}, days: {}, assess: [], ext: {}, integrity: { dropped: 0 } };
     st.profile = await b.get('profile');
     if (st.profile && st.profile.schema !== SCHEMA) this.log('warn', 'schema diferente: ' + st.profile.schema);
     const levels = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-    const lists = await Promise.all([...levels.map((l) => b.list('srs/' + l)), b.list('mistakes/m'), b.list('days/' + new Date(now).getFullYear()), b.list('days/' + (new Date(now).getFullYear() - 1)), b.list('assess/a')]);
+    const lists = await Promise.all([...levels.map((l) => b.list('srs/' + l)), b.list('mistakes/m'), b.list('days/' + new Date(now).getFullYear()), b.list('days/' + (new Date(now).getFullYear() - 1)), b.list('assess/a'), b.list('ext/d')]);
     for (let i = 0; i < levels.length; i++) for (const { data } of lists[i]) {
       if (validCard(data)) st.cards[data.id] = data; else st.integrity.dropped++;
     }
     for (const { data } of lists[levels.length]) if (data && data.key) st.mistakes[data.key] = data;
     for (const { data } of [...lists[levels.length + 1], ...lists[levels.length + 2]]) if (data && data.date) st.days[data.date] = data;
     st.assess = lists[levels.length + 3].map((x) => x.data).filter(Boolean).sort((a, b) => a.at - b.at);
+    for (const { data } of lists[levels.length + 4]) if (data && data.id) st.ext[data.id] = data;
     if (!st.profile) st.profile = M.newProfile(now);
     // migrações leves
     st.profile.pronStats = st.profile.pronStats || { pairs: [], done: {} };
@@ -1141,7 +1157,8 @@ a.btn{color:inherit;text-decoration:none}
     this.tail[path] = entry.promise;
     return entry.promise;
   };
-  Store.prototype.saveProfile = function () { return this._write('profile', this.state.profile); };
+  Store.prototype.saveProfile = function (o) { if (!(o && o.keepStamp)) this.state.profile._u = Date.now(); return this._write('profile', this.state.profile); };
+  Store.prototype.saveExt = function (id) { return this._write('ext/d/' + safeId(id), this.state.ext[id]); };
   Store.prototype.saveCard = function (id) { const c = this.state.cards[id]; return this._write('srs/' + (c.level || 'A1') + '/' + safeId(id), c); };
   Store.prototype.saveMistake = function (key) { return this._write('mistakes/m/' + safeId(key), this.state.mistakes[key]); };
   Store.prototype.saveDay = function (date) { return this._write('days/' + date.slice(0, 4) + '/' + date, this.state.days[date]); };
@@ -1159,7 +1176,7 @@ a.btn{color:inherit;text-decoration:none}
   /* ---------- Backup / restauração ---------- */
   Store.prototype.exportData = function (now) {
     const s = this.state;
-    const data = { profile: s.profile, cards: Object.values(s.cards), mistakes: Object.values(s.mistakes), days: Object.values(s.days), assess: s.assess };
+    const data = { profile: s.profile, cards: Object.values(s.cards), mistakes: Object.values(s.mistakes), days: Object.values(s.days), assess: s.assess, ext: Object.values(s.ext || {}) };
     return { app: 'german-fluency-system', schema: SCHEMA, contentVersion: GF.content.version, exportedAt: now, checksum: fnv(stable(data)), data };
   };
   function validateBackup(obj) {
@@ -1174,7 +1191,8 @@ a.btn{color:inherit;text-decoration:none}
   Store.prototype.importData = async function (obj) {
     const err = validateBackup(obj); if (err) throw new Error(err);
     const d = obj.data;
-    const st = { profile: d.profile, cards: {}, mistakes: {}, days: {}, assess: d.assess || [], integrity: { dropped: 0 } };
+    const st = { profile: d.profile, cards: {}, mistakes: {}, days: {}, assess: d.assess || [], ext: {}, integrity: { dropped: 0 } };
+    for (const e of d.ext || []) st.ext[e.id] = e;
     for (const c of d.cards) st.cards[c.id] = c;
     for (const m of d.mistakes || []) st.mistakes[m.key] = m;
     for (const x of d.days || []) st.days[x.date] = x;
@@ -1184,6 +1202,7 @@ a.btn{color:inherit;text-decoration:none}
     for (const k of Object.keys(st.mistakes)) ps.push(this.saveMistake(k));
     for (const k of Object.keys(st.days)) ps.push(this.saveDay(k));
     for (const a of st.assess) ps.push(this.saveAssess(a));
+    for (const k of Object.keys(st.ext)) ps.push(this.saveExt(k));
     const res = await Promise.allSettled(ps);
     const failed = res.filter((r) => r.status === 'rejected').length;
     if (failed) throw new Error(failed + ' documentos não puderam ser gravados.');
@@ -1380,6 +1399,228 @@ a.btn{color:inherit;text-decoration:none}
   }
 
   GF.local = { isElectron, aiSettings, saveAiSettings, makeSample, testKey, makeDictation, makeDownloads, NativeBackend };
+})(globalThis.GF = globalThis.GF || {});
+
+;
+/* Sincronização entre aparelhos via Gist SECRETO do GitHub do próprio usuário.
+ * - Cada aparelho grava só o PRÓPRIO arquivo (device-<id>.enc): não há escrita concorrente.
+ * - Conteúdo comprimido e criptografado (AES-GCM 256, chave PBKDF2 da senha de sincronização).
+ * - Ao sincronizar, cada aparelho MESCLA o dos outros: nada é sobrescrito às cegas.
+ * Funções de mesclagem são puras e testadas. */
+(function (GF) {
+  'use strict';
+  const DESC = 'Deutsch mit Plan — sincronização (criptografado)';
+  const CFG = 'gfs-sync';
+  const API = 'https://api.github.com';
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  const same = (a, b) => GF.store.stable(a) === GF.store.stable(b);
+  const ls = () => { try { return globalThis.localStorage; } catch (e) { return null; } };
+
+  /* ---------- configuração (só neste aparelho; nunca entra em backups) ---------- */
+  function cfg() { try { return JSON.parse(ls().getItem(CFG) || '{}'); } catch (e) { return {}; } }
+  function saveCfg(c) { try { ls().setItem(CFG, JSON.stringify(c)); } catch (e) { /* */ } }
+  function deviceId() {
+    const c = cfg(); if (c.deviceId) return c.deviceId;
+    const id = 'd' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+    c.deviceId = id; saveCfg(c); return id;
+  }
+
+  /* ---------- criptografia ---------- */
+  const b64 = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+  const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  async function gzip(str) {
+    const data = new TextEncoder().encode(str);
+    if (typeof CompressionStream === 'undefined') return { z: 0, bytes: data };
+    const cs = new Blob([data]).stream().pipeThrough(new CompressionStream('gzip'));
+    return { z: 1, bytes: new Uint8Array(await new Response(cs).arrayBuffer()) };
+  }
+  async function gunzip(bytes, z) {
+    if (!z) return new TextDecoder().decode(bytes);
+    const ds = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return await new Response(ds).text();
+  }
+  async function deriveKey(pass, saltB64) {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: unb64(saltB64), iterations: 150000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  }
+  async function encrypt(key, obj) {
+    const { z, bytes } = await gzip(JSON.stringify(obj));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, bytes));
+    return { z, iv: b64(iv), ct: b64(ct) };
+  }
+  async function decrypt(key, box) {
+    let pt;
+    try { pt = new Uint8Array(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(box.iv) }, key, unb64(box.ct))); }
+    catch (e) { const er = new Error('Senha de sincronização diferente da usada no outro aparelho.'); er.code = 'bad_password'; throw er; }
+    return JSON.parse(await gunzip(pt, box.z));
+  }
+
+  /* ---------- mesclagem (pura) ---------- */
+  function mergeStage(a, b) {
+    if (!a) return b; if (!b) return a;
+    if ((b.last || 0) > (a.last || 0)) return b;
+    if ((b.last || 0) === (a.last || 0) && (b.reps || 0) > (a.reps || 0)) return b;
+    return a;
+  }
+  function mergeCard(L, R) {
+    if (!R) return { v: L, changed: false };
+    if (!L) return { v: clone(R), changed: true };
+    const out = clone(L);
+    for (const st of Object.keys(Object.assign({}, L.stages, R.stages))) out.stages[st] = clone(mergeStage(L.stages[st], R.stages[st]));
+    for (const k of ['attempts', 'correct', 'msSum', 'msN', 'spont']) out[k] = Math.max(L[k] || 0, R[k] || 0);
+    out.introduced = Math.min(L.introduced || Infinity, R.introduced || Infinity);
+    if (L.spaced || R.spaced) { const sp = Object.assign({}, L.spaced || {}); for (const [k, v] of Object.entries(R.spaced || {})) sp[k] = Math.max(sp[k] || 0, v); out.spaced = sp; }
+    const seen = new Set(); out.errors = [...(L.errors || []), ...(R.errors || [])].filter((e) => { const k = e.t + e.stage; if (seen.has(k)) return false; seen.add(k); return true; }).sort((a, b) => a.t - b.t).slice(-10);
+    return { v: out, changed: !same(out, L) };
+  }
+  function mergeMistake(L, R) {
+    if (!R) return { v: L, changed: false };
+    if (!L) return { v: clone(R), changed: true };
+    const newer = (R.lastAt || 0) > (L.lastAt || 0) ? R : L;
+    const out = Object.assign(clone(newer), { count: Math.max(L.count || 0, R.count || 0) });
+    return { v: out, changed: !same(out, L) };
+  }
+  const longer = (a, b) => ((b || []).length > (a || []).length ? clone(b) : clone(a || []));
+  function mergeUnit(a, b) {
+    if (!a) return clone(b); if (!b) return clone(a);
+    const o = Object.assign(clone(a), {});
+    o.passed = a.passed && b.passed ? Math.min(a.passed, b.passed) : (a.passed || b.passed || undefined);
+    if (!o.passed) delete o.passed;
+    o.convos = Math.max(a.convos || 0, b.convos || 0);
+    o.listen = longer(a.listen, b.listen);
+    o.grammarSeen = Object.assign({}, a.grammarSeen || {}, b.grammarSeen || {});
+    o.dialogHeard = Math.max(a.dialogHeard || 0, b.dialogHeard || 0) || undefined; if (!o.dialogHeard) delete o.dialogHeard;
+    const w = [a.writing, b.writing].filter(Boolean).sort((x, y) => (y.score - x.score) || (y.at - x.at))[0]; if (w) o.writing = clone(w);
+    const cp = [a.checkpoint, b.checkpoint].filter(Boolean).sort((x, y) => y.at - x.at)[0]; if (cp) o.checkpoint = clone(cp);
+    const lc = [a.lastConvo, b.lastConvo].filter(Boolean).sort((x, y) => y.at - x.at)[0]; if (lc) o.lastConvo = clone(lc);
+    return o;
+  }
+  function mergeProfile(L, R) {
+    if (!R) return { v: L, changed: false };
+    if (!L || !L.diag) return { v: clone(R), changed: true }; // aparelho novo: adota o perfil existente
+    if (!R.diag) return { v: L, changed: false };
+    const base = clone((R._u || 0) > (L._u || 0) ? R : L);
+    const us = {}; for (const k of new Set([...Object.keys(L.unitState || {}), ...Object.keys(R.unitState || {})])) us[k] = mergeUnit((L.unitState || {})[k], (R.unitState || {})[k]);
+    base.unitState = us;
+    const gs = {}; for (const k of new Set([...Object.keys(L.grammarStats || {}), ...Object.keys(R.grammarStats || {})])) gs[k] = longer((L.grammarStats || {})[k], (R.grammarStats || {})[k]);
+    base.grammarStats = gs;
+    const ss = {};
+    for (const k of new Set([...Object.keys(L.skillStats || {}), ...Object.keys(R.skillStats || {})])) {
+      const seen = new Set();
+      ss[k] = [...((L.skillStats || {})[k] || []), ...((R.skillStats || {})[k] || [])].filter((x) => { const key = x.t + ':' + x.v; if (seen.has(key)) return false; seen.add(key); return true; }).sort((a, b) => a.t - b.t).slice(-50);
+    }
+    base.skillStats = ss;
+    const Lp = L.pronStats || { pairs: [], done: {} }, Rp = R.pronStats || { pairs: [], done: {} };
+    const done = Object.assign({}, Rp.done || {}); for (const [k, v] of Object.entries(Lp.done || {})) done[k] = done[k] ? Math.min(done[k], v) : v;
+    base.pronStats = { pairs: longer(Lp.pairs, Rp.pairs), done };
+    const ad = new Map(); for (const a of [...(L.adapt || []), ...(R.adapt || [])]) ad.set(a.t + ':' + a.to, a); base.adapt = [...ad.values()].sort((a, b) => a.t - b.t).slice(-30);
+    base.lastSessionAt = Math.max(L.lastSessionAt || 0, R.lastSessionAt || 0);
+    base.placement = L.placement || R.placement || null;
+    base.createdAt = Math.min(L.createdAt || Infinity, R.createdAt || Infinity);
+    base._u = Math.max(L._u || 0, R._u || 0);
+    return { v: base, changed: !same(base, L) };
+  }
+  /** Mescla o pacote de outro aparelho no estado local. Retorna o que mudou. */
+  function mergeRemote(state, remote, remoteDevice) {
+    const t = { profile: false, cards: [], mistakes: [], assess: [], ext: false };
+    const p = mergeProfile(state.profile, remote.profile); if (p.changed) { state.profile = p.v; t.profile = true; }
+    for (const rc of remote.cards || []) { const r = mergeCard(state.cards[rc.id], rc); if (r.changed) { state.cards[rc.id] = r.v; t.cards.push(rc.id); } }
+    for (const rm of remote.mistakes || []) { const r = mergeMistake(state.mistakes[rm.key], rm); if (r.changed) { state.mistakes[rm.key] = r.v; t.mistakes.push(rm.key); } }
+    const have = new Set((state.assess || []).map((a) => a.id));
+    for (const a of remote.assess || []) if (!have.has(a.id)) { state.assess.push(clone(a)); t.assess.push(a); }
+    state.assess.sort((a, b) => a.at - b.at);
+    // dias de estudo ficam separados por aparelho (somados nas estatísticas, nunca duplicados)
+    state.ext = state.ext || {};
+    const prev = state.ext[remoteDevice.id];
+    const nx = { id: remoteDevice.id, name: remoteDevice.name, at: remoteDevice.at, days: clone(remote.days || {}) };
+    if (!prev || !same(prev, nx)) { state.ext[remoteDevice.id] = nx; t.ext = true; }
+    return t;
+  }
+
+  /* ---------- API do GitHub ---------- */
+  async function gh(token, path, opts) {
+    const r = await fetch(API + path, Object.assign({}, opts, { headers: Object.assign({ Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }, (opts || {}).body ? { 'Content-Type': 'application/json' } : {}) }));
+    if (r.status === 401) { const e = new Error('Token do GitHub inválido ou expirado.'); e.code = 'bad_token'; throw e; }
+    if (r.status === 403 || r.status === 404) { const e = new Error('O token não tem permissão de Gist (marque “gist” ao criar).'); e.code = 'no_scope'; throw e; }
+    if (!r.ok) { const e = new Error('GitHub respondeu ' + r.status); e.code = 'unavailable'; throw e; }
+    return r.status === 204 ? null : r.json();
+  }
+  async function fileContent(f) {
+    if (!f.truncated && f.content != null) return f.content;
+    const r = await fetch(f.raw_url); if (!r.ok) throw new Error('falha ao baixar ' + f.filename); return r.text();
+  }
+  async function findOrCreateGist(token) {
+    const c = cfg();
+    if (c.gistId) { try { return await gh(token, '/gists/' + c.gistId); } catch (e) { if (e.code !== 'no_scope') throw e; } }
+    for (let page = 1; page <= 5; page++) {
+      const list = await gh(token, '/gists?per_page=100&page=' + page);
+      const hit = list.find((g) => g.description === DESC);
+      if (hit) { c.gistId = hit.id; saveCfg(c); return gh(token, '/gists/' + hit.id); }
+      if (list.length < 100) break;
+    }
+    const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+    const g = await gh(token, '/gists', { method: 'POST', body: JSON.stringify({ description: DESC, public: false, files: {
+      'meta.json': { content: JSON.stringify({ app: 'german-fluency-system', v: 1, salt }) },
+      'LEIA-ME.md': { content: 'Dados de estudo do app Deutsch mit Plan, criptografados (AES-GCM). Não edite: cada aparelho grava o próprio arquivo device-*.enc.\n' } } }) });
+    c.gistId = g.id; saveCfg(c); return g;
+  }
+
+  /* ---------- execução ---------- */
+  let running = null, keyCache = null;
+  async function run(store, opts) {
+    if (running) return running;
+    running = (async () => {
+      const c = cfg(); if (!c.token || !c.pass) throw Object.assign(new Error('Sincronização não configurada.'), { code: 'off' });
+      const now = Date.now(), me = deviceId();
+      const gist = await findOrCreateGist(c.token);
+      const meta = JSON.parse(await fileContent(gist.files['meta.json']));
+      if (!keyCache || keyCache.salt !== meta.salt || keyCache.pass !== c.pass) keyCache = { salt: meta.salt, pass: c.pass, key: await deriveKey(c.pass, meta.salt) };
+      const key = keyCache.key;
+      const st = store.state; const devices = [];
+      const touched = { profile: false, cards: [], mistakes: [], assess: [], ext: [] };
+      for (const [name, f] of Object.entries(gist.files)) {
+        const m = /^device-(.+)\.enc$/.exec(name); if (!m) continue;
+        const wrap = JSON.parse(await fileContent(f));
+        devices.push({ id: wrap.deviceId, name: wrap.name, at: wrap.at, me: wrap.deviceId === me });
+        if (wrap.deviceId === me) continue;
+        const data = await decrypt(key, wrap.box);
+        const t = mergeRemote(st, data, { id: wrap.deviceId, name: wrap.name, at: wrap.at });
+        if (t.profile) touched.profile = true;
+        touched.cards.push(...t.cards); touched.mistakes.push(...t.mistakes); touched.assess.push(...t.assess); if (t.ext) touched.ext.push(wrap.deviceId);
+      }
+      // grava localmente o que veio dos outros
+      const ps = [];
+      if (touched.profile) ps.push(store.saveProfile({ keepStamp: true }));
+      for (const id of new Set(touched.cards)) ps.push(store.saveCard(id));
+      for (const k of new Set(touched.mistakes)) ps.push(store.saveMistake(k));
+      for (const a of touched.assess) ps.push(store.saveAssess(a));
+      for (const d of touched.ext) ps.push(store.saveExt(d));
+      await Promise.allSettled(ps);
+      // envia o meu pacote (já mesclado; dias só os meus)
+      const mine = { profile: st.profile, cards: Object.values(st.cards), mistakes: Object.values(st.mistakes), assess: st.assess, days: st.days };
+      const box = await encrypt(key, mine);
+      const fname = 'device-' + me + '.enc';
+      const name = c.name || 'Aparelho';
+      await gh(c.token, '/gists/' + gist.id, { method: 'PATCH', body: JSON.stringify({ files: { [fname]: { content: JSON.stringify({ v: 1, deviceId: me, name, at: now, box }) } } }) });
+      if (!devices.some((d) => d.me)) devices.push({ id: me, name, at: now, me: true }); else devices.find((d) => d.me).at = now;
+      const c2 = cfg(); c2.lastSync = now; c2.lastError = null; c2.devices = devices; saveCfg(c2);
+      return { merged: touched.cards.length + touched.mistakes.length + (touched.profile ? 1 : 0) + touched.ext.length, devices };
+    })();
+    try { return await running; }
+    catch (e) { const c2 = cfg(); c2.lastError = e.message; saveCfg(c2); throw e; }
+    finally { running = null; }
+  }
+  async function setup({ token, pass, name }) {
+    if (!token || token.length < 20) throw new Error('Cole o token do GitHub.');
+    if (!pass || pass.length < 8) throw new Error('A senha precisa ter pelo menos 8 caracteres.');
+    const c = cfg(); c.token = token.trim(); c.pass = pass; c.name = (name || '').trim() || 'Aparelho'; c.gistId = null; saveCfg(c);
+    keyCache = null;
+  }
+  function disable() { const c = cfg(); saveCfg({ deviceId: c.deviceId }); keyCache = null; }
+  const available = () => typeof fetch !== 'undefined' && typeof crypto !== 'undefined' && !!crypto.subtle && !globalThis.claude;
+
+  GF.sync = { cfg, saveCfg, deviceId, setup, disable, run, available, mergeCard, mergeMistake, mergeProfile, mergeUnit, mergeRemote, encrypt, decrypt, deriveKey, DESC };
 })(globalThis.GF = globalThis.GF || {});
 
 ;
@@ -1587,13 +1828,86 @@ a.btn{color:inherit;text-decoration:none}
     if (M.adapt(S.st, now())) commit({ profile: true });
     S.store.autoBackup(now()).then((r) => { if (r && r.saved) log('info', 'backup automático ' + r.saved); if (r && r.tooBig) log('warn', 'histórico grande demais para backup automático; exporte manualmente'); }).catch((e) => log('warn', 'backup automático falhou: ' + (e.code || e.message)));
     route();
+    setTimeout(() => autoSync('abertura'), 1500);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') autoSync('app em segundo plano'); else autoSync('app reaberto'); });
+    setInterval(() => autoSync('periódica'), 10 * 60000);
+  }
+
+  /* ---------------- Sincronização ---------------- */
+  const syncOn = () => !!(GF.sync && GF.sync.available() && GF.sync.cfg().token);
+  function syncBadge() { if (!syncOn()) return ''; const c = GF.sync.cfg(); return c.lastError ? ' <span class="pill bad">erro</span>' : c.lastSync ? ' <span class="pill ok">' + new Date(c.lastSync).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</span>' : ''; }
+  let lastAuto = 0;
+  async function autoSync(why) {
+    if (!syncOn() || S.session || !S.store) return;
+    if (why !== 'fim da sessão' && why !== 'app em segundo plano' && Date.now() - lastAuto < 60000) return;
+    lastAuto = Date.now();
+    try {
+      await S.store.flush();
+      const r = await GF.sync.run(S.store);
+      log('info', 'sincronizado (' + why + '): ' + r.merged + ' mudanças recebidas');
+      S.st = S.store.state;
+      const h = (location.hash || '#hoje').slice(1);
+      const idle = !$('#e-home') && !$('#o-go') && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName));
+      if (r.merged && !S.session && document.visibilityState !== 'hidden' && S.st.profile.diag && idle && ['hoje', 'progresso', 'calendario', 'curriculo', 'vocabulario'].includes(h)) route();
+    } catch (e) { log('warn', 'sincronização (' + why + '): ' + e.message); }
+  }
+  function renderSync() {
+    const nav = $('nav.tabs'); const fresh = !S.st.profile.diag;
+    if (!GF.sync || !GF.sync.available()) {
+      shell('mais', `<div class="card"><h2>Sincronização</h2><p class="small">Esta é a versão dentro do Claude.ai, que já guarda seus dados na nuvem do Claude. Ela não conversa com a versão instalada (PC/celular).</p>
+        <p class="small">Para levar o progresso daqui para o app instalado: <b>Mais → Dados → Exportar backup</b> aqui, e <b>Restaurar de arquivo</b> no app instalado. Depois disso, ative a sincronização lá.</p></div>`); return;
+    }
+    const c = GF.sync.cfg(); const on = !!c.token;
+    const dev = /Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Celular' : (GF.local && GF.local.isElectron ? 'PC (programa)' : 'PC');
+    const html = on ? `<div class="card"><h2>Sincronização ativa ✅</h2>
+        <p class="small">Este aparelho: <b>${esc(c.name)}</b>. Última sincronização: <b>${c.lastSync ? new Date(c.lastSync).toLocaleString('pt-BR') : 'ainda não'}</b>.</p>
+        ${c.lastError ? `<div class="fb bad">${esc(c.lastError)}</div>` : ''}
+        ${(c.devices || []).length ? `<h3>Aparelhos conectados</h3><table class="t">${c.devices.map((d) => `<tr><td>${d.me ? '📍 ' : ''}${esc(d.name)}</td><td class="small mut">${new Date(d.at).toLocaleString('pt-BR')}</td></tr>`).join('')}</table>` : ''}
+        <p class="tiny mut">Sincroniza sozinho ao abrir o app, ao terminar uma sessão, ao sair do app e a cada 10 minutos (com internet).</p>
+        <div class="row"><button class="btn pri" id="sy-now">Sincronizar agora</button><button class="btn" id="sy-off">Desativar neste aparelho</button></div></div>`
+      : `<div class="card"><h2>Sincronizar PC e celular</h2>
+        <p class="small">Seu progresso fica num <b>Gist secreto</b> da sua conta do GitHub, <b>criptografado</b> com uma senha que só você sabe. Cada aparelho envia o que fez e junta o que os outros fizeram — nada é apagado.</p>
+        <h3>1. Crie um token (uma vez só)</h3>
+        <p class="small">Abra <a href="https://github.com/settings/tokens/new?scopes=gist&description=Deutsch%20mit%20Plan%20sync" target="_blank" rel="noopener">este link do GitHub</a> → em <b>Expiration</b> escolha <b>No expiration</b> (ou 1 ano) → confira que <b>gist</b> está marcado → <b>Generate token</b> → copie o código (começa com <code>ghp_</code>). Use o mesmo token em todos os aparelhos.</p>
+        <input type="text" id="sy-token" placeholder="ghp_..." autocomplete="off" spellcheck="false" autocapitalize="off">
+        <h3>2. Senha de sincronização</h3><p class="small mut">Mínimo 8 caracteres. Use <b>a mesma</b> em todos os aparelhos. Se esquecer, os dados deste aparelho continuam aqui, mas não dá para ler os da nuvem.</p>
+        <input type="text" id="sy-pass" placeholder="senha" autocomplete="off" spellcheck="false" autocapitalize="off" style="-webkit-text-security:disc">
+        <h3>3. Nome deste aparelho</h3><input type="text" id="sy-name" value="${esc(dev)}">
+        <div style="height:12px"></div><button class="btn pri big" id="sy-go">Ativar e sincronizar</button>
+        <p class="tiny mut">O token e a senha ficam só neste aparelho e nunca entram nos backups.</p></div>`;
+    if (fresh) { if (nav) nav.classList.add('hide'); app().innerHTML = `<header class="top"><div class="brand">Deutsch mit Plan<small>Trazer progresso de outro aparelho</small></div></header>${html}<button class="btn ghost big" id="sy-back">← Voltar ao diagnóstico</button>`; $('#sy-back').onclick = renderOnboarding; }
+    else shell('mais', html);
+    const after = async () => {
+      const b = $('#sy-go') || $('#sy-now'); if (b) { b.disabled = true; b.textContent = 'Sincronizando…'; }
+      try {
+        await S.store.flush(); const r = await GF.sync.run(S.store); S.st = S.store.state;
+        toast(r.merged ? 'Sincronizado: ' + r.merged + ' atualizações recebidas.' : 'Sincronizado. Tudo em dia.');
+        if (!S.st.profile.diag) { toast('Nenhum progresso encontrado na nuvem ainda. Faça o diagnóstico.', 4000); return renderOnboarding(); }
+        location.hash = '#sync'; renderSync();
+      } catch (e) { toast(e.message, 6000); renderSync(); }
+    };
+    const go = $('#sy-go'); if (go) go.onclick = async () => {
+      try { await GF.sync.setup({ token: $('#sy-token').value, pass: $('#sy-pass').value, name: $('#sy-name').value }); } catch (e) { return toast(e.message, 4000); }
+      after();
+    };
+    const now = $('#sy-now'); if (now) now.onclick = after;
+    const off = $('#sy-off'); if (off) off.onclick = () => { GF.sync.disable(); toast('Desativada neste aparelho. Seus dados locais continuam aqui.'); renderSync(); };
   }
 
   /* ---------------- Layout & rotas ---------------- */
   const TABS = [['hoje', '◉', 'Hoje'], ['praticar', '✎', 'Praticar'], ['progresso', '▤', 'Progresso'], ['curriculo', '☰', 'Currículo'], ['mais', '⋯', 'Mais']];
+  /* Celular com "Versão para computador" ligada: a página fica minúscula. */
+  function desktopModeWarn() {
+    try {
+      const touch = window.matchMedia('(pointer:coarse)').matches;
+      if (touch && Math.min(screen.width, screen.height) < 700 && document.documentElement.clientWidth >= 900)
+        return '<div class="desk-warn"><b>Está tudo pequeno?</b> O Chrome está em “Versão para computador”. Toque em ⋮ e desmarque <b>Versão para computador</b>.</div>';
+    } catch (e) { /* */ }
+    return '';
+  }
   function shell(active, inner) {
     const lvl = M.estimateLevel(S.st);
-    app().innerHTML = `<header class="top"><div class="brand">Deutsch mit Plan<small>${esc(S.st.profile.name || '')} · ${esc(lvl.label)}</small></div><span id="savestate" class="pill"></span></header>${inner}`;
+    app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">Deutsch mit Plan<small>${esc(S.st.profile.name || '')} · ${esc(lvl.label)}</small></div><span id="savestate" class="pill"></span></header>${inner}`;
     let nav = $('nav.tabs'); if (!nav) { nav = document.createElement('nav'); nav.className = 'tabs'; document.body.appendChild(nav); }
     nav.innerHTML = TABS.map(([id, ic, l]) => `<a href="#${id}" class="${active === id ? 'on' : ''}"><b>${ic}</b>${l}</a>`).join('');
     nav.classList.remove('hide');
@@ -1603,7 +1917,7 @@ a.btn{color:inherit;text-decoration:none}
   function route() {
     if (S.session) return; // durante a aula não troca de tela
     const h = (location.hash || '#hoje').slice(1);
-    const r = { hoje: renderHome, praticar: renderPractice, progresso: renderProgress, curriculo: renderCurriculum, mais: renderMore, calendario: renderCalendar, metodo: renderMethod, dados: renderData, vocabulario: renderVocab, ajustes: renderSettings }[h] || renderHome;
+    const r = { sync: renderSync, hoje: renderHome, praticar: renderPractice, progresso: renderProgress, curriculo: renderCurriculum, mais: renderMore, calendario: renderCalendar, metodo: renderMethod, dados: renderData, vocabulario: renderVocab, ajustes: renderSettings }[h] || renderHome;
     r();
   }
 
@@ -1612,7 +1926,7 @@ a.btn{color:inherit;text-decoration:none}
     const nav = $('nav.tabs'); if (nav) nav.classList.add('hide');
     const D = { name: 'Rick', prior: 'zero', minutes: 20, days: [1, 2, 3, 4, 5], goals: [], pref: 'equilibrado', focus: 20 };
     const chips = (key, opts, multi) => `<div class="chips" data-k="${key}">${opts.map(([v, l]) => `<button class="chip" data-v="${v}">${l}</button>`).join('')}</div>`;
-    app().innerHTML = `<header class="top"><div class="brand">Deutsch mit Plan<small>Diagnóstico inicial · ~2 min</small></div></header>${installCardHtml()}
+    app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">Deutsch mit Plan<small>Diagnóstico inicial · ~2 min</small></div></header>${installCardHtml()}
     <div class="card"><h2>Vamos configurar seu professor</h2><p class="mut small">Só o necessário para montar o plano. Tudo pode ser mudado depois. Seu progresso fica salvo num banco de dados seu, independente da IA usada.</p>
     <h3>Como quer ser chamado?</h3><input type="text" id="o-name" value="${esc(D.name)}">
     <h3>Seu contato com alemão até hoje</h3>${chips('prior', [['zero', 'Nunca estudei'], ['words', 'Sei algumas palavras'], ['some', 'Já estudei um pouco']])}
@@ -1621,13 +1935,15 @@ a.btn{color:inherit;text-decoration:none}
     <h3>Para que você quer o alemão? <span class="mut small">(marque quantos quiser)</span></h3>${chips('goals', [['viagem', 'Viagens'], ['trabalho', 'Trabalho'], ['morar', 'Morar num país germanófono'], ['exame', 'Goethe-Zertifikat'], ['estudo', 'Estudar'], ['midia', 'Filmes, séries, livros'], ['pessoas', 'Amigos ou família']], true)}
     <h3>O que você quer priorizar?</h3>${chips('pref', [['fala', 'Falar'], ['escuta', 'Entender ouvindo'], ['escrita', 'Ler e escrever'], ['equilibrado', 'Equilibrado']])}
     <h3>Quanto tempo você mantém a concentração sem pausa?</h3>${chips('focus', [[10, '~10 min'], [20, '~20 min'], [30, '30 min ou mais']])}
-    <div style="height:14px"></div><button class="btn pri big" id="o-go">Continuar</button></div>`;
+    <div style="height:14px"></div><button class="btn pri big" id="o-go">Continuar</button>
+    ${GF.sync && GF.sync.available() ? '<button class="btn ghost big" id="o-sync" style="margin-top:6px">Já estudo em outro aparelho → sincronizar</button>' : ''}</div>`;
     const sync = () => $$('.chips').forEach((c) => { const k = c.dataset.k; $$('.chip', c).forEach((b) => { const v = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v; b.classList.toggle('on', Array.isArray(D[k]) ? D[k].includes(v) : D[k] === v); }); });
     $$('.chips').forEach((c) => c.addEventListener('click', (e) => {
       const b = e.target.closest('.chip'); if (!b) return; const k = c.dataset.k; const v = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v;
       if (Array.isArray(D[k])) D[k] = D[k].includes(v) ? D[k].filter((x) => x !== v) : D[k].concat(v); else D[k] = v; sync();
     }));
     sync(); bindInstall();
+    const os = $('#o-sync'); if (os) os.onclick = () => renderSync();
     $('#o-go').onclick = () => {
       D.name = $('#o-name').value.trim() || 'Aluno';
       if (!D.days.length) return toast('Escolha ao menos um dia.');
@@ -1779,6 +2095,7 @@ a.btn{color:inherit;text-decoration:none}
     M.adapt(S.st, t);
     S.session = null;
     await commit({ profile: true, day: true });
+    autoSync('fim da sessão');
     const mins = Math.round((t - s.started) / 60000);
     app().innerHTML = `<header class="top"><div class="brand">${quit ? 'Sessão interrompida' : 'Sessão concluída'}</div><span id="savestate" class="pill"></span></header>
     <div class="card"><h2>${quit ? 'Tudo que você fez foi salvo.' : 'Bom trabalho!'}</h2>
@@ -2375,6 +2692,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
     shell('mais', `<div class="card"><a class="btn big" href="#calendario" style="display:block;text-align:left;margin-bottom:8px">📅 Calendário e previsão de revisões</a>
       <a class="btn big" href="#metodo" style="display:block;text-align:left;margin-bottom:8px">🔬 Método, evidências e referências</a>
       <a class="btn big" href="#dados" style="display:block;text-align:left;margin-bottom:8px">💾 Dados, backup e restauração</a>
+      <a class="btn big" href="#sync" style="display:block;text-align:left;margin-bottom:8px">🔄 Sincronizar entre aparelhos${syncBadge()}</a>
       <a class="btn big" href="#ajustes" style="display:block;text-align:left">⚙️ Ajustes</a></div>
       <div class="card small"><b>O que funciona aqui</b><ul class="list">
         <li>Armazenamento: ${{ db: '✅ banco na nuvem do Claude (privado)', native: '✅ arquivo no seu PC, com cópias automáticas', device: '✅ neste aparelho (exporte backups de vez em quando)', local: '⚠️ banco indisponível — usando o navegador (pode ser perdido)' }[S.mode]}</li>
@@ -2390,8 +2708,9 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
     const t = now(), st = S.st, p = st.profile;
     const fc = M.forecast(st, t, 14); const mx = Math.max(1, ...fc.map((d) => d.n));
     const wd = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-    const cells = []; for (let i = 27; i >= 0; i--) { const k = M.dayKey(t - i * 86400000); const d = st.days[k]; const m = d ? d.minutes : 0; cells.push(`<div class="cell ${m >= 20 ? 'l3' : m >= 10 ? 'l2' : m > 0 ? 'l1' : ''}" title="${k}: ${m.toFixed ? m.toFixed(0) : m} min">${new Date(t - i * 86400000).getDate()}</div>`); }
-    const weekMin = Object.values(st.days).filter((d) => t - new Date(d.date + 'T12:00:00').getTime() < 7 * 86400000).reduce((a, d) => a + d.minutes, 0);
+    const AD = M.allDays(st);
+    const cells = []; for (let i = 27; i >= 0; i--) { const k = M.dayKey(t - i * 86400000); const d = AD[k]; const m = d ? d.minutes : 0; cells.push(`<div class="cell ${m >= 20 ? 'l3' : m >= 10 ? 'l2' : m > 0 ? 'l1' : ''}" title="${k}: ${m.toFixed ? m.toFixed(0) : m} min">${new Date(t - i * 86400000).getDate()}</div>`); }
+    const weekMin = Object.values(AD).filter((d) => t - new Date(d.date + 'T12:00:00').getTime() < 7 * 86400000).reduce((a, d) => a + d.minutes, 0);
     const goal = p.diag.minutes * p.diag.days.length;
     shell('mais', `<div class="card"><h2>Esta semana</h2><p>${Math.round(weekMin)} de ${goal} min planejados</p><div class="prog"><i style="width:${Math.min(100, 100 * weekMin / goal)}%"></i></div>
       <p class="small mut">Dias planejados: ${p.diag.days.map((d) => wd[d]).join(', ')}. Perdeu um dia? Nada é cobrado em dobro: o FSRS só reprioriza.</p></div>
