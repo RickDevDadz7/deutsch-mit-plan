@@ -1,0 +1,22 @@
+{"title":"Nachbarschaft","subtitle":"Vizinhança e convivência","goals":["Falar de regras da casa","Reclamar com educação","Descrever pessoas com orações relativas"],
+"items":[
+{"type":"noun","art":"der","de":"Mieter","pl":"=","pt":"o inquilino","ipa":"ˈmiːtɐ","ex":["Der Mieter zahlt pünktlich.","O inquilino paga em dia."]},
+{"type":"noun","art":"die","de":"Mieterin","pl":"Mieterinnen","pt":"a inquilina","ipa":"","ex":["Die Mieterin ist neu hier.","A inquilina é nova aqui."]},
+{"type":"noun","art":"die","de":"Hausordnung","pl":"Hausordnungen","pt":"o regulamento do prédio","ipa":"","ex":["Lies bitte die Hausordnung.","Leia o regulamento, por favor."]},
+{"type":"noun","art":"der","de":"Hausmeister","pl":"=","pt":"o zelador","ipa":"","ex":["Der Hausmeister repariert die Tür.","O zelador conserta a porta."]},
+{"type":"noun","art":"das","de":"Treppenhaus","pl":"Treppenhäuser","pt":"a escadaria","ipa":"","ex":["Im Treppenhaus ist es dunkel.","Na escadaria está escuro."]},
+{"type":"noun","art":"die","de":"Ruhezeit","pl":"Ruhezeiten","pt":"o horário de silêncio","ipa":"","ex":["Die Ruhezeit beginnt um 22 Uhr.","O silêncio começa às 22h."]},
+{"type":"noun","art":"der","de":"Lärm","pl":"","pt":"o barulho","ipa":"lɛʁm","ex":["Der Lärm stört mich.","O barulho me incomoda."]},
+{"type":"verb","de":"sich beschweren","pt":"reclamar","conj":{"ich":"beschwere mich","du":"beschwerst dich","er":"beschwert sich","wir":"beschweren uns","ihr":"beschwert euch","sie":"beschweren sich"},"ex":["Er beschwert sich über den Lärm.","Ele reclama do barulho."]},
+{"type":"verb","de":"stören","pt":"incomodar","conj":{"ich":"störe","du":"störst","er":"stört","wir":"stören","ihr":"stört","sie":"stören"},"ex":["Störe ich?","Estou incomodando?"]},
+{"type":"verb","de":"grüßen","pt":"cumprimentar","conj":{"ich":"grüße","du":"grüßt","er":"grüßt","wir":"grüßen","ihr":"grüßt","sie":"grüßen"},"ex":["Sie grüßt mich jeden Morgen.","Ela me cumprimenta toda manhã."]},
+{"type":"phrase","de":"Das stört mich.","pt":"Isso me incomoda."},
+{"type":"phrase","de":"Darf ich mich vorstellen?","pt":"Posso me apresentar?"},
+{"type":"word","de":"hilfsbereit","pt":"prestativo"},
+{"type":"word","de":"rücksichtsvoll","pt":"atencioso"}
+],
+"grammar":[{"title":"Orações relativas","explain":"O verbo vai para o <b>fim</b>.","compare":"Como “que/o qual”.","examples":[["Der Nachbar, der neben mir wohnt, ist nett.","O vizinho que mora ao meu lado é legal."]],
+"drills":[{"q":"Der Nachbar, ___ neben mir wohnt, ist nett.","a":["der"]},{"q":"Die Frau, ___ ich gestern gesehen habe, wohnt oben.","a":["die"]},{"q":"Das Kind, ___ ich helfe, ist sieben.","a":["dem"]},{"q":"Der Mann, ___ ich kenne, heißt Paul.","a":["den"]},{"q":"Die Leute, ___ hier wohnen, sind laut.","a":["die"]}]}],
+"dialog":[["A","Entschuldigung, darf ich mich vorstellen? Ich bin der neue Mieter."],["B","Herzlich willkommen! Ich wohne im zweiten Stock."],["A","Gibt es eine Hausordnung?"],["B","Ja, die Ruhezeit beginnt um zehn."],["A","Gut zu wissen. Danke!"],["B","Gern. Wenn Sie Hilfe brauchen, klingeln Sie einfach."]],
+"dialogPt":"Um novo morador conhece a vizinha.","listening":["Der Lärm stört mich.","Die Ruhezeit beginnt um zehn.","Der Hausmeister repariert die Tür.","Darf ich mich vorstellen?","Die Frau, die oben wohnt, ist nett."],
+"writing":"Escreva uma nota educada ao vizinho sobre o barulho.","speaking":{"scene":"Conversa com o vizinho barulhento.","persona":"Herr Lang, vizinho, formal","goals":["cumprimentar","explicar o problema","propor uma solução","agradecer"]}}

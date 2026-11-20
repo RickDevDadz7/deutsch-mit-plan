@@ -223,7 +223,7 @@
       explain: '<b>du</b>: amigos, família, crianças, colegas que oferecem o “du”, internet. <b>Sie</b> (sempre maiúsculo): desconhecidos adultos, atendimento, trabalho formal. O verbo de “Sie” é igual ao de “sie” (eles).',
       compare: 'Parecido com “você” vs. “o senhor/a senhora”, mas o Sie é bem mais usado no dia a dia alemão do que “o senhor” no Brasil.',
       examples: [['Wie heißen Sie?', 'Como o senhor se chama?'], ['Wie heißt du?', 'Como você se chama?']],
-      drills: [['(formal) Woher ___ Sie?', ['kommen']], ['(informal) Woher ___ du?', ['kommst']], ['(formal) Wie geht es ___?', ['Ihnen']], ['(informal) Wie geht es ___?', ['dir']]]
+      drills: [['(formal) Woher ___ Sie?', ['kommen']], ['(informal) Woher ___ du?', ['kommst']], ['(formal) Wie geht es ___?', ['Ihnen']], ['(informal) Wie geht es ___?', ['dir']], ['(formal) Wie heißen ___?', ['Sie']], ['(informal) Wo wohnst ___?', ['du']]]
     },
     g_zahlen: {
       title: 'Números', level: 'A1', unit: 'A1-U2',

@@ -505,7 +505,7 @@ input[type=text],textarea,select{font-size:17px}
       explain: '<b>du</b>: amigos, família, crianças, colegas que oferecem o “du”, internet. <b>Sie</b> (sempre maiúsculo): desconhecidos adultos, atendimento, trabalho formal. O verbo de “Sie” é igual ao de “sie” (eles).',
       compare: 'Parecido com “você” vs. “o senhor/a senhora”, mas o Sie é bem mais usado no dia a dia alemão do que “o senhor” no Brasil.',
       examples: [['Wie heißen Sie?', 'Como o senhor se chama?'], ['Wie heißt du?', 'Como você se chama?']],
-      drills: [['(formal) Woher ___ Sie?', ['kommen']], ['(informal) Woher ___ du?', ['kommst']], ['(formal) Wie geht es ___?', ['Ihnen']], ['(informal) Wie geht es ___?', ['dir']]]
+      drills: [['(formal) Woher ___ Sie?', ['kommen']], ['(informal) Woher ___ du?', ['kommst']], ['(formal) Wie geht es ___?', ['Ihnen']], ['(informal) Wie geht es ___?', ['dir']], ['(formal) Wie heißen ___?', ['Sie']], ['(informal) Wo wohnst ___?', ['du']]]
     },
     g_zahlen: {
       title: 'Números', level: 'A1', unit: 'A1-U2',
@@ -1135,6 +1135,518 @@ input[type=text],textarea,select{font-size:17px}
   for (const u of Object.values(U)) C.units[u.id] = u;
   C.recomputeOrder();
   C.version = '2026.11.20-3';
+})(globalThis.GF = globalThis.GF || {});
+
+;
+/* Ferramentas para escrever conteúdo fixo por nível (A2 em diante). */
+(function (GF) {
+  'use strict';
+  GF.kit = function (level, prefix) {
+    const C = GF.content; const U = {}; let cur = null;
+    const add = (o) => {
+      if (C.items[o.id]) throw new Error('id duplicado: ' + o.id);
+      o.unit = cur; o.ex = o.ex || []; o.note = o.note || ''; o.ipa = o.ipa || ''; C.items[o.id] = o; U[cur].items.push(o.id);
+    };
+    const id = (s) => prefix + '_' + s;
+    return {
+      unit(uid, o) { cur = uid; U[uid] = Object.assign({ id: uid, level, items: [], grammar: [], prereq: (C.plan.find((e) => e.id === uid) || {}).prereq || [] }, o); },
+      N(list) { list.forEach(([k, art, de, pl, pt, ipa, exde, expt, note]) => add({ id: id(k), type: 'noun', art, de, pl, pt, ipa, ex: [[exde, expt]], note })); },
+      V(list) { list.forEach(([k, de, pt, ipa, c, exde, expt, note]) => { const [ich, du, er, wir, ihr, sie] = c.split('|'); add({ id: id(k), type: 'verb', de, pt, ipa, conj: { ich, du, er, wir, ihr, sie }, ex: [[exde, expt]], note }); }); },
+      P(list) { list.forEach(([k, de, pt, note, type, ipa]) => add({ id: id(k), type: type || 'phrase', de, pt, note, ipa })); },
+      G(gid, g) { g.unit = cur; g.level = level; g.drills = (g.drills || []).map(([q, a, hint]) => ({ q, a, hint: hint || '' })); C.grammar[gid] = g; U[cur].grammar.push(gid); },
+      finish(version) { for (const u of Object.values(U)) C.units[u.id] = u; C.recomputeOrder(); if (version) C.version = version; }
+    };
+  };
+})(globalThis.GF = globalThis.GF || {});
+
+;
+/* Conteúdo fixo A2 (A2-U1 a A2-U8), escrito e revisado à mão. Frases didáticas para o nível. */
+(function (GF) {
+  'use strict';
+  const K = GF.kit('A2', 'a2');
+  const { unit, N, V, P, G } = K;
+
+  /* ======================= A2-U1 Arbeit und Beruf ======================= */
+  unit('A2-U1', {
+    title: 'Arbeit und Beruf', subtitle: 'Profissão, experiência e justificativas',
+    goals: ['Falar da profissão e do local de trabalho', 'Contar sobre o passado profissional (war, hatte, konnte)', 'Justificar com weil'],
+    dialog: [['A', 'Was sind Sie von Beruf?'], ['B', 'Ich bin Ingenieur. Ich arbeite bei einer Firma in São Paulo.'], ['A', 'Und was haben Sie früher gemacht?'], ['B', 'Früher war ich Lehrer, aber ich hatte zu wenig Zeit für meine Familie.'], ['A', 'Warum möchten Sie in Deutschland arbeiten?'], ['B', 'Weil ich neue Erfahrungen sammeln möchte.']],
+    dialogPt: 'Entrevista sobre profissão, passado e motivação.',
+    listening: ['Früher war ich Lehrerin.', 'Ich hatte gestern eine Besprechung.', 'Ich konnte nicht kommen, weil ich krank war.', 'Die Firma sucht einen Ingenieur.', 'Das Gehalt ist nicht schlecht.'],
+    writing: 'Apresente-se para uma vaga: profissão, experiência anterior (war/hatte) e por que quer o emprego (weil). 6–8 frases.',
+    speaking: { scene: 'Entrevista de emprego por vídeo com uma empresa de Hamburgo.', persona: 'Frau Berg, recursos humanos, formal (Sie)', goals: ['dizer a profissão', 'contar a experiência anterior no passado', 'explicar a motivação com weil', 'perguntar sobre horário ou salário'] },
+    criteria: 'Critérios padrão; Präteritum de sein/haben/modais ≥ 80%.'
+  });
+  N([
+    ['beruf', 'der', 'Beruf', 'Berufe', 'a profissão', 'bəˈʁuːf', 'Was sind Sie von Beruf?', 'Qual é a sua profissão?', 'Profissão sem artigo: Ich bin Ingenieur.'],
+    ['firma', 'die', 'Firma', 'Firmen', 'a empresa', 'ˈfɪʁma', 'Die Firma hat 200 Mitarbeiter.', 'A empresa tem 200 funcionários.'],
+    ['kollege', 'der', 'Kollege', 'Kollegen', 'o colega de trabalho', 'kɔˈleːɡə', 'Mein Kollege hilft mir oft.', 'Meu colega me ajuda muitas vezes.', 'Acusativo/dativo: den/dem Kollegen.'],
+    ['kollegin', 'die', 'Kollegin', 'Kolleginnen', 'a colega de trabalho', 'kɔˈleːɡɪn', 'Die Kollegin kommt aus Polen.', 'A colega é da Polônia.'],
+    ['chef', 'der', 'Chef', 'Chefs', 'o chefe', 'ʃɛf', 'Der Chef ist heute nicht da.', 'O chefe não está hoje.'],
+    ['buero', 'das', 'Büro', 'Büros', 'o escritório', 'byˈʁoː', 'Ich arbeite im Büro.', 'Eu trabalho no escritório.'],
+    ['stelle', 'die', 'Stelle', 'Stellen', 'a vaga, o emprego', 'ˈʃtɛlə', 'Ich suche eine neue Stelle.', 'Procuro um novo emprego.'],
+    ['gehalt', 'das', 'Gehalt', 'Gehälter', 'o salário (mensal)', 'ɡəˈhalt', 'Das Gehalt ist gut.', 'O salário é bom.'],
+    ['bewerbung', 'die', 'Bewerbung', 'Bewerbungen', 'a candidatura', 'bəˈvɛʁbʊŋ', 'Ich schreibe eine Bewerbung.', 'Escrevo uma candidatura.'],
+    ['vorstellungsgespraech', 'das', 'Vorstellungsgespräch', 'Vorstellungsgespräche', 'a entrevista de emprego', '', 'Morgen habe ich ein Vorstellungsgespräch.', 'Amanhã tenho uma entrevista de emprego.'],
+    ['erfahrung', 'die', 'Erfahrung', 'Erfahrungen', 'a experiência', 'ɛɐ̯ˈfaːʁʊŋ', 'Sie hat viel Erfahrung.', 'Ela tem muita experiência.'],
+    ['ausbildung', 'die', 'Ausbildung', 'Ausbildungen', 'a formação profissional', 'ˈaʊ̯sˌbɪldʊŋ', 'Er macht eine Ausbildung als Koch.', 'Ele faz uma formação de cozinheiro.', 'Sistema dual alemão: escola + empresa.'],
+    ['studium', 'das', 'Studium', 'Studien', 'o curso superior', 'ˈʃtuːdi̯ʊm', 'Mein Studium hat fünf Jahre gedauert.', 'Minha faculdade durou cinco anos.'],
+    ['kunde', 'der', 'Kunde', 'Kunden', 'o cliente', 'ˈkʊndə', 'Der Kunde wartet schon.', 'O cliente já está esperando.'],
+    ['besprechung', 'die', 'Besprechung', 'Besprechungen', 'a reunião', 'bəˈʃpʁɛçʊŋ', 'Die Besprechung beginnt um zehn.', 'A reunião começa às dez.'],
+  ]);
+  V([
+    ['verdienen', 'verdienen', 'ganhar (dinheiro)', 'fɛɐ̯ˈdiːnən', 'verdiene|verdienst|verdient|verdienen|verdient|verdienen', 'Sie verdient gut.', 'Ela ganha bem.'],
+    ['studieren', 'studieren', 'estudar (na faculdade)', 'ʃtuˈdiːʁən', 'studiere|studierst|studiert|studieren|studiert|studieren', 'Ich habe Informatik studiert.', 'Estudei informática.', 'Perfekt sem ge-: hat studiert.'],
+    ['telefonieren', 'telefonieren', 'falar ao telefone', 'telefoˈniːʁən', 'telefoniere|telefonierst|telefoniert|telefonieren|telefoniert|telefonieren', 'Er telefoniert mit einem Kunden.', 'Ele fala ao telefone com um cliente.'],
+    ['erledigen', 'erledigen', 'resolver, dar conta de', 'ɛɐ̯ˈleːdɪɡn̩', 'erledige|erledigst|erledigt|erledigen|erledigt|erledigen', 'Ich erledige das sofort.', 'Resolvo isso imediatamente.'],
+  ]);
+  P([
+    ['weil', 'weil', 'porque', 'O verbo vai para o fim: …, weil ich müde bin.', 'word', 'vaɪ̯l'],
+    ['frueher', 'früher', 'antigamente, antes', '', 'word', 'ˈfʁyːɐ'],
+    ['damals', 'damals', 'naquela época', '', 'word', 'ˈdaːmaːls'],
+    ['arbeiteals', 'Ich arbeite als Ingenieur.', 'Trabalho como engenheiro.', 'als + profissão, sem artigo.'],
+    ['beieinerfirma', 'Ich arbeite bei einer Firma.', 'Trabalho numa empresa.', 'bei + empresa (dativo).'],
+    ['warich', 'Früher war ich Lehrer.', 'Antes eu era professor.', ''],
+    ['keinezeitpast', 'Ich hatte keine Zeit.', 'Eu não tinha tempo.', ''],
+    ['warum', 'Warum?', 'Por quê?', 'Resposta: Weil …', 'word', 'vaˈʁʊm'],
+  ]);
+  G('g_a2_praet', {
+    title: 'Präteritum de sein, haben e dos modais', explain: 'Na fala, o passado da maioria dos verbos é o Perfekt, mas <b>sein</b>, <b>haben</b> e os <b>modais</b> usam quase sempre o Präteritum:<br><b>sein</b>: ich war, du warst, er war, wir waren, ihr wart, sie waren<br><b>haben</b>: ich hatte, du hattest, er hatte, wir hatten, ihr hattet, sie hatten<br><b>Modais</b> perdem o trema: können → konnte, müssen → musste, dürfen → durfte, wollen → wollte, sollen → sollte (ich/er iguais: ich konnte, er konnte).',
+    compare: '“Ich war” cobre “eu era” e “eu estava”; “ich hatte” = “eu tinha/tive”.',
+    examples: [['Gestern war ich müde.', 'Ontem eu estava cansado.'], ['Wir hatten keine Zeit.', 'Não tínhamos tempo.'], ['Ich musste lange arbeiten.', 'Tive de trabalhar até tarde.']],
+    drills: [['Ich ___ gestern krank. (sein)', ['war']], ['Wir ___ keine Zeit. (haben)', ['hatten']], ['Du ___ müde. (sein)', ['warst']], ['Er ___ einen Termin. (haben)', ['hatte']], ['Ich ___ nicht kommen. (können)', ['konnte']], ['Sie (ela) ___ lange arbeiten. (müssen)', ['musste']], ['Ihr ___ im Büro. (sein)', ['wart']]]
+  });
+  G('g_a2_weil', {
+    title: 'weil: o verbo vai para o fim', explain: 'Em orações com <b>weil</b> (porque), o verbo conjugado vai para o <b>fim</b>: …, weil ich müde <b>bin</b>. Com modal ou Perfekt, o conjugado é o último: …, weil ich arbeiten <b>muss</b> / weil ich viel gearbeitet <b>habe</b>.<br>Monte as frases.',
+    compare: 'Português mantém a ordem normal depois de “porque”; o alemão empurra o verbo para o final.',
+    examples: [['Ich lerne Deutsch, weil ich in Berlin arbeiten will.', 'Estudo alemão porque quero trabalhar em Berlim.']],
+    order: [['Ich bleibe zu Hause, weil ich krank bin.', 'Fico em casa porque estou doente.'], ['Er kommt nicht, weil er arbeiten muss.', 'Ele não vem porque tem de trabalhar.'], ['Ich bin müde, weil ich viel gearbeitet habe.', 'Estou cansado porque trabalhei muito.'], ['Sie lernt Deutsch, weil sie in Wien studieren will.', 'Ela estuda alemão porque quer estudar em Viena.'], ['Wir nehmen den Bus, weil das Auto kaputt ist.', 'Pegamos o ônibus porque o carro está quebrado.']]
+  });
+
+  /* ======================= A2-U2 Unterwegs ======================= */
+  unit('A2-U2', {
+    title: 'Unterwegs', subtitle: 'Viagens, trem, avião e hotel',
+    goals: ['Lidar com viagens de trem e avião', 'Dizer onde algo está e para onde se vai (Wo?/Wohin?)', 'Falar de quando aconteceu algo (vor, seit)'],
+    dialog: [['A', 'Entschuldigung, von welchem Gleis fährt der Zug nach Leipzig ab?'], ['B', 'Von Gleis sieben. Aber er hat zwanzig Minuten Verspätung.'], ['A', 'Oh nein! Ich muss in Leipzig umsteigen.'], ['B', 'Dann fragen Sie am besten im Reisezentrum.'], ['A', 'Wo ist das Reisezentrum?'], ['B', 'In der Halle, neben dem Café.']],
+    dialogPt: 'Na estação: plataforma, atraso e baldeação.',
+    listening: ['Der Zug fährt von Gleis drei ab.', 'Wir kommen um acht Uhr in Wien an.', 'Ich habe vor zwei Tagen ein Hotel gebucht.', 'Der Koffer liegt auf dem Bett.', 'Ich fahre in die Stadt.'],
+    writing: 'Escreva um e-mail a um hotel: quer reservar um quarto, diga datas, quantas pessoas e pergunte o preço.',
+    speaking: { scene: 'Seu trem atrasou e você perdeu a conexão. Você fala no balcão de informações da estação.', persona: 'Herr Wolf, atendente da Deutsche Bahn, formal (Sie)', goals: ['explicar o problema', 'perguntar pelo próximo trem', 'perguntar de qual plataforma sai', 'perguntar quando chega'] },
+    criteria: 'Critérios padrão; Wo?/Wohin? (dativo/acusativo) ≥ 80%.'
+  });
+  N([
+    ['koffer', 'der', 'Koffer', '=', 'a mala', 'ˈkɔfɐ', 'Mein Koffer ist zu schwer.', 'Minha mala está pesada demais.'],
+    ['flughafen', 'der', 'Flughafen', 'Flughäfen', 'o aeroporto', 'ˈfluːkˌhaːfn̩', 'Wir fahren zum Flughafen.', 'Vamos ao aeroporto.'],
+    ['flugzeug', 'das', 'Flugzeug', 'Flugzeuge', 'o avião', 'ˈfluːkˌtsɔɪ̯k', 'Das Flugzeug landet um neun.', 'O avião pousa às nove.'],
+    ['flug', 'der', 'Flug', 'Flüge', 'o voo', 'fluːk', 'Der Flug dauert elf Stunden.', 'O voo dura onze horas.'],
+    ['gleis', 'das', 'Gleis', 'Gleise', 'a plataforma (trilho)', 'ɡlaɪ̯s', 'Der Zug fährt von Gleis vier ab.', 'O trem sai da plataforma quatro.'],
+    ['abfahrt', 'die', 'Abfahrt', 'Abfahrten', 'a partida', 'ˈapˌfaːɐ̯t', 'Die Abfahrt ist um 10:15 Uhr.', 'A partida é às 10h15.'],
+    ['ankunft', 'die', 'Ankunft', 'Ankünfte', 'a chegada', 'ˈanˌkʊnft', 'Die Ankunft ist am Abend.', 'A chegada é à noite.'],
+    ['verspaetung', 'die', 'Verspätung', 'Verspätungen', 'o atraso', 'fɛɐ̯ˈʃpɛːtʊŋ', 'Der Zug hat Verspätung.', 'O trem está atrasado.'],
+    ['hotel', 'das', 'Hotel', 'Hotels', 'o hotel', 'hoˈtɛl', 'Das Hotel liegt im Zentrum.', 'O hotel fica no centro.'],
+    ['gepaeck', 'das', 'Gepäck', '', 'a bagagem', 'ɡəˈpɛk', 'Wo kann ich mein Gepäck lassen?', 'Onde posso deixar minha bagagem?'],
+    ['pass', 'der', 'Pass', 'Pässe', 'o passaporte', 'pas', 'Vergiss deinen Pass nicht!', 'Não esqueça seu passaporte!'],
+    ['grenze', 'die', 'Grenze', 'Grenzen', 'a fronteira', 'ˈɡʁɛntsə', 'Wir sind über die Grenze gefahren.', 'Atravessamos a fronteira.'],
+    ['unterkunft', 'die', 'Unterkunft', 'Unterkünfte', 'a hospedagem', 'ˈʊntɐˌkʊnft', 'Wir suchen eine billige Unterkunft.', 'Procuramos uma hospedagem barata.'],
+    ['ticket', 'das', 'Ticket', 'Tickets', 'o bilhete, a passagem', 'ˈtɪkət', 'Ich kaufe das Ticket online.', 'Compro a passagem online.'],
+  ]);
+  V([
+    ['abfahren', 'abfahren', 'partir (veículo)', 'ˈapˌfaːʁən', 'fahre ab|fährst ab|fährt ab|fahren ab|fahrt ab|fahren ab', 'Der Bus fährt um acht ab.', 'O ônibus parte às oito.', 'Perfekt: ist abgefahren.'],
+    ['ankommen', 'ankommen', 'chegar', 'ˈanˌkɔmən', 'komme an|kommst an|kommt an|kommen an|kommt an|kommen an', 'Wann kommt der Zug an?', 'Quando o trem chega?', 'Perfekt: ist angekommen.'],
+    ['buchen', 'buchen', 'reservar', 'ˈbuːxn̩', 'buche|buchst|bucht|buchen|bucht|buchen', 'Ich habe einen Flug gebucht.', 'Reservei um voo.'],
+    ['packen', 'packen', 'fazer a mala, empacotar', 'ˈpakn̩', 'packe|packst|packt|packen|packt|packen', 'Hast du den Koffer schon gepackt?', 'Você já fez a mala?'],
+    ['uebernachten', 'übernachten', 'pernoitar', 'yːbɐˈnaxtn̩', 'übernachte|übernachtest|übernachtet|übernachten|übernachtet|übernachten', 'Wir übernachten in einem Hotel.', 'Pernoitamos num hotel.', 'Inseparável: hat übernachtet.'],
+    ['verpassen', 'verpassen', 'perder (o horário)', 'fɛɐ̯ˈpasn̩', 'verpasse|verpasst|verpasst|verpassen|verpasst|verpassen', 'Ich habe den Zug verpasst.', 'Perdi o trem.'],
+  ]);
+  P([
+    ['puenktlich', 'pünktlich', 'pontual, no horário', '', 'word', 'ˈpʏŋktlɪç'],
+    ['unterwegs', 'unterwegs', 'a caminho, viajando', '', 'word', 'ʊntɐˈveːks'],
+    ['zwischen', 'zwischen', 'entre', 'Preposição de duas vias.', 'word', 'ˈtsvɪʃn̩'],
+    ['hinter', 'hinter', 'atrás de', 'Preposição de duas vias.', 'word', 'ˈhɪntɐ'],
+    ['welchesgleis', 'Von welchem Gleis fährt der Zug?', 'De qual plataforma sai o trem?', ''],
+    ['verspaetungp', 'Der Zug hat zehn Minuten Verspätung.', 'O trem está dez minutos atrasado.', ''],
+    ['zimmergebucht', 'Ich habe ein Zimmer gebucht.', 'Reservei um quarto.', ''],
+    ['gutereise', 'Gute Reise!', 'Boa viagem!', ''],
+    ['einfachoderhin', 'Einfach oder hin und zurück?', 'Só ida ou ida e volta?', 'Pergunta na compra de passagem.'],
+  ]);
+  G('g_a2_wechsel', {
+    title: 'Preposições de duas vias: Wo? (dativo) × Wohin? (acusativo)', explain: '<b>in, an, auf, über, unter, vor, hinter, neben, zwischen</b> usam:<br>• <b>dativo</b> para lugar (pergunta <b>Wo?</b>): Ich bin <b>in der</b> Stadt.<br>• <b>acusativo</b> para direção/movimento (pergunta <b>Wohin?</b>): Ich fahre <b>in die</b> Stadt.<br>Contrações: in dem → <b>im</b>, in das → <b>ins</b>, an dem → <b>am</b>, an das → <b>ans</b>.',
+    compare: 'Português usa “em” para os dois casos (“estou na cidade / vou à cidade” mudam pouco). Em alemão, a diferença aparece no artigo.',
+    examples: [['Wir fahren ans Meer.', 'Vamos para o mar.'], ['Wir sind am Meer.', 'Estamos no mar (na praia).'], ['Ich gehe ins Hotel.', 'Vou para o hotel.']],
+    drills: [['Ich fahre in ___ Stadt. (Wohin? die)', ['die']], ['Ich wohne in ___ Stadt. (Wo? die)', ['der']], ['Wir gehen ___ Hotel. (Wohin? in + das)', ['ins']], ['Wir sind ___ Hotel. (Wo? in + dem)', ['im']], ['Der Koffer liegt auf ___ Bett. (das)', ['dem']], ['Ich lege den Pass auf ___ Tisch. (der)', ['den']], ['Er wartet vor ___ Bahnhof. (der)', ['dem']]]
+  });
+  G('g_a2_vorseit', {
+    title: 'Tempo: vor (há…) e seit (desde, há…)', explain: '<b>vor</b> + dativo = há (algo terminou): <b>vor</b> zwei Tagen (há dois dias), <b>vor</b> einer Woche.<br><b>seit</b> + dativo = desde/há (algo continua até agora), com verbo no <b>presente</b>: Ich wohne <b>seit</b> drei Jahren hier.<br>Dativo plural ganha -n: Jahren, Tagen.',
+    compare: 'Português usa “há” para os dois. Em alemão: terminou → vor; continua → seit + presente (não Perfekt!).',
+    examples: [['Ich bin vor einer Woche angekommen.', 'Cheguei há uma semana.'], ['Ich lerne seit einem Monat Deutsch.', 'Estudo alemão há um mês.']],
+    drills: [['Ich bin ___ zwei Tagen angekommen. (há)', ['vor']], ['Ich wohne ___ drei Jahren hier. (desde/há)', ['seit']], ['Der Zug ist ___ zehn Minuten abgefahren.', ['vor']], ['Ich lerne ___ einem Monat Deutsch.', ['seit']], ['Wir waren ___ einem Jahr in Wien.', ['vor']], ['Sie arbeitet ___ Januar bei der Firma.', ['seit']]]
+  });
+
+  /* ======================= A2-U3 Beim Arzt ======================= */
+  unit('A2-U3', {
+    title: 'Beim Arzt', subtitle: 'Sintomas, consulta e conselhos',
+    goals: ['Descrever sintomas com mais detalhe', 'Usar verbos reflexivos (sich fühlen, sich erkälten)', 'Relatar o que alguém disse com dass'],
+    dialog: [['A', 'Wie fühlen Sie sich heute?'], ['B', 'Nicht gut. Ich glaube, dass ich mich erkältet habe.'], ['A', 'Haben Sie Fieber?'], ['B', 'Ja, seit gestern. Und ich huste viel.'], ['A', 'Ich schreibe Sie drei Tage krank. Ruhen Sie sich gut aus.'], ['B', 'Danke. Brauche ich ein Rezept?']],
+    dialogPt: 'Consulta: sintomas, atestado e descanso.',
+    listening: ['Ich fühle mich nicht gut.', 'Ich habe mich erkältet.', 'Der Arzt sagt, dass ich im Bett bleiben soll.', 'Haben Sie eine Allergie?', 'Ruh dich gut aus!'],
+    writing: 'Escreva a um colega: você está doente, o que tem, o que o médico disse (dass) e quando volta.',
+    speaking: { scene: 'Consulta com uma clínica geral em Frankfurt.', persona: 'Dr. Schulz, médica, formal (Sie)', goals: ['descrever os sintomas', 'dizer desde quando', 'responder sobre alergias', 'perguntar sobre remédio e atestado'] },
+    criteria: 'Critérios padrão; pronomes reflexivos ≥ 80%.'
+  });
+  N([
+    ['krankheit', 'die', 'Krankheit', 'Krankheiten', 'a doença', 'ˈkʁaŋkhaɪ̯t', 'Die Krankheit ist nicht gefährlich.', 'A doença não é perigosa.'],
+    ['erkaeltung', 'die', 'Erkältung', 'Erkältungen', 'o resfriado', 'ɛɐ̯ˈkɛltʊŋ', 'Ich habe eine Erkältung.', 'Estou resfriado.'],
+    ['husten', 'der', 'Husten', '', 'a tosse', 'ˈhuːstn̩', 'Der Husten ist schlimm.', 'A tosse está forte.'],
+    ['schnupfen', 'der', 'Schnupfen', '', 'a coriza', 'ˈʃnʊpfn̩', 'Ich habe Schnupfen.', 'Estou com coriza.'],
+    ['grippe', 'die', 'Grippe', '', 'a gripe', 'ˈɡʁɪpə', 'Er hat die Grippe.', 'Ele está com gripe.'],
+    ['schmerz', 'der', 'Schmerz', 'Schmerzen', 'a dor', 'ʃmɛʁts', 'Die Schmerzen sind stark.', 'As dores estão fortes.', 'Mais usado no plural.'],
+    ['medikament', 'das', 'Medikament', 'Medikamente', 'o medicamento', 'medikaˈmɛnt', 'Nehmen Sie das Medikament nach dem Essen.', 'Tome o remédio depois de comer.'],
+    ['rezept', 'das', 'Rezept', 'Rezepte', 'a receita (médica ou culinária)', 'ʁeˈtsɛpt', 'Für das Medikament brauchen Sie ein Rezept.', 'Para o remédio o senhor precisa de receita.'],
+    ['krankenhaus', 'das', 'Krankenhaus', 'Krankenhäuser', 'o hospital', 'ˈkʁaŋkn̩ˌhaʊ̯s', 'Sie liegt im Krankenhaus.', 'Ela está internada no hospital.'],
+    ['notfall', 'der', 'Notfall', 'Notfälle', 'a emergência', 'ˈnoːtˌfal', 'Im Notfall rufen Sie die 112.', 'Em emergência, ligue 112.', '112 = emergência na Europa.'],
+    ['allergie', 'die', 'Allergie', 'Allergien', 'a alergia', 'alɛʁˈɡiː', 'Ich habe eine Allergie gegen Nüsse.', 'Tenho alergia a nozes.'],
+    ['untersuchung', 'die', 'Untersuchung', 'Untersuchungen', 'o exame médico', 'ʊntɐˈzuːxʊŋ', 'Die Untersuchung dauert nicht lange.', 'O exame não demora.'],
+    ['versicherung', 'die', 'Versicherung', 'Versicherungen', 'o seguro', 'fɛɐ̯ˈzɪçəʁʊŋ', 'Die Versicherung bezahlt das.', 'O seguro paga isso.', 'Seguro-saúde: die Krankenversicherung.'],
+  ]);
+  V([
+    ['sichfuehlen', 'sich fühlen', 'sentir-se', 'zɪç ˈfyːlən', 'fühle mich|fühlst dich|fühlt sich|fühlen uns|fühlt euch|fühlen sich', 'Ich fühle mich heute besser.', 'Hoje me sinto melhor.', 'Reflexivo.'],
+    ['sichausruhen', 'sich ausruhen', 'descansar', 'zɪç ˈaʊ̯sˌʁuːən', 'ruhe mich aus|ruhst dich aus|ruht sich aus|ruhen uns aus|ruht euch aus|ruhen sich aus', 'Am Wochenende ruhe ich mich aus.', 'No fim de semana eu descanso.', 'Reflexivo e separável.'],
+    ['sicherkaelten', 'sich erkälten', 'resfriar-se', 'zɪç ɛɐ̯ˈkɛltn̩', 'erkälte mich|erkältest dich|erkältet sich|erkälten uns|erkältet euch|erkälten sich', 'Ich habe mich erkältet.', 'Eu me resfriei.'],
+    ['sichbeeilen', 'sich beeilen', 'apressar-se', 'zɪç bəˈʔaɪ̯lən', 'beeile mich|beeilst dich|beeilt sich|beeilen uns|beeilt euch|beeilen sich', 'Beeil dich, der Bus kommt!', 'Apresse-se, o ônibus está vindo!'],
+    ['untersuchen', 'untersuchen', 'examinar', 'ʊntɐˈzuːxn̩', 'untersuche|untersuchst|untersucht|untersuchen|untersucht|untersuchen', 'Die Ärztin untersucht den Patienten.', 'A médica examina o paciente.'],
+    ['hustenv', 'husten', 'tossir', 'ˈhuːstn̩', 'huste|hustest|hustet|husten|hustet|husten', 'Das Kind hustet die ganze Nacht.', 'A criança tosse a noite toda.'],
+  ]);
+  P([
+    ['schlimm', 'schlimm', 'grave, ruim', '', 'word', 'ʃlɪm'],
+    ['wichtig', 'wichtig', 'importante', '', 'word', 'ˈvɪçtɪç'],
+    ['besser', 'besser', 'melhor', 'Comparativo de gut.', 'word', 'ˈbɛsɐ'],
+    ['wiefuehlen', 'Wie fühlen Sie sich?', 'Como o senhor se sente?', ''],
+    ['fuehlemichnicht', 'Ich fühle mich nicht gut.', 'Não me sinto bem.', ''],
+    ['erkaeltetp', 'Ich habe mich erkältet.', 'Eu me resfriei.', ''],
+    ['krankschreibung', 'Ich brauche eine Krankschreibung.', 'Preciso de um atestado médico.', 'O atestado para o trabalho.'],
+    ['gutebesserungdir', 'Ruh dich gut aus!', 'Descanse bem!', ''],
+  ]);
+  G('g_a2_reflexiv', {
+    title: 'Verbos reflexivos', explain: 'Alguns verbos vêm com pronome reflexivo (“se”): <b>sich</b> fühlen.<br>ich fühle <b>mich</b> · du fühlst <b>dich</b> · er/sie fühlt <b>sich</b> · wir fühlen <b>uns</b> · ihr fühlt <b>euch</b> · sie/Sie fühlen <b>sich</b>.<br>No Perfekt, usam <b>haben</b>: Ich habe <b>mich</b> erkältet.',
+    compare: 'Parecido com “eu me sinto, você se sente”. Mas nem sempre coincide: “sich ausruhen” = “descansar” (sem “se” em português).',
+    examples: [['Wie fühlst du dich?', 'Como você se sente?'], ['Wir haben uns beeilt.', 'Nós nos apressamos.']],
+    drills: [['Ich fühle ___ nicht gut.', ['mich']], ['Wie fühlst du ___?', ['dich']], ['Er hat ___ erkältet.', ['sich']], ['Wir ruhen ___ aus.', ['uns']], ['Ihr müsst ___ beeilen.', ['euch']], ['Wie fühlen Sie ___?', ['sich']]]
+  });
+  G('g_a2_dass', {
+    title: 'dass: “que” com verbo no fim', explain: 'Depois de <b>dass</b>, o verbo conjugado vai para o <b>fim</b>: Ich glaube, dass ich Fieber <b>habe</b>.<br>Comum depois de: glauben, denken, wissen, hoffen, sagen, es ist gut/wichtig.<br>Monte as frases.',
+    compare: 'Igual ao “que” do português (“acho que…”), mas com o verbo no final.',
+    examples: [['Der Arzt sagt, dass ich viel trinken soll.', 'O médico diz que devo beber muito.']],
+    order: [['Ich glaube, dass ich Fieber habe.', 'Acho que estou com febre.'], ['Der Arzt sagt, dass ich im Bett bleiben soll.', 'O médico diz que devo ficar de cama.'], ['Ich weiß, dass Sport wichtig ist.', 'Sei que esporte é importante.'], ['Es ist gut, dass du zum Arzt gehst.', 'É bom que você vá ao médico.'], ['Sie hofft, dass es ihr bald besser geht.', 'Ela espera melhorar logo.']]
+  });
+
+  /* ======================= A2-U4 Feste feiern ======================= */
+  unit('A2-U4', {
+    title: 'Feste feiern', subtitle: 'Festas, datas e presentes',
+    goals: ['Dizer datas e aniversários', 'Convidar, parabenizar e agradecer', 'Dizer para quem é o presente (dativo)'],
+    dialog: [['A', 'Wann hast du Geburtstag?'], ['B', 'Am dritten Mai. Ich mache eine kleine Party.'], ['A', 'Schön! Was wünschst du dir?'], ['B', 'Nichts Besonderes. Wenn du kommst, freue ich mich.'], ['A', 'Natürlich komme ich! Danke für die Einladung.'], ['B', 'Gern. Bring einfach gute Laune mit!']],
+    dialogPt: 'Convite para uma festa de aniversário.',
+    listening: ['Ich habe am ersten Juni Geburtstag.', 'Herzlichen Glückwunsch!', 'Ich schenke meiner Mutter Blumen.', 'Wenn ich Zeit habe, komme ich.', 'Danke für die Einladung!'],
+    writing: 'Escreva um convite para sua festa: motivo, data (por extenso), hora, lugar, e peça resposta.',
+    speaking: { scene: 'Uma amiga alemã convida você para o casamento dela.', persona: 'Lena, amiga, informal (du), animada', goals: ['parabenizar', 'perguntar data e lugar', 'perguntar o que dar de presente', 'confirmar presença com wenn'] },
+    criteria: 'Critérios padrão; ordinais/datas e dativo ≥ 80%.'
+  });
+  N([
+    ['fest', 'das', 'Fest', 'Feste', 'a festa (tradicional)', 'fɛst', 'Das Fest beginnt am Nachmittag.', 'A festa começa à tarde.'],
+    ['feier', 'die', 'Feier', 'Feiern', 'a comemoração', 'ˈfaɪ̯ɐ', 'Die Feier war sehr schön.', 'A comemoração foi muito bonita.'],
+    ['geburtstag', 'der', 'Geburtstag', 'Geburtstage', 'o aniversário', 'ɡəˈbuːɐ̯tsˌtaːk', 'Heute ist mein Geburtstag.', 'Hoje é meu aniversário.'],
+    ['geschenk', 'das', 'Geschenk', 'Geschenke', 'o presente', 'ɡəˈʃɛŋk', 'Das Geschenk ist für dich.', 'O presente é para você.'],
+    ['einladung', 'die', 'Einladung', 'Einladungen', 'o convite', 'ˈaɪ̯nˌlaːdʊŋ', 'Danke für die Einladung!', 'Obrigado pelo convite!'],
+    ['gast', 'der', 'Gast', 'Gäste', 'o convidado, o hóspede', 'ɡast', 'Wir haben zwanzig Gäste.', 'Temos vinte convidados.'],
+    ['hochzeit', 'die', 'Hochzeit', 'Hochzeiten', 'o casamento (festa)', 'ˈhɔxˌtsaɪ̯t', 'Die Hochzeit ist im August.', 'O casamento é em agosto.'],
+    ['kerze', 'die', 'Kerze', 'Kerzen', 'a vela', 'ˈkɛʁtsə', 'Auf dem Kuchen sind dreißig Kerzen.', 'No bolo há trinta velas.'],
+    ['blume', 'die', 'Blume', 'Blumen', 'a flor', 'ˈbluːmə', 'Ich bringe Blumen mit.', 'Eu levo flores.'],
+    ['datum', 'das', 'Datum', 'Daten', 'a data', 'ˈdaːtʊm', 'Welches Datum ist heute?', 'Que data é hoje?'],
+    ['monat', 'der', 'Monat', 'Monate', 'o mês', 'ˈmoːnat', 'Der Mai ist mein Lieblingsmonat.', 'Maio é meu mês favorito.', 'Meses (todos der): Januar, Februar, März, April, Mai, Juni, Juli, August, September, Oktober, November, Dezember.'],
+    ['feiertag', 'der', 'Feiertag', 'Feiertage', 'o feriado', 'ˈfaɪ̯ɐˌtaːk', 'Morgen ist ein Feiertag.', 'Amanhã é feriado.'],
+    ['laune', 'die', 'Laune', 'Launen', 'o humor (estado de espírito)', 'ˈlaʊ̯nə', 'Sie hat heute gute Laune.', 'Ela está de bom humor hoje.'],
+  ]);
+  V([
+    ['feiern', 'feiern', 'comemorar', 'ˈfaɪ̯ɐn', 'feiere|feierst|feiert|feiern|feiert|feiern', 'Wir feiern am Samstag.', 'Comemoramos no sábado.', 'ich feiere (com -e-).'],
+    ['schenken', 'schenken', 'dar de presente', 'ˈʃɛŋkn̩', 'schenke|schenkst|schenkt|schenken|schenkt|schenken', 'Was schenkst du deinem Vater?', 'O que você vai dar ao seu pai?', 'Pessoa no dativo, coisa no acusativo.'],
+    ['einladen', 'einladen', 'convidar', 'ˈaɪ̯nˌlaːdn̩', 'lade ein|lädst ein|lädt ein|laden ein|ladet ein|laden ein', 'Ich lade dich zu meiner Party ein.', 'Eu te convido para a minha festa.', 'a→ä; separável.'],
+    ['gratulieren', 'gratulieren', 'parabenizar', 'ɡʁatuˈliːʁən', 'gratuliere|gratulierst|gratuliert|gratulieren|gratuliert|gratulieren', 'Ich gratuliere dir zum Geburtstag.', 'Parabéns pelo seu aniversário.', 'Pessoa no dativo: dir, ihm.'],
+    ['geben', 'geben', 'dar', 'ˈɡeːbn̩', 'gebe|gibst|gibt|geben|gebt|geben', 'Sie gibt mir ein Geschenk.', 'Ela me dá um presente.', 'e→i.'],
+    ['sichfreuen', 'sich freuen', 'alegrar-se', 'zɪç ˈfʁɔɪ̯ən', 'freue mich|freust dich|freut sich|freuen uns|freut euch|freuen sich', 'Ich freue mich auf die Party.', 'Estou ansioso pela festa.', 'auf + futuro; über + presente/passado.'],
+  ]);
+  P([
+    ['herzlichen', 'Herzlichen Glückwunsch zum Geburtstag!', 'Feliz aniversário!', ''],
+    ['wanngeburtstag', 'Wann hast du Geburtstag?', 'Quando é seu aniversário?', ''],
+    ['amdritten', 'Ich habe am dritten Mai Geburtstag.', 'Faço aniversário em 3 de maio.', 'am + ordinal com -en.'],
+    ['frohe', 'Frohe Weihnachten!', 'Feliz Natal!', ''],
+    ['neuesjahr', 'Frohes neues Jahr!', 'Feliz Ano Novo!', ''],
+    ['dankeeinladung', 'Danke für die Einladung!', 'Obrigado pelo convite!', ''],
+    ['wenn', 'wenn', 'quando, se (condição)', 'Verbo no fim: wenn ich Zeit habe.', 'word', 'vɛn'],
+  ]);
+  G('g_a2_datum', {
+    title: 'Números ordinais e datas', explain: 'Ordinais: 1º <b>erste</b>, 2º <b>zweite</b>, 3º <b>dritte</b>, 4º vierte, 5º fünfte, 6º sechste, 7º <b>siebte</b>, 8º <b>achte</b>… até 19: número + <b>-te</b>. De 20 em diante: + <b>-ste</b> (zwanzigste, einunddreißigste).<br>“Hoje é dia 3”: Heute ist <b>der dritte</b>. “No dia 3”: <b>am dritten</b> (am + -en). Escrito: 3.5. = der dritte Mai.',
+    compare: 'Português usa número cardinal na data (“3 de maio”); alemão usa ordinal (“o terceiro de maio”).',
+    examples: [['Heute ist der erste Mai.', 'Hoje é primeiro de maio.'], ['Am vierundzwanzigsten Dezember feiern wir.', 'No dia 24 de dezembro comemoramos.']],
+    drills: [['Heute ist der ___ Mai. (1.)', ['erste']], ['Ich habe am ___ Juni Geburtstag. (3.)', ['dritten']], ['Wir feiern am ___ Juli. (7.)', ['siebten']], ['Der ___ Oktober ist ein Feiertag. (3.)', ['dritte']], ['Am ___ Januar ist Neujahr. (1.)', ['ersten']], ['Heute ist der ___ März. (20.)', ['zwanzigste']]]
+  });
+  G('g_a2_dativobj', {
+    title: 'Dativo: para quem? (objeto indireto)', explain: 'Com <b>geben, schenken, zeigen, bringen, schreiben</b>: a <b>pessoa</b> vai no dativo e a <b>coisa</b> no acusativo: Ich schenke <b>meiner Mutter</b> (dat.) <b>Blumen</b> (acus.).<br>Dativo: dem/einem/meinem (m., n.), der/einer/meiner (f.), den/meinen + -n (pl.).<br>Pronomes no dativo: mir, dir, ihm, ihr, uns, euch, ihnen, Ihnen.<br>Também pedem dativo: helfen, danken, gratulieren, gefallen.',
+    compare: 'É o “para/a alguém” do português: “dou flores para minha mãe” = Ich gebe meiner Mutter Blumen.',
+    examples: [['Ich gebe dem Kind ein Buch.', 'Dou um livro à criança.'], ['Kannst du mir helfen?', 'Você pode me ajudar?']],
+    drills: [['Ich schenke ___ Vater ein Buch. (meu)', ['meinem']], ['Er gibt ___ Mutter Blumen. (sua, dele)', ['seiner']], ['Wir schenken ___ Kindern Spiele. (os)', ['den']], ['Kannst du ___ helfen? (a mim)', ['mir']], ['Ich gratuliere ___ zum Geburtstag. (a ele)', ['ihm']], ['Sie dankt ___ für das Geschenk. (a nós)', ['uns']]]
+  });
+  G('g_a2_wenn', {
+    title: 'wenn: condição e frequência', explain: '<b>wenn</b> = “quando/se” (condição ou repetição). Verbo no <b>fim</b> da oração com wenn. Se a frase começa com wenn, a oração principal começa com o <b>verbo</b>: <b>Wenn</b> ich Zeit habe, <b>komme</b> ich.<br>Monte as frases.',
+    compare: '“Se eu tiver tempo, eu vou” — em alemão, depois da vírgula vem primeiro o verbo.',
+    examples: [['Wenn es regnet, bleiben wir zu Hause.', 'Se chover, ficamos em casa.']],
+    order: [['Wenn ich Zeit habe, komme ich zur Party.', 'Se eu tiver tempo, vou à festa.'], ['Wenn es regnet, feiern wir drinnen.', 'Se chover, comemoramos dentro.'], ['Ich backe einen Kuchen, wenn du Geburtstag hast.', 'Faço um bolo quando você faz aniversário.'], ['Wenn du willst, kannst du Freunde mitbringen.', 'Se quiser, pode trazer amigos.'], ['Wenn das Wetter gut ist, grillen wir.', 'Se o tempo estiver bom, fazemos churrasco.']]
+  });
+
+  GF.content_a2_part1 = true;
+  GF.kitA2 = K;
+})(globalThis.GF = globalThis.GF || {});
+
+;
+/* Conteúdo fixo A2 — parte 2 (A2-U5 a A2-U8). */
+(function (GF) {
+  'use strict';
+  const K = GF.kitA2;
+  const { unit, N, V, P, G } = K;
+
+  /* ======================= A2-U5 Medien und Technik ======================= */
+  unit('A2-U5', {
+    title: 'Medien und Technik', subtitle: 'Celular, internet e comparações',
+    goals: ['Falar de aparelhos, apps e problemas técnicos', 'Comparar coisas (-er als)', 'Dizer o que é melhor/preferido (am -sten)'],
+    dialog: [['A', 'Welches Handy soll ich kaufen?'], ['B', 'Das neue Modell ist schneller, aber auch teurer.'], ['A', 'Und welches hat den besten Akku?'], ['B', 'Das alte. Es ist am billigsten und der Akku hält länger.'], ['A', 'Dann nehme ich das alte. Ich telefoniere sowieso am meisten.'], ['B', 'Gute Entscheidung!']],
+    dialogPt: 'Escolhendo um celular: comparação de modelos.',
+    listening: ['Mein Akku ist leer.', 'Das neue Handy ist schneller als das alte.', 'Kannst du mir die Datei schicken?', 'Am liebsten lese ich Nachrichten online.', 'Ich habe das Passwort vergessen.'],
+    writing: 'Compare dois aparelhos ou apps que você usa (preço, qualidade, velocidade) e diga qual prefere e por quê.',
+    speaking: { scene: 'Seu notebook parou de funcionar e você pede ajuda numa loja de eletrônicos.', persona: 'Tim, vendedor jovem, informal mas educado (Sie)', goals: ['explicar o problema', 'perguntar por um aparelho novo', 'comparar dois modelos', 'decidir com am besten/am liebsten'] },
+    criteria: 'Critérios padrão; comparativo e superlativo ≥ 80%.'
+  });
+  N([
+    ['handy', 'das', 'Handy', 'Handys', 'o celular', 'ˈhɛndi', 'Mein Handy ist kaputt.', 'Meu celular quebrou.', 'Falso inglês: “Handy” = celular.'],
+    ['computer', 'der', 'Computer', '=', 'o computador', 'kɔmˈpjuːtɐ', 'Der Computer ist zu langsam.', 'O computador está lento demais.'],
+    ['laptop', 'der', 'Laptop', 'Laptops', 'o notebook', 'ˈlɛptɔp', 'Ich arbeite mit dem Laptop.', 'Trabalho com o notebook.'],
+    ['internet', 'das', 'Internet', '', 'a internet', 'ˈɪntɐnɛt', 'Das Internet ist heute langsam.', 'A internet está lenta hoje.'],
+    ['nachricht', 'die', 'Nachricht', 'Nachrichten', 'a mensagem; (pl.) o noticiário', 'ˈnaːxˌʁɪçt', 'Ich schreibe dir eine Nachricht.', 'Te mando uma mensagem.'],
+    ['passwort', 'das', 'Passwort', 'Passwörter', 'a senha', 'ˈpasˌvɔʁt', 'Das Passwort ist zu kurz.', 'A senha é curta demais.'],
+    ['bildschirm', 'der', 'Bildschirm', 'Bildschirme', 'a tela', 'ˈbɪltˌʃɪʁm', 'Der Bildschirm ist sehr groß.', 'A tela é muito grande.'],
+    ['app', 'die', 'App', 'Apps', 'o aplicativo', 'ɛp', 'Die App ist kostenlos.', 'O aplicativo é gratuito.'],
+    ['zeitung', 'die', 'Zeitung', 'Zeitungen', 'o jornal', 'ˈtsaɪ̯tʊŋ', 'Ich lese die Zeitung online.', 'Leio o jornal online.'],
+    ['sendung', 'die', 'Sendung', 'Sendungen', 'o programa (TV/rádio)', 'ˈzɛndʊŋ', 'Die Sendung beginnt um acht.', 'O programa começa às oito.'],
+    ['akku', 'der', 'Akku', 'Akkus', 'a bateria', 'ˈaku', 'Der Akku hält zwei Tage.', 'A bateria dura dois dias.'],
+    ['ladegeraet', 'das', 'Ladegerät', 'Ladegeräte', 'o carregador', 'ˈlaːdəɡəˌʁɛːt', 'Hast du ein Ladegerät für mich?', 'Você tem um carregador para mim?'],
+    ['datei', 'die', 'Datei', 'Dateien', 'o arquivo (digital)', 'daˈtaɪ̯', 'Die Datei ist zu groß.', 'O arquivo é grande demais.'],
+  ]);
+  V([
+    ['herunterladen', 'herunterladen', 'baixar (download)', 'hɛˈʁʊntɐˌlaːdn̩', 'lade herunter|lädst herunter|lädt herunter|laden herunter|ladet herunter|laden herunter', 'Ich lade die App herunter.', 'Eu baixo o aplicativo.', 'Separável; a→ä. Perfekt: hat heruntergeladen.'],
+    ['speichern', 'speichern', 'salvar (arquivo)', 'ˈʃpaɪ̯çɐn', 'speichere|speicherst|speichert|speichern|speichert|speichern', 'Hast du die Datei gespeichert?', 'Você salvou o arquivo?'],
+    ['schicken', 'schicken', 'enviar', 'ˈʃɪkn̩', 'schicke|schickst|schickt|schicken|schickt|schicken', 'Schick mir bitte das Foto.', 'Me manda a foto, por favor.'],
+    ['benutzen', 'benutzen', 'usar', 'bəˈnʊtsn̩', 'benutze|benutzt|benutzt|benutzen|benutzt|benutzen', 'Ich benutze das Handy jeden Tag.', 'Uso o celular todos os dias.'],
+    ['vergleichen', 'vergleichen', 'comparar', 'fɛɐ̯ˈɡlaɪ̯çn̩', 'vergleiche|vergleichst|vergleicht|vergleichen|vergleicht|vergleichen', 'Wir vergleichen die Preise.', 'Comparamos os preços.'],
+    ['vergessen', 'vergessen', 'esquecer', 'fɛɐ̯ˈɡɛsn̩', 'vergesse|vergisst|vergisst|vergessen|vergesst|vergessen', 'Ich habe das Passwort vergessen.', 'Esqueci a senha.', 'e→i; Perfekt: hat vergessen.'],
+  ]);
+  P([
+    ['schnell', 'schnell', 'rápido', '', 'word', 'ʃnɛl'],
+    ['langsam', 'langsam', 'lento, devagar', '', 'word', 'ˈlaŋzaːm'],
+    ['praktisch', 'praktisch', 'prático', '', 'word', 'ˈpʁaktɪʃ'],
+    ['kostenlos', 'kostenlos', 'gratuito', '', 'word', 'ˈkɔstn̩loːs'],
+    ['akkuleer', 'Mein Akku ist leer.', 'Minha bateria acabou.', ''],
+    ['dateischicken', 'Kannst du mir die Datei schicken?', 'Você pode me mandar o arquivo?', ''],
+    ['funktioniertnicht', 'Das funktioniert nicht.', 'Isso não funciona.', ''],
+    ['amliebsten', 'Am liebsten lese ich Nachrichten online.', 'Prefiro ler notícias online.', ''],
+  ]);
+  G('g_a2_komparativ', {
+    title: 'Comparativo: -er als', explain: 'Adjetivo + <b>-er</b> + <b>als</b>: schnell → schnell<b>er als</b>.<br>Muitos adjetivos curtos ganham trema: alt → <b>ä</b>lter, groß → gr<b>ö</b>ßer, jung → j<b>ü</b>nger, kurz → k<b>ü</b>rzer.<br>Irregulares: gut → <b>besser</b>, viel → <b>mehr</b>, gern → <b>lieber</b>.<br>Igualdade: <b>so</b> … <b>wie</b> (so schnell wie).',
+    compare: 'Português usa “mais … que”; alemão muda o próprio adjetivo: “mais rápido” = schneller.',
+    examples: [['Der Laptop ist teurer als das Handy.', 'O notebook é mais caro que o celular.'], ['Ich trinke lieber Tee als Kaffee.', 'Prefiro chá a café.']],
+    drills: [['Das Handy ist ___ als der Laptop. (klein)', ['kleiner']], ['Mein Bruder ist ___ als ich. (alt)', ['älter', 'aelter']], ['Der neue Computer ist ___. (gut)', ['besser']], ['Ich lese ___ als früher. (viel)', ['mehr']], ['Ich trinke ___ Tee als Kaffee. (gern)', ['lieber']], ['Berlin ist größer ___ München.', ['als']], ['Das Tablet ist so teuer ___ das Handy.', ['wie']]]
+  });
+  G('g_a2_superlativ', {
+    title: 'Superlativo: am -sten / der, die, das -ste', explain: 'Depois do verbo: <b>am</b> + adjetivo + <b>-sten</b>: am schnellsten.<br>Antes do substantivo: <b>der/die/das</b> + adjetivo + <b>-ste</b>: das schnellste Handy.<br>Terminação em -d, -t, -s, -ß, -z: + <b>-esten</b> (am ältesten, am kürzesten).<br>Irregulares: am <b>besten</b>, am <b>meisten</b>, am <b>liebsten</b>.',
+    compare: '“O mais rápido” = am schnellsten / der schnellste. “Prefiro acima de tudo” = am liebsten.',
+    examples: [['Dieses Handy ist am billigsten.', 'Este celular é o mais barato.'], ['Das ist die beste App.', 'Este é o melhor aplicativo.']],
+    drills: [['Dieses Handy ist am ___. (billig)', ['billigsten']], ['Am ___ höre ich Podcasts. (gern)', ['liebsten']], ['Wer spielt am ___? (gut)', ['besten']], ['Das ist die ___ App. (gut)', ['beste']], ['Der Laptop ist am ___. (teuer)', ['teuersten']], ['Mein Opa ist am ___. (alt)', ['ältesten', 'aeltesten']]]
+  });
+
+  /* ======================= A2-U6 Wohnen ======================= */
+  unit('A2-U6', {
+    title: 'Wohnen', subtitle: 'Mudança, aluguel e móveis',
+    goals: ['Procurar apartamento e falar de aluguel', 'Dizer onde colocar e onde estão as coisas (stellen/stehen…)', 'Descrever com adjetivos antes do substantivo'],
+    dialog: [['A', 'Wann ziehst du um?'], ['B', 'Nächsten Samstag. Die neue Wohnung hat einen großen Balkon.'], ['A', 'Toll! Brauchst du Hilfe?'], ['B', 'Ja, gern! Wir müssen das Sofa ins Wohnzimmer stellen.'], ['A', 'Und wo soll das große Regal stehen?'], ['B', 'Das Regal stellen wir an die Wand neben dem Fenster.']],
+    dialogPt: 'Amigos combinam a mudança e onde colocar os móveis.',
+    listening: ['Die Wohnung kostet achthundert Euro warm.', 'Ich ziehe nächsten Monat um.', 'Das Bild hängt an der Wand.', 'Stell den Stuhl in die Ecke!', 'Wir haben einen kleinen Balkon.'],
+    writing: 'Descreva sua casa ideal (5–7 frases) usando pelo menos 4 adjetivos antes de substantivos (ein großer…, eine helle…).',
+    speaking: { scene: 'Você visita um apartamento para alugar em Düsseldorf.', persona: 'Herr Krüger, proprietário, formal (Sie)', goals: ['perguntar o preço do aluguel', 'perguntar sobre aquecimento e vizinhos', 'descrever o que procura com adjetivos', 'combinar quando pode se mudar'] },
+    criteria: 'Critérios padrão; stellen/stehen e adjetivos ≥ 80%.'
+  });
+  N([
+    ['umzug', 'der', 'Umzug', 'Umzüge', 'a mudança', 'ˈʊmˌtsuːk', 'Der Umzug war anstrengend.', 'A mudança foi cansativa.'],
+    ['miete', 'die', 'Miete', 'Mieten', 'o aluguel', 'ˈmiːtə', 'Die Miete ist zu hoch.', 'O aluguel é alto demais.', '“warm” = com aquecimento e taxas; “kalt” = sem.'],
+    ['vermieter', 'der', 'Vermieter', '=', 'o proprietário (que aluga)', 'fɛɐ̯ˈmiːtɐ', 'Der Vermieter ist sehr freundlich.', 'O proprietário é muito simpático.'],
+    ['nachbar', 'der', 'Nachbar', 'Nachbarn', 'o vizinho', 'ˈnaxbaːɐ̯', 'Unser Nachbar ist laut.', 'Nosso vizinho é barulhento.'],
+    ['nachbarin', 'die', 'Nachbarin', 'Nachbarinnen', 'a vizinha', 'ˈnaxbaːʁɪn', 'Die Nachbarin hilft uns.', 'A vizinha nos ajuda.'],
+    ['regal', 'das', 'Regal', 'Regale', 'a estante', 'ʁeˈɡaːl', 'Das Regal steht an der Wand.', 'A estante fica junto à parede.'],
+    ['teppich', 'der', 'Teppich', 'Teppiche', 'o tapete', 'ˈtɛpɪç', 'Der Teppich liegt im Wohnzimmer.', 'O tapete fica na sala.'],
+    ['bild', 'das', 'Bild', 'Bilder', 'o quadro, a imagem', 'bɪlt', 'Das Bild hängt über dem Sofa.', 'O quadro está pendurado acima do sofá.'],
+    ['wand', 'die', 'Wand', 'Wände', 'a parede', 'vant', 'Die Wände sind weiß.', 'As paredes são brancas.'],
+    ['boden', 'der', 'Boden', 'Böden', 'o chão', 'ˈboːdn̩', 'Die Schuhe liegen auf dem Boden.', 'Os sapatos estão no chão.'],
+    ['ecke', 'die', 'Ecke', 'Ecken', 'o canto; a esquina', 'ˈɛkə', 'Die Lampe steht in der Ecke.', 'A luminária fica no canto.'],
+    ['balkon', 'der', 'Balkon', 'Balkone', 'a varanda', 'balˈkoːn', 'Wir frühstücken auf dem Balkon.', 'Tomamos café na varanda.'],
+    ['keller', 'der', 'Keller', '=', 'o porão', 'ˈkɛlɐ', 'Das Fahrrad steht im Keller.', 'A bicicleta fica no porão.'],
+    ['heizung', 'die', 'Heizung', 'Heizungen', 'o aquecimento', 'ˈhaɪ̯tsʊŋ', 'Die Heizung funktioniert nicht.', 'O aquecimento não funciona.'],
+    ['wohnzimmer', 'das', 'Wohnzimmer', '=', 'a sala de estar', 'ˈvoːnˌtsɪmɐ', 'Das Wohnzimmer ist hell.', 'A sala é clara.'],
+    ['muell', 'der', 'Müll', '', 'o lixo', 'mʏl', 'Bring bitte den Müll raus.', 'Leve o lixo para fora, por favor.', 'Na Alemanha o lixo é separado.'],
+  ]);
+  V([
+    ['umziehen', 'umziehen', 'mudar-se (de casa)', 'ˈʊmˌtsiːən', 'ziehe um|ziehst um|zieht um|ziehen um|zieht um|ziehen um', 'Wir ziehen nach Köln um.', 'Vamos nos mudar para Colônia.', 'Perfekt: ist umgezogen.'],
+    ['stellen', 'stellen', 'colocar (em pé)', 'ˈʃtɛlən', 'stelle|stellst|stellt|stellen|stellt|stellen', 'Ich stelle die Flasche auf den Tisch.', 'Coloco a garrafa na mesa.', 'Movimento → acusativo.'],
+    ['stehen', 'stehen', 'estar (em pé)', 'ˈʃteːən', 'stehe|stehst|steht|stehen|steht|stehen', 'Die Flasche steht auf dem Tisch.', 'A garrafa está na mesa.', 'Posição → dativo.'],
+    ['legen', 'legen', 'colocar (deitado)', 'ˈleːɡn̩', 'lege|legst|legt|legen|legt|legen', 'Ich lege das Buch auf das Regal.', 'Coloco o livro na estante.', 'Posição deitado: liegen.'],
+    ['haengen', 'hängen', 'pendurar; estar pendurado', 'ˈhɛŋən', 'hänge|hängst|hängt|hängen|hängt|hängen', 'Ich hänge das Bild an die Wand.', 'Penduro o quadro na parede.', 'Mesma forma no presente para as duas ideias.'],
+    ['mieten', 'mieten', 'alugar (como inquilino)', 'ˈmiːtn̩', 'miete|mietest|mietet|mieten|mietet|mieten', 'Wir mieten eine Wohnung.', 'Alugamos um apartamento.'],
+    ['aufraeumen', 'aufräumen', 'arrumar', 'ˈaʊ̯fˌʁɔɪ̯mən', 'räume auf|räumst auf|räumt auf|räumen auf|räumt auf|räumen auf', 'Am Sonntag räume ich auf.', 'No domingo eu arrumo a casa.'],
+  ]);
+  P([
+    ['gemuetlich', 'gemütlich', 'aconchegante', '', 'word', 'ɡəˈmyːtlɪç'],
+    ['ruhig', 'ruhig', 'tranquilo, silencioso', '', 'word', 'ˈʁuːɪç'],
+    ['laut', 'laut', 'barulhento; alto (som)', '', 'word', 'laʊ̯t'],
+    ['warmmiete', 'Die Wohnung kostet 800 Euro warm.', 'O apartamento custa 800 euros com taxas.', ''],
+    ['besichtigen', 'Wann kann ich die Wohnung besichtigen?', 'Quando posso visitar o apartamento?', ''],
+    ['ziehenaechsten', 'Ich ziehe nächsten Monat um.', 'Vou me mudar no mês que vem.', ''],
+    ['hilfeumzug', 'Kannst du mir beim Umzug helfen?', 'Você pode me ajudar na mudança?', ''],
+  ]);
+  G('g_a2_stellen', {
+    title: 'stellen/stehen, legen/liegen, hängen', explain: '<b>Movimento</b> (alguém coloca) → verbo regular + <b>acusativo</b> (Wohin?): Ich <b>stelle</b> die Lampe auf <b>den</b> Tisch. Ich <b>lege</b> das Buch auf <b>das</b> Regal.<br><b>Posição</b> (onde está) → outro verbo + <b>dativo</b> (Wo?): Die Lampe <b>steht</b> auf <b>dem</b> Tisch. Das Buch <b>liegt</b> auf <b>dem</b> Regal.<br>stellen/stehen = em pé · legen/liegen = deitado · hängen = pendurado (mesma forma).',
+    compare: 'Português usa “pôr/estar” para tudo; o alemão distingue a posição (em pé, deitado, pendurado).',
+    examples: [['Die Flasche steht im Kühlschrank.', 'A garrafa está na geladeira (em pé).'], ['Ich lege den Teppich ins Wohnzimmer.', 'Coloco o tapete na sala.']],
+    drills: [['Ich ___ die Lampe auf den Tisch. (colocar em pé)', ['stelle']], ['Die Lampe ___ auf dem Tisch. (está em pé)', ['steht']], ['Ich ___ das Buch auf das Regal. (colocar deitado)', ['lege']], ['Das Buch ___ auf dem Regal. (está deitado)', ['liegt']], ['Er hängt das Bild an ___ Wand.', ['die']], ['Das Bild hängt an ___ Wand.', ['der']], ['Wir stellen das Sofa in ___ Ecke.', ['die']]]
+  });
+  G('g_a2_adjdekl', {
+    title: 'Adjetivo antes do substantivo (com ein/kein/mein)', explain: 'Depois de <b>ein/kein/mein</b>, o adjetivo mostra o gênero quando o artigo não mostra:<br>Nominativo: ein groß<b>er</b> Tisch · eine groß<b>e</b> Lampe · ein groß<b>es</b> Bett · (pl.) meine groß<b>en</b> Zimmer<br>Acusativo: muda só o masculino: einen groß<b>en</b> Tisch.<br>Depois de <b>der/die/das</b> (nominativo singular): sempre <b>-e</b>: der neu<b>e</b> Nachbar, das hell<b>e</b> Zimmer.',
+    compare: 'Português concorda o adjetivo só em gênero/número; o alemão também por caso e pelo artigo.',
+    examples: [['Wir haben eine kleine Küche.', 'Temos uma cozinha pequena.'], ['Ich suche einen ruhigen Nachbarn.', 'Procuro um vizinho tranquilo.']],
+    drills: [['Das ist ein ___ Balkon. (groß)', ['großer', 'grosser']], ['Wir haben eine ___ Küche. (klein)', ['kleine']], ['Das ist ein ___ Zimmer. (hell)', ['helles']], ['Ich suche einen ___ Teppich. (rot)', ['roten']], ['Der ___ Nachbar ist nett. (neu)', ['neue']], ['Die Wohnung hat einen ___ Keller. (groß)', ['großen', 'grossen']]]
+  });
+
+  /* ======================= A2-U7 Freunde und Familie ======================= */
+  unit('A2-U7', {
+    title: 'Freunde und Familie', subtitle: 'Relações, lembranças e o passado',
+    goals: ['Contar como conheceu alguém', 'Usar o Perfekt de verbos irregulares', 'Usar possessivos no dativo (meinem, meiner)'],
+    dialog: [['A', 'Wie habt ihr euch kennengelernt?'], ['B', 'Im Urlaub in Portugal. Wir haben am Strand Volleyball gespielt.'], ['A', 'Wie romantisch! Und wann habt ihr geheiratet?'], ['B', 'Vor zwei Jahren. Wir haben mit unseren Freunden und meiner Familie gefeiert.'], ['A', 'Habt ihr euch nie gestritten?'], ['B', 'Doch, natürlich! Aber wir verstehen uns sehr gut.']],
+    dialogPt: 'Uma pessoa conta como conheceu o parceiro.',
+    listening: ['Wir haben uns im Urlaub kennengelernt.', 'Ich habe meinem Bruder geholfen.', 'Hast du das gewusst?', 'Er hat seiner Freundin Blumen gebracht.', 'Ich habe dich nicht verstanden.'],
+    writing: 'Conte (6–8 frases, no Perfekt) como você conheceu um amigo ou parceiro: onde, quando, o que fizeram.',
+    speaking: { scene: 'Num jantar, uma pessoa nova do grupo pergunta sobre sua família e amigos.', persona: 'Sophie, 32, amiga de amigos, informal (du)', goals: ['falar de alguém da família', 'contar como conheceu um amigo (Perfekt)', 'usar um possessivo no dativo', 'perguntar sobre a família dela'] },
+    criteria: 'Critérios padrão; Perfekt irregular e possessivos no dativo ≥ 80%.'
+  });
+  N([
+    ['beziehung', 'die', 'Beziehung', 'Beziehungen', 'o relacionamento', 'bəˈtsiːʊŋ', 'Sie haben eine gute Beziehung.', 'Eles têm um bom relacionamento.'],
+    ['partner', 'der', 'Partner', '=', 'o parceiro, o companheiro', 'ˈpaʁtnɐ', 'Mein Partner kocht gern.', 'Meu companheiro gosta de cozinhar.'],
+    ['partnerin', 'die', 'Partnerin', 'Partnerinnen', 'a parceira, a companheira', 'ˈpaʁtnəʁɪn', 'Seine Partnerin kommt aus Wien.', 'A companheira dele é de Viena.'],
+    ['grosseltern', 'die', 'Großeltern', '—', 'os avós', 'ˈɡʁoːsˌʔɛltɐn', 'Meine Großeltern wohnen auf dem Land.', 'Meus avós moram no interior.', 'Só plural.'],
+    ['opa', 'der', 'Opa', 'Opas', 'o vovô', 'ˈoːpa', 'Mein Opa ist achtzig.', 'Meu avô tem oitenta anos.', 'Formal: der Großvater.'],
+    ['oma', 'die', 'Oma', 'Omas', 'a vovó', 'ˈoːma', 'Die Oma backt Kuchen.', 'A vovó faz bolo.', 'Formal: die Großmutter.'],
+    ['onkel', 'der', 'Onkel', '=', 'o tio', 'ˈɔŋkl̩', 'Mein Onkel lebt in Kanada.', 'Meu tio mora no Canadá.'],
+    ['tante', 'die', 'Tante', 'Tanten', 'a tia', 'ˈtantə', 'Meine Tante hat drei Kinder.', 'Minha tia tem três filhos.'],
+    ['cousin', 'der', 'Cousin', 'Cousins', 'o primo', 'kuˈzɛ̃ː', 'Mein Cousin studiert in Graz.', 'Meu primo estuda em Graz.'],
+    ['cousine', 'die', 'Cousine', 'Cousinen', 'a prima', 'kuˈziːnə', 'Meine Cousine heiratet bald.', 'Minha prima vai se casar em breve.'],
+    ['freundschaft', 'die', 'Freundschaft', 'Freundschaften', 'a amizade', 'ˈfʁɔɪ̯ntʃaft', 'Unsere Freundschaft ist sehr alt.', 'Nossa amizade é muito antiga.'],
+    ['erinnerung', 'die', 'Erinnerung', 'Erinnerungen', 'a lembrança', 'ɛɐ̯ˈʔɪnəʁʊŋ', 'Das ist eine schöne Erinnerung.', 'É uma bela lembrança.'],
+    ['streit', 'der', 'Streit', '', 'a briga, a discussão', 'ʃtʁaɪ̯t', 'Sie hatten einen Streit.', 'Eles tiveram uma briga.'],
+  ]);
+  V([
+    ['kennenlernen', 'kennenlernen', 'conhecer (pela primeira vez)', 'ˈkɛnənˌlɛʁnən', 'lerne kennen|lernst kennen|lernt kennen|lernen kennen|lernt kennen|lernen kennen', 'Wo hast du sie kennengelernt?', 'Onde você a conheceu?', 'Perfekt: hat kennengelernt.'],
+    ['sichstreiten', 'sich streiten', 'brigar, discutir', 'zɪç ˈʃtʁaɪ̯tn̩', 'streite mich|streitest dich|streitet sich|streiten uns|streitet euch|streiten sich', 'Die Kinder streiten sich oft.', 'As crianças brigam muitas vezes.', 'Perfekt: hat sich gestritten.'],
+    ['verstehen', 'verstehen', 'entender', 'fɛɐ̯ˈʃteːən', 'verstehe|verstehst|versteht|verstehen|versteht|verstehen', 'Wir verstehen uns gut.', 'Nós nos damos bem.', 'Perfekt: hat verstanden.'],
+    ['bringen', 'bringen', 'trazer, levar', 'ˈbʁɪŋən', 'bringe|bringst|bringt|bringen|bringt|bringen', 'Er hat Wein mitgebracht.', 'Ele trouxe vinho.', 'Perfekt: hat gebracht.'],
+    ['denken', 'denken', 'pensar', 'ˈdɛŋkn̩', 'denke|denkst|denkt|denken|denkt|denken', 'Ich denke oft an dich.', 'Penso muito em você.', 'Perfekt: hat gedacht.'],
+    ['wissen', 'wissen', 'saber (um fato)', 'ˈvɪsn̩', 'weiß|weißt|weiß|wissen|wisst|wissen', 'Weißt du, wo er wohnt?', 'Você sabe onde ele mora?', 'Irregular; Perfekt: hat gewusst.'],
+    ['heiraten', 'heiraten', 'casar-se', 'ˈhaɪ̯ʁaːtn̩', 'heirate|heiratest|heiratet|heiraten|heiratet|heiraten', 'Sie haben letztes Jahr geheiratet.', 'Eles se casaram no ano passado.'],
+    ['vermissen', 'vermissen', 'sentir falta de', 'fɛɐ̯ˈmɪsn̩', 'vermisse|vermisst|vermisst|vermissen|vermisst|vermissen', 'Ich vermisse meine Familie.', 'Sinto falta da minha família.'],
+  ]);
+  P([
+    ['nett', 'nett', 'simpático, gentil', '', 'word', 'nɛt'],
+    ['ehrlich', 'ehrlich', 'sincero, honesto', '', 'word', 'ˈeːɐ̯lɪç'],
+    ['geschieden', 'geschieden', 'divorciado', '', 'word', 'ɡəˈʃiːdn̩'],
+    ['wiekennengelernt', 'Wie habt ihr euch kennengelernt?', 'Como vocês se conheceram?', ''],
+    ['seitzusammen', 'Wir sind seit fünf Jahren zusammen.', 'Estamos juntos há cinco anos.', ''],
+    ['vermissedich', 'Ich vermisse dich.', 'Sinto sua falta.', ''],
+    ['gruess', 'Grüß deine Eltern von mir!', 'Mande lembranças aos seus pais!', ''],
+    ['doch', 'Doch!', 'Sim! (contrariando uma pergunta negativa)', '“Hast du keine Zeit?” – “Doch!”', 'word', 'dɔx'],
+  ]);
+  G('g_a2_perfekt_irr', {
+    title: 'Perfekt dos verbos irregulares', explain: 'Irregulares terminam em <b>-en</b> e muitas vezes mudam a vogal: sprechen → ge<b>sprochen</b>, finden → ge<b>funden</b>, trinken → ge<b>trunken</b>, helfen → ge<b>holfen</b>, nehmen → ge<b>nommen</b>, verstehen → <b>verstanden</b>.<br>Mistos (forma -t, mas com mudança): bringen → ge<b>bracht</b>, denken → ge<b>dacht</b>, wissen → ge<b>wusst</b>, kennen → ge<b>kannt</b>.<br>Com <b>sein</b>: gehen → ist <b>gegangen</b>, kommen → ist <b>gekommen</b>, bleiben → ist geblieben.',
+    compare: 'Como “fazer → feito”, “dizer → dito” em português: precisam ser memorizados. Aprenda sempre infinitivo + particípio juntos.',
+    examples: [['Wir haben lange gesprochen.', 'Conversamos muito tempo.'], ['Er ist nach Hause gegangen.', 'Ele foi para casa.']],
+    drills: [['Wir haben viel ___. (sprechen)', ['gesprochen']], ['Er ist spät ___. (kommen)', ['gekommen']], ['Ich habe dir ein Geschenk ___. (bringen)', ['gebracht']], ['Hast du das ___? (wissen)', ['gewusst']], ['Sie hat den Schlüssel ___. (finden)', ['gefunden']], ['Wir haben Kaffee ___. (trinken)', ['getrunken']], ['Ich habe dich nicht ___. (verstehen)', ['verstanden']]]
+  });
+  G('g_a2_possdat', {
+    title: 'Possessivos no dativo', explain: 'No dativo, os possessivos levam as terminações do artigo: <b>meinem</b> (der/das), <b>meiner</b> (die), <b>meinen</b> + -n (plural).<br>Vale para todos: dein-, sein-, ihr-, unser-, euer-, Ihr-.<br>Depois de mit, bei, zu, von, aus, nach, seit e com helfen, danken, gefallen, schenken (pessoa).',
+    compare: '“Ajudo meu irmão” = Ich helfe meinem Bruder (helfen pede dativo).',
+    examples: [['Ich wohne bei meiner Tante.', 'Moro com minha tia.'], ['Sie spricht mit ihren Eltern.', 'Ela fala com os pais dela.']],
+    drills: [['Ich helfe ___ Bruder. (meu)', ['meinem']], ['Er spricht mit ___ Schwester. (sua, dele)', ['seiner']], ['Wir fahren zu ___ Großeltern. (nossos)', ['unseren']], ['Ich wohne bei ___ Tante. (minha)', ['meiner']], ['Sie schenkt ___ Kind ein Buch. (seu, dela)', ['ihrem']], ['Gefällt ___ Freundin das Geschenk? (tua)', ['deiner']]]
+  });
+
+  /* ======================= A2-U8 Pläne ======================= */
+  unit('A2-U8', {
+    title: 'Pläne', subtitle: 'Planos, sonhos e futuro',
+    goals: ['Falar de planos e sonhos', 'Usar o futuro com werden', 'Usar zu + infinitivo (Ich habe vor, … zu …)'],
+    dialog: [['A', 'Was hast du nächstes Jahr vor?'], ['B', 'Ich habe vor, die B1-Prüfung zu machen.'], ['A', 'Und danach?'], ['B', 'Vielleicht werde ich ein Jahr in Deutschland arbeiten.'], ['A', 'Das klingt super! Hast du keine Angst?'], ['B', 'Ein bisschen. Aber ich versuche, jeden Tag zu üben.']],
+    dialogPt: 'Planos para o próximo ano: exame e trabalho no exterior.',
+    listening: ['Nächstes Jahr werde ich in Berlin wohnen.', 'Ich habe vor, einen Kurs zu machen.', 'Hast du Lust, mitzukommen?', 'Ich hoffe, die Prüfung zu bestehen.', 'Vielleicht fahre ich im Sommer nach Österreich.'],
+    writing: 'Escreva sobre seus planos para os próximos 2 anos (6–8 frases), usando werden e pelo menos 2 construções com zu.',
+    speaking: { scene: 'Conversa com um orientador de uma escola de idiomas sobre seus objetivos.', persona: 'Herr Neumann, orientador pedagógico, formal (Sie)', goals: ['dizer o seu objetivo com o alemão', 'falar de um plano com vorhaben … zu', 'falar do futuro com werden', 'perguntar sobre cursos e exames'] },
+    criteria: 'Critérios padrão; werden e zu + infinitivo ≥ 80%. Conclui o A2 — próximo passo: simulado Goethe-Zertifikat A2.'
+  });
+  N([
+    ['zukunft', 'die', 'Zukunft', '', 'o futuro', 'ˈtsuːˌkʊnft', 'Die Zukunft ist offen.', 'O futuro está em aberto.'],
+    ['plan', 'der', 'Plan', 'Pläne', 'o plano', 'plaːn', 'Hast du schon Pläne für den Sommer?', 'Você já tem planos para o verão?'],
+    ['traum', 'der', 'Traum', 'Träume', 'o sonho', 'tʁaʊ̯m', 'Mein Traum ist ein Haus am Meer.', 'Meu sonho é uma casa na praia.'],
+    ['ziel', 'das', 'Ziel', 'Ziele', 'o objetivo, a meta', 'tsiːl', 'Mein Ziel ist das C1-Zertifikat.', 'Minha meta é o certificado C1.'],
+    ['pruefung', 'die', 'Prüfung', 'Prüfungen', 'a prova, o exame', 'ˈpʁyːfʊŋ', 'Die Prüfung ist im Juni.', 'A prova é em junho.'],
+    ['kurs', 'der', 'Kurs', 'Kurse', 'o curso', 'kʊʁs', 'Der Kurs dauert drei Monate.', 'O curso dura três meses.'],
+    ['zertifikat', 'das', 'Zertifikat', 'Zertifikate', 'o certificado', 'tsɛʁtifiˈkaːt', 'Für die Stelle brauche ich ein Zertifikat.', 'Para a vaga preciso de um certificado.'],
+    ['ausland', 'das', 'Ausland', '', 'o exterior', 'ˈaʊ̯sˌlant', 'Sie möchte im Ausland studieren.', 'Ela quer estudar no exterior.'],
+    ['moeglichkeit', 'die', 'Möglichkeit', 'Möglichkeiten', 'a possibilidade', 'ˈmøːklɪçkaɪ̯t', 'Es gibt viele Möglichkeiten.', 'Há muitas possibilidades.'],
+    ['wunsch', 'der', 'Wunsch', 'Wünsche', 'o desejo', 'vʊnʃ', 'Hast du einen Wunsch?', 'Você tem algum desejo?'],
+    ['entscheidung', 'die', 'Entscheidung', 'Entscheidungen', 'a decisão', 'ɛntˈʃaɪ̯dʊŋ', 'Das ist eine schwere Entscheidung.', 'É uma decisão difícil.'],
+    ['angst', 'die', 'Angst', 'Ängste', 'o medo', 'aŋst', 'Ich habe keine Angst.', 'Não tenho medo.'],
+    ['lust', 'die', 'Lust', '', 'a vontade', 'lʊst', 'Ich habe keine Lust.', 'Não estou com vontade.', 'Lust haben = estar a fim.'],
+  ]);
+  V([
+    ['werden', 'werden', 'tornar-se; (futuro) ir + verbo', 'ˈveːɐ̯dn̩', 'werde|wirst|wird|werden|werdet|werden', 'Ich werde Lehrerin.', 'Vou me tornar professora.', 'Irregular: du wirst, er wird.'],
+    ['vorhaben', 'vorhaben', 'planejar, pretender', 'ˈfoːɐ̯ˌhaːbn̩', 'habe vor|hast vor|hat vor|haben vor|habt vor|haben vor', 'Was hast du am Wochenende vor?', 'O que você vai fazer no fim de semana?', 'Separável.'],
+    ['hoffen', 'hoffen', 'esperar (ter esperança)', 'ˈhɔfn̩', 'hoffe|hoffst|hofft|hoffen|hofft|hoffen', 'Ich hoffe, dass du kommst.', 'Espero que você venha.'],
+    ['versuchen', 'versuchen', 'tentar', 'fɛɐ̯ˈzuːxn̩', 'versuche|versuchst|versucht|versuchen|versucht|versuchen', 'Ich versuche, mehr Deutsch zu sprechen.', 'Tento falar mais alemão.'],
+    ['bestehen', 'bestehen', 'passar (num exame)', 'bəˈʃteːən', 'bestehe|bestehst|besteht|bestehen|besteht|bestehen', 'Sie hat die Prüfung bestanden.', 'Ela passou na prova.', 'Perfekt: hat bestanden.'],
+    ['ueben', 'üben', 'praticar, treinar', 'ˈyːbn̩', 'übe|übst|übt|üben|übt|üben', 'Wir üben jeden Tag.', 'Praticamos todos os dias.'],
+    ['traeumen', 'träumen', 'sonhar', 'ˈtʁɔɪ̯mən', 'träume|träumst|träumt|träumen|träumt|träumen', 'Ich träume von einer Weltreise.', 'Sonho com uma volta ao mundo.', 'träumen von + dativo.'],
+  ]);
+  P([
+    ['bald', 'bald', 'em breve', '', 'word', 'balt'],
+    ['vielleicht', 'vielleicht', 'talvez', '', 'word', 'fiˈlaɪ̯çt'],
+    ['spaeter', 'später', 'mais tarde, depois', '', 'word', 'ˈʃpɛːtɐ'],
+    ['naechstesjahr', 'nächstes Jahr', 'no ano que vem', 'Sem preposição: Nächstes Jahr fahre ich…'],
+    ['washastduvor', 'Was hast du vor?', 'O que você planeja fazer?', ''],
+    ['habevorzu', 'Ich habe vor, die B1-Prüfung zu machen.', 'Pretendo fazer a prova B1.', ''],
+    ['lustmitzukommen', 'Hast du Lust, mitzukommen?', 'Está a fim de vir junto?', 'Separável: mit-zu-kommen.'],
+    ['klingtgut', 'Das klingt gut!', 'Parece bom!', ''],
+  ]);
+  G('g_a2_futur', {
+    title: 'Futuro com werden', explain: '<b>werden</b> (2ª posição) + <b>infinitivo no fim</b>: Ich <b>werde</b> in Berlin <b>wohnen</b>.<br>werden: ich werde, du wirst, er wird, wir werden, ihr werdet, sie werden.<br>Para planos com data, o alemão usa muito o <b>presente</b>: Nächstes Jahr <b>fahre</b> ich nach Wien. O Futur I é comum para previsões, promessas e suposições.',
+    compare: 'Equivale ao “vou + verbo”: “Vou morar em Berlim” = Ich werde in Berlin wohnen.',
+    examples: [['Es wird morgen regnen.', 'Vai chover amanhã.'], ['Du wirst die Prüfung bestehen!', 'Você vai passar na prova!']],
+    drills: [['Ich ___ nächstes Jahr in Berlin wohnen.', ['werde']], ['Du ___ die Prüfung bestehen!', ['wirst']], ['Es ___ morgen regnen.', ['wird']], ['Wir ___ im Sommer heiraten.', ['werden']], ['Ihr ___ viel Spaß haben.', ['werdet']], ['Was ___ du später machen?', ['wirst']]]
+  });
+  G('g_a2_zuinf', {
+    title: 'zu + infinitivo', explain: 'Depois de verbos como <b>vorhaben, versuchen, hoffen, vergessen, anfangen</b> e de expressões como <b>Lust haben, Zeit haben, es ist wichtig</b>, o segundo verbo vai no fim com <b>zu</b>: Ich versuche, mehr <b>zu</b> lernen.<br>Verbos separáveis: o <b>zu</b> entra no meio: an<b>zu</b>fangen, mit<b>zu</b>kommen, an<b>zu</b>rufen.<br>Com modais NÃO se usa zu: Ich kann kommen.',
+    compare: 'Parecido com “tento estudar mais” — mas em alemão o infinitivo vem com “zu” e no fim.',
+    examples: [['Es ist wichtig, jeden Tag zu üben.', 'É importante praticar todo dia.'], ['Vergiss nicht, mich anzurufen!', 'Não se esqueça de me ligar!']],
+    drills: [['Ich versuche, jeden Tag Deutsch ___ lernen.', ['zu']], ['Hast du Lust, ins Kino ___ gehen?', ['zu']], ['Ich habe vor, nächstes Jahr ___. (anfangen)', ['anzufangen']], ['Vergiss nicht, mich ___. (anrufen)', ['anzurufen']], ['Es ist wichtig, viel ___ üben.', ['zu']], ['Ich hoffe, dich bald ___ sehen.', ['zu']]]
+  });
+
+  K.finish('2026.11.20-4');
 })(globalThis.GF = globalThis.GF || {});
 
 ;
