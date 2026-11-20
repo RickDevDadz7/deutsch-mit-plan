@@ -127,3 +127,7 @@ input[type=text],textarea,select{font-size:18px}
 .desk-warn{background:var(--warnb);color:var(--warn);border-radius:2px;padding:12px 14px;margin:0 0 12px;font-size:28px;line-height:1.4}
 a.btn.big{letter-spacing:.05em;font-size:16px}
 @media (max-width:480px){header.top .brand{font-size:17px}header.top .logo{width:40px;height:40px}}
+body.focus #app{padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+.card.fill{display:flex;flex-direction:column}.card.fill>*{flex:none}
+.card.fill>:last-child:is(.btn.pri,.row:has(> .btn.pri),div:has(> .btn.pri)){margin-top:auto;padding-top:12px}
+#app{overflow-x:clip}

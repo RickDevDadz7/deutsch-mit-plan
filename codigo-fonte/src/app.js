@@ -45,6 +45,32 @@
       if (/next|go|ok|start/i.test(b.id || '') && !/ok$/i.test(b.id || '')) GF.sfx.play('paper');
     }, true);
   }
+  // Telas sem menu (aula, nivelamento, fim de sessão): a folha ocupa a tela toda, sem sobra vazia embaixo,
+  // e a rolagem acompanha a aula (volta ao topo em cada tela nova; desce até o botão quando aparece a correção).
+  function watchLayout() {
+    const root = app(); if (!root || !window.MutationObserver) return;
+    let raf = 0, toTop = false, toBtn = false;
+    const fit = () => {
+      raf = 0;
+      const nav = $('nav.tabs'); const focus = !nav || nav.classList.contains('hide');
+      document.body.classList.toggle('focus', focus);
+      $$('#app > .card.fill').forEach((c) => { c.classList.remove('fill'); c.style.minHeight = ''; });
+      if (focus) {
+        const cards = $$('#app > .card'); const last = cards[cards.length - 1];
+        const r = root.getBoundingClientRect(); const extra = window.innerHeight - (r.bottom + window.scrollY);
+        if (last && extra > 8) { last.classList.add('fill'); last.style.minHeight = (last.offsetHeight + extra) + 'px'; }
+      }
+      if (toTop) window.scrollTo(0, 0);
+      else if (toBtn && focus) { const b = $$('#app .btn.pri').filter((x) => x.offsetParent).pop(); if (b) b.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+      toTop = toBtn = false;
+    };
+    const queue = () => { if (!raf) raf = requestAnimationFrame(fit); };
+    new MutationObserver((ms) => {
+      for (const m of ms) { if (m.target === root) toTop = true; else if (m.addedNodes.length) toBtn = true; }
+      queue();
+    }).observe(root, { childList: true, subtree: true });
+    window.addEventListener('resize', queue);
+  }
   function watchFeedback() {
     const F = window.GF_FRITZ || {}; if (!F.freut || !window.MutationObserver) return;
     new MutationObserver(() => {
@@ -230,7 +256,7 @@
     }
     for (const g of Object.values(S.st.gen || {})) C.addUnit(JSON.parse(JSON.stringify(g)));
     if (S.st.integrity.dropped) log('warn', S.st.integrity.dropped + ' registros inválidos ignorados na carga');
-    watchFeedback(); bindPaperSound(); if (GF.sfx) GF.sfx.bind();
+    watchFeedback(); watchLayout(); bindPaperSound(); if (GF.sfx) GF.sfx.bind();
     window.addEventListener('hashchange', route);
     if (!S.st.profile.diag) return renderOnboarding();
     // adaptação + backup automático ao abrir
