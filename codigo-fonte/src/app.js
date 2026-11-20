@@ -257,7 +257,9 @@
     for (const g of Object.values(S.st.gen || {})) C.addUnit(JSON.parse(JSON.stringify(g)));
     if (S.st.integrity.dropped) log('warn', S.st.integrity.dropped + ' registros inválidos ignorados na carga');
     watchFeedback(); watchLayout(); bindPaperSound(); if (GF.sfx) GF.sfx.bind();
-    window.addEventListener('hashchange', route);
+    try { history.replaceState({ depth: 0 }, '', location.href); } catch (e) { /* */ }
+    window.addEventListener('popstate', onPop);
+    document.addEventListener('click', onLinkClick);
     if (!S.st.profile.diag) return renderOnboarding();
     // adaptação + backup automático ao abrir
     if (M.adapt(S.st, now())) commit({ profile: true });
@@ -385,7 +387,7 @@
         await S.store.flush(); const r = await GF.sync.run(S.store); S.st = S.store.state;
         toast(r.merged ? 'Sincronizado: ' + r.merged + ' atualizações recebidas.' : 'Sincronizado. Tudo em dia.');
         if (!S.st.profile.diag) { toast('Nenhum progresso encontrado na nuvem ainda. Faça o diagnóstico.', 4000); return renderOnboarding(); }
-        location.hash = '#sync'; renderSync();
+        if (hashId() !== 'sync') history.replaceState({ depth: depth() }, '', '#sync'); renderSync();
       } catch (e) { toast(e.message, 6000); renderSync(); }
     };
     const go = $('#sy-go'); if (go) go.onclick = async () => {
@@ -416,9 +418,42 @@
     renderSaveState();
     window.scrollTo(0, 0);
   }
+  /* ---------------- Navegação e botão "voltar" ----------------
+   * Abas trocam entre si sem empilhar histórico (voltar de qualquer aba leva ao Hoje; do Hoje, sai do app).
+   * Subpáginas (Calendário, Ajustes, Vocabulário…) empilham: voltar retorna à aba de onde vieram.
+   * Aula e treinos avulsos também empilham: voltar sai deles (tudo salvo) e retorna à aba de origem. */
+  const TAB_IDS = ['hoje', 'praticar', 'progresso', 'curriculo', 'mais'];
+  const hashId = () => (location.hash || '#hoje').slice(1) || 'hoje';
+  const depth = () => (history.state && history.state.depth) || 0;
+  let navPending = null;
+  const H = (m, st, url) => { try { history[m](st, '', url); } catch (e) { if (url && url !== location.href) location.hash = url.replace(/^.*#/, '#'); } };
+  function go(id) {
+    const d = depth();
+    if (TAB_IDS.includes(id)) {
+      if (id === 'hoje') { if (d > 0) return history.go(-d); H('replaceState', { depth: 0 }, '#hoje'); return route(); }
+      if (d === 0) H('pushState', { depth: 1 }, '#' + id);
+      else if (d === 1) H('replaceState', { depth: 1 }, '#' + id);
+      else { navPending = id; return history.go(-(d - 1)); }
+    } else H('pushState', { depth: d + 1, sub: true }, '#' + id);
+    route();
+  }
+  function onLinkClick(e) {
+    if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    const a = e.target.closest && e.target.closest('a[href^="#"]'); if (!a) return;
+    const id = a.getAttribute('href').slice(1); if (!id) return;
+    e.preventDefault(); if (S.session || S.solo) return; go(id);
+  }
+  function openOverlay() { try { history.pushState({ depth: depth() + 1, ov: true }, '', location.href); } catch (e) { /* sem histórico: botão voltar não fecha a aula */ } }
+  function closeOverlay() { if (history.state && history.state.ov) history.back(); else route(); }
+  function onPop() {
+    if (navPending) { const id = navPending; navPending = null; H('replaceState', { depth: 1 }, '#' + id); return route(); }
+    if (S.session) return endSession(true, true);
+    if (S.solo) { S.solo = null; toast('Treino encerrado. O que você fez foi salvo.'); }
+    route();
+  }
   function route() {
     if (S.session) return; // durante a aula não troca de tela
-    const h = (location.hash || '#hoje').slice(1);
+    const h = hashId();
     const r = { sync: renderSync, hoje: renderHome, praticar: renderPractice, progresso: renderProgress, curriculo: renderCurriculum, mais: renderMore, calendario: renderCalendar, metodo: renderMethod, dados: renderData, vocabulario: renderVocab, ajustes: renderSettings }[h] || renderHome;
     r();
   }
@@ -497,7 +532,7 @@
     ${placement ? `<p>Nivelamento: <b>${p.placement.score}/${p.placement.n}</b> acertos. Os itens que você acertou já entram no sistema de revisões; nada mais foi marcado como aprendido.</p>` : ''}
     <ul class="list small"><li>Itens novos por dia: <b>${p.settings.newPerDay}</b> (ajustado automaticamente pela sua retenção).</li><li>Cada sessão: revisões vencidas → conteúdo novo → gramática com contexto → escuta → fala.</li><li>Você começa conversando já na 1ª unidade.</li></ul>
     <button class="btn pri big" id="f-go">Ver minha primeira aula</button></div>`;
-    $('#f-go').onclick = () => { location.hash = '#hoje'; route(); };
+    $('#f-go').onclick = () => { history.replaceState({ depth: 0 }, '', '#hoje'); route(); };
   }
 
   /* ---------------- Hoje ---------------- */
@@ -561,6 +596,7 @@
   function startSession(plan) {
     S.session = { plan, i: 0, started: now(), stepStart: now(), results: { ok: 0, n: 0 }, breakShown: false };
     $('nav.tabs') && $('nav.tabs').classList.add('hide');
+    openOverlay();
     runStep();
   }
   function sessionHeader(kind) {
@@ -589,7 +625,7 @@
     try { R(step); } catch (e) { log('error', 'etapa ' + step.kind + ': ' + e.message); s.i++; runStep(); }
     window.scrollTo(0, 0);
   }
-  async function endSession(quit) {
+  async function endSession(quit, viaBack) {
     const s = S.session; if (!s) return;
     addMinutes(now() - s.stepStart);
     const p = S.st.profile; const t = now();
@@ -600,15 +636,16 @@
     await commit({ profile: true, day: true });
     autoSync('fim da sessão'); setTimeout(() => ensureNextUnit(false), 3000);
     const mins = Math.round((t - s.started) / 60000);
+    if (viaBack) { toast(doneSteps ? 'Aula interrompida. Tudo que você fez foi salvo.' : 'Aula fechada.'); return route(); }
     const acc = s.results.n ? s.results.ok / s.results.n : null;
     app().innerHTML = `<header class="top"><div class="brand"><div>${quit ? 'Sessão interrompida' : 'Sessão concluída'}<small>Amt für deutsche Sprache</small></div></div><span id="savestate" class="pill"></span></header>
     ${stampDoc({ form: 'Formular S-' + String(p.sessions || 0).padStart(3, '0'), title: quit ? 'Akte vorläufig geschlossen' : 'Sitzung abgeschlossen', sub: quit ? 'Tudo que você fez foi salvo.' : 'Bom trabalho! Sessão registrada.',
       lines: [['Etapas', String(doneSteps)], ['Tempo', '~' + mins + ' min']].concat(acc != null ? [['Respostas', s.results.n + ''], ['Acerto', pct(acc)]] : []),
       stamps: quit ? [{ cls: 'rect no', x: 4, y: 30, r: -8, html: 'UNTERBROCHEN' }] : [{ cls: 'round', x: 2, y: 6, r: -8, html: '<small>SITZUNG</small>' + String(p.sessions || 0).padStart(3, '0') + '<small>' + new Date().toLocaleDateString('de-DE') + '</small>' }, { cls: 'rect ok', x: 40, y: 34, r: 6, html: 'ERLEDIGT' }],
       fritz: quit ? 'wartet' : acc != null && acc < 0.6 ? 'prueft' : 'freut', note: 'As revisões já foram reprogramadas pelo FSRS. A próxima aula será montada a partir do que aconteceu hoje.' })}
-    <button class="btn pri big" id="e-home">Voltar ao início</button>`;
+    <button class="btn pri big" id="e-home">Voltar</button>`;
     renderSaveState(); if (GF.sfx) setTimeout(() => GF.sfx.play(quit ? 'stamp' : 'done'), 250);
-    $('#e-home').onclick = () => { location.hash = '#hoje'; route(); };
+    $('#e-home').onclick = () => closeOverlay();
   }
   function tally(ok) { if (S.session) { S.session.results.n++; if (ok) S.session.results.ok++; } }
 
@@ -1146,7 +1183,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
       <div class="card"><h2>Pronúncia</h2><div class="chips">${Object.entries(C.pron).map(([id, l]) => `<button class="chip ${S.st.profile.pronStats.done[id] ? 'on' : ''}" data-pr="${id}">${esc(l.title)}</button>`).join('')}</div><button class="btn" id="p-pairs" style="margin-top:10px">Teste de pares mínimos</button></div>
       <div class="card"><h2>Escuta e escrita</h2><div class="row"><button class="btn" id="p-dict">Ditado (${esc(u.title)})</button><button class="btn" id="p-dlg">Ouvir diálogo</button><button class="btn" id="p-wr">Texto curto</button></div></div>
       <div class="card"><h2>Vocabulário</h2><a class="btn" href="#vocabulario">Ver todos os itens e seu domínio</a></div>`);
-    const solo = (fn) => { $('nav.tabs').classList.add('hide'); fn(() => { location.hash = '#praticar'; route(); }); };
+    const solo = (fn) => { $('nav.tabs').classList.add('hide'); const tok = S.solo = {}; openOverlay(); fn(() => { if (S.solo !== tok) return; S.solo = null; closeOverlay(); }); };
     $$('[data-cv]').forEach((b) => b.onclick = () => solo((d) => stepConvo({ unit: b.dataset.cv }, d)));
     $$('[data-g]').forEach((b) => b.onclick = () => solo((d) => { const g = C.grammar[b.dataset.g]; app().innerHTML = grammarIntroHtml(g) + '<button class="btn pri big" id="g-go">Praticar</button>'; $('#g-go').onclick = () => g.order ? runOrder(b.dataset.g, shuffle(g.order).slice(0, 5), d) : runDrills(b.dataset.g, shuffle(g.drills).slice(0, 6), d); }));
     $$('[data-pr]').forEach((b) => b.onclick = () => solo((d) => stepPron({ pron: b.dataset.pr }, d)));
@@ -1315,7 +1352,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
     await new Promise((res, rej) => { $('#rs-no').onclick = () => { confirmBox.remove(); rej(new Error('cancelado')); }; $('#rs-yes').onclick = res; });
     confirmBox.innerHTML = '<p>Restaurando…</p>';
     S.st = await S.store.importData(obj); await S.store.flush();
-    toast('Backup restaurado e verificado.'); location.hash = '#hoje'; route();
+    toast('Backup restaurado e verificado.'); go('hoje');
   }
 
   GF.app = { boot, S, Audio };
