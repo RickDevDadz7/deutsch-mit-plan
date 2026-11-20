@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs'), path = require('path'), vm = require('vm');
-for (const f of ['fsrs', 'grading', 'content', 'content_a12', 'content_kit', 'content_a2', 'content_a2b', 'model', 'store']) vm.runInThisContext(fs.readFileSync(path.join(__dirname, '../src', f + '.js'), 'utf8'), { filename: f + '.js' });
+for (const f of ['fsrs', 'grading', 'content', 'content_a12', 'content_kit', 'content_a2', 'content_a2b', 'content_b1', 'content_b1b', 'model', 'store']) vm.runInThisContext(fs.readFileSync(path.join(__dirname, '../src', f + '.js'), 'utf8'), { filename: f + '.js' });
 const { fsrs, grading, content, model, store } = globalThis.GF;
 const DAY = 86400000; const T0 = Date.UTC(2026, 10, 20, 12);
 

@@ -1,7 +1,7 @@
 import fs from 'fs';
 const src = (f) => fs.readFileSync('src/' + f, 'utf8');
 const content = JSON.parse(JSON.stringify(src('content.js').match(/version: '([^']+)'/)[1]));
-const js = ['fsrs.js','grading.js','content.js','content_a12.js','content_kit.js','content_a2.js','content_a2b.js','model.js','store.js','method.js','local.js','sync.js','gen.js','app.js'].map(src).join('\n;\n').replace(/<\/script/gi,'<\\/script');
+const js = ['fsrs.js','grading.js','content.js','content_a12.js','content_kit.js','content_a2.js','content_a2b.js','content_b1.js','content_b1b.js','model.js','store.js','method.js','local.js','sync.js','gen.js','app.js'].map(src).join('\n;\n').replace(/<\/script/gi,'<\\/script');
 const page = (extraHead, extraBody) => `<!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Deutsch mit Plan — professor de alemão</title>${extraHead}

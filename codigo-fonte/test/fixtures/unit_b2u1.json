@@ -1,0 +1,22 @@
+{"title":"Argumentieren","subtitle":"Argumentação e debate","goals":["Defender um ponto de vista","Contra-argumentar","Concluir uma discussão"],
+"items":[
+{"type":"noun","art":"die","de":"These","pl":"Thesen","pt":"a tese","ipa":"ˈteːzə","ex":["Die These ist umstritten.","A tese é controversa."]},
+{"type":"noun","art":"die","de":"Behauptung","pl":"Behauptungen","pt":"a afirmação","ipa":"","ex":["Das ist nur eine Behauptung.","Isso é só uma afirmação."]},
+{"type":"noun","art":"der","de":"Standpunkt","pl":"Standpunkte","pt":"o ponto de vista","ipa":"","ex":["Ich verstehe deinen Standpunkt.","Entendo seu ponto de vista."]},
+{"type":"noun","art":"die","de":"Debatte","pl":"Debatten","pt":"o debate","ipa":"","ex":["Die Debatte war hitzig.","O debate foi acalorado."]},
+{"type":"noun","art":"der","de":"Vorteil","pl":"Vorteile","pt":"a vantagem","ipa":"","ex":["Das hat viele Vorteile.","Isso tem muitas vantagens."]},
+{"type":"noun","art":"der","de":"Nachteil","pl":"Nachteile","pt":"a desvantagem","ipa":"","ex":["Ein Nachteil ist der Preis.","Uma desvantagem é o preço."]},
+{"type":"noun","art":"die","de":"Begründung","pl":"Begründungen","pt":"a justificativa","ipa":"","ex":["Die Begründung überzeugt nicht.","A justificativa não convence."]},
+{"type":"noun","art":"der","de":"Einwand","pl":"Einwände","pt":"a objeção","ipa":"","ex":["Gibt es Einwände?","Há objeções?"]},
+{"type":"verb","de":"behaupten","pt":"afirmar","conj":{"ich":"behaupte","du":"behauptest","er":"behauptet","wir":"behaupten","ihr":"behauptet","sie":"behaupten"},"ex":["Er behauptet, dass es stimmt.","Ele afirma que é verdade."]},
+{"type":"verb","de":"widersprechen","pt":"contradizer","conj":{"ich":"widerspreche","du":"widersprichst","er":"widerspricht","wir":"widersprechen","ihr":"widersprecht","sie":"widersprechen"},"ex":["Ich muss dir widersprechen.","Preciso discordar de você."]},
+{"type":"phrase","de":"Ich bin der Ansicht, dass …","pt":"Sou da opinião de que…"},
+{"type":"phrase","de":"Einerseits …, andererseits …","pt":"Por um lado…, por outro…"},
+{"type":"word","de":"folglich","pt":"consequentemente"},
+{"type":"word","de":"hingegen","pt":"por outro lado, em contrapartida"}
+],
+"grammar":[{"title":"Conectores de dois elementos","explain":"<b>sowohl … als auch</b>, <b>weder … noch</b>.","compare":"tanto… quanto; nem… nem","examples":[["Sowohl Anna als auch Paul kommen.","Tanto a Anna quanto o Paul vêm."]],
+"drills":[{"q":"___ Anna als auch Paul kommen.","a":["Sowohl"]},{"q":"Er hat weder Zeit ___ Geld.","a":["noch"]},{"q":"Entweder du kommst, ___ ich gehe.","a":["oder"]},{"q":"Je mehr ich lerne, ___ besser verstehe ich.","a":["desto","umso"]},{"q":"Sie spricht nicht nur Deutsch, ___ auch Französisch.","a":["sondern"]}]}],
+"dialog":[["A","Was hältst du von Homeoffice?"],["B","Einerseits spart man Zeit, andererseits fehlt der Kontakt."],["A","Ich bin der Ansicht, dass die Vorteile überwiegen."],["B","Da muss ich dir widersprechen."],["A","Warum?"],["B","Weil Teamarbeit im Büro einfacher ist."]],
+"dialogPt":"Debate sobre home office.","listening":["Ich bin der Ansicht, dass das stimmt.","Einerseits ist es teuer, andererseits praktisch.","Das hat viele Vorteile.","Gibt es Einwände?","Folglich müssen wir handeln."],
+"writing":"Escreva um texto argumentativo curto.","speaking":{"scene":"Debate em aula.","persona":"Prof. Weber","goals":["apresentar tese","dar argumentos","responder objeção","concluir"]}}
