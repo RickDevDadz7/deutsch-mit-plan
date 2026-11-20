@@ -33,6 +33,32 @@
   }
   const app = () => $('#app');
 
+  function fritz(pose, h) {
+    const F = window.GF_FRITZ || {}; const w = Math.round(h * 240 / 390);
+    if (!F.dienst) return '';
+    if (pose === 'auto') return `<div class="fritz fz-auto fz-shadow" style="width:${w}px;height:${h}px" aria-hidden="true">${['dienst', 'wartet', 'prueft', 'freut'].map((n, i) => `<img src="${F[n]}" class="fa${i}" alt="">`).join('')}</div>`;
+    return `<div class="fritz fz-${pose} fz-shadow" style="width:${w}px;height:${h}px" aria-hidden="true"><img src="${F[pose] || F.dienst}" alt=""></div>`;
+  }
+  function watchFeedback() {
+    const F = window.GF_FRITZ || {}; if (!F.freut || !window.MutationObserver) return;
+    new MutationObserver(() => {
+      if (!S.session) return;
+      document.querySelectorAll('.fb.ok:not([data-fz]),.fb.bad:not([data-fz])').forEach((el) => {
+        el.dataset.fz = '1'; const ok = el.classList.contains('ok');
+        const img = document.createElement('img'); img.className = 'fritz-react'; img.alt = ''; img.src = ok ? F.freut : F.enttaeuscht; el.appendChild(img);
+        if (!ok) { const c = el.closest('.card') || el; c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
+      });
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+  function stampDoc(o) {
+    const day = new Date().toLocaleDateString('de-DE');
+    return `<div class="card stampdoc"><div class="row sp"><span class="step-k">${esc(o.form)}</span><span class="step-k">${day}</span></div>
+      <h2 style="font-size:28px;margin-top:6px">${esc(o.title)}</h2><div class="small mut">${o.sub}</div>
+      ${o.lines ? `<div class="typed-lines" style="margin-top:12px">${o.lines.map(([a, b]) => `<div><span>${esc(a)}</span><span></span><span>${esc(b)}</span></div>`).join('')}</div>` : ''}
+      <div class="row" style="align-items:flex-end;flex-wrap:nowrap"><div class="stamps grow">${o.stamps.map((st, i) => `<span class="stamp ${st.cls}" style="left:${st.x}%;top:${st.y}px;--r:${st.r}deg;animation-delay:${0.25 + i * 0.45}s">${st.html}</span>`).join('')}</div>${fritz(o.fritz, 130)}</div>
+      ${o.note ? `<p class="small mut">${o.note}</p>` : ''}
+      <div class="sign"><span>Unterschrift des Prüfers</span><svg width="110" height="26" viewBox="0 0 110 28" aria-hidden="true"><path d="M4 20 C14 4 20 26 30 12 S44 6 50 18 S66 10 74 16 S96 8 106 12" fill="none" stroke="#1f2a44" stroke-width="2" stroke-linecap="round"/></svg></div></div>`;
+  }
   function toast(msg, ms) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), ms || 2600); }
 
   /* ---------------- Capacidades ---------------- */
@@ -197,6 +223,7 @@
     }
     for (const g of Object.values(S.st.gen || {})) C.addUnit(JSON.parse(JSON.stringify(g)));
     if (S.st.integrity.dropped) log('warn', S.st.integrity.dropped + ' registros inválidos ignorados na carga');
+    watchFeedback();
     window.addEventListener('hashchange', route);
     if (!S.st.profile.diag) return renderOnboarding();
     // adaptação + backup automático ao abrir
@@ -349,7 +376,7 @@
   }
   function shell(active, inner) {
     const lvl = M.estimateLevel(S.st);
-    app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">Deutsch mit Plan<small>${esc(S.st.profile.name || '')} · ${esc(lvl.label)}</small></div><span id="savestate" class="pill"></span></header>${inner}`;
+    app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">${window.GF_FRITZ ? `<img class="logo" src="${window.GF_FRITZ.logo}" alt="">` : ''}<div>Deutsch mit Plan<small>Amt für deutsche Sprache · ${esc(S.st.profile.name || '')} · ${esc(lvl.label)}</small></div></div><span id="savestate" class="pill"></span></header>${inner}`;
     let nav = $('nav.tabs'); if (!nav) { nav = document.createElement('nav'); nav.className = 'tabs'; document.body.appendChild(nav); }
     nav.innerHTML = TABS.map(([id, ic, l]) => `<a href="#${id}" class="${active === id ? 'on' : ''}"><b>${ic}</b>${l}</a>`).join('');
     nav.classList.remove('hide');
@@ -462,15 +489,15 @@
     if (stats.topMistakes.length) obs.push(`Erro mais recorrente: ${esc(stats.topMistakes[0].msg)} (${stats.topMistakes[0].count}×).`);
     const lastAd = (p.adapt || []).slice(-1)[0]; if (lastAd && t - lastAd.t < 3 * 86400000 && lastAd.from != null) obs.push(`Ajuste recente: itens novos/dia ${lastAd.from} → ${lastAd.to} (${esc(lastAd.why)}).`);
     shell('hoje', `${installCardHtml()}
-    <div class="card">
-      <div class="row sp"><div><div class="step-k">${plannedToday ? 'Aula de hoje' : 'Hoje não é dia planejado — sessão opcional'}</div><h2 style="margin-top:2px">${unit ? esc(unit.title) : 'Revisões'}</h2><div class="mut small">${unit ? esc(unit.subtitle) + ' · ' + uid : ''}</div></div></div>
+    <div class="card akte" data-tab="AKTE ${String((p.sessions || 0) + 1).padStart(3, '0')} · ${esc((p.name || 'Prüfling').toUpperCase())}">
+      <div class="home-head"><div><div class="step-k">${plannedToday ? 'Tagesauftrag · aula de hoje' : 'Hoje não é dia planejado — sessão opcional'}</div><h2 style="margin-top:2px">${unit ? esc(unit.title) : 'Revisões'}</h2><div class="mut small">${unit ? esc(unit.subtitle) + ' · ' + uid : ''}</div></div>${fritz(gap >= 3 ? 'enttaeuscht' : 'auto', 150)}</div>
       <div class="chips" id="h-min" style="margin:12px 0">${[5, 15, 30, 45].map((m) => `<button class="chip ${m === minutes ? 'on' : ''}" data-m="${m}">${m} min</button>`).join('')}</div>
       <ul class="list small">${planSummary(plan)}</ul>
       ${plan.notes.map((n) => `<p class="tiny mut">${esc(n)}</p>`).join('')}
       <button class="btn pri big" id="h-start" ${plan.steps.length ? '' : 'disabled'}>Começar (${plan.steps.length} etapas)</button>
     </div>
     ${genCardHtml(!!unit)}
-    ${obs.length ? `<div class="card"><div class="step-k">O professor observou</div><ul class="list small">${obs.map((o) => `<li>${o}</li>`).join('')}</ul></div>` : ''}
+    ${obs.length ? `<div class="card"><div class="step-k">Vermerk des Lehrers · o professor observou</div><ul class="list small">${obs.map((o) => `<li>${o}</li>`).join('')}</ul></div>` : ''}
     <div class="card"><div class="kpis">
       <div class="kpi"><b>${stats.due}</b><span>revisões pendentes</span></div>
       <div class="kpi"><b>${stats.recalledPlus}</b><span>itens que você lembra sem ajuda</span></div>
@@ -540,11 +567,13 @@
     await commit({ profile: true, day: true });
     autoSync('fim da sessão'); setTimeout(() => ensureNextUnit(false), 3000);
     const mins = Math.round((t - s.started) / 60000);
-    app().innerHTML = `<header class="top"><div class="brand">${quit ? 'Sessão interrompida' : 'Sessão concluída'}</div><span id="savestate" class="pill"></span></header>
-    <div class="card"><h2>${quit ? 'Tudo que você fez foi salvo.' : 'Bom trabalho!'}</h2>
-    <p>${doneSteps} etapas · ~${mins} min${s.results.n ? ` · acerto ${pct(s.results.ok / s.results.n)} em ${s.results.n} respostas` : ''}.</p>
-    <p class="small mut">As revisões já foram reprogramadas pelo FSRS. A próxima aula será montada a partir do que aconteceu hoje.</p>
-    <button class="btn pri big" id="e-home">Voltar ao início</button></div>`;
+    const acc = s.results.n ? s.results.ok / s.results.n : null;
+    app().innerHTML = `<header class="top"><div class="brand"><div>${quit ? 'Sessão interrompida' : 'Sessão concluída'}<small>Amt für deutsche Sprache</small></div></div><span id="savestate" class="pill"></span></header>
+    ${stampDoc({ form: 'Formular S-' + String(p.sessions || 0).padStart(3, '0'), title: quit ? 'Akte vorläufig geschlossen' : 'Sitzung abgeschlossen', sub: quit ? 'Tudo que você fez foi salvo.' : 'Bom trabalho! Sessão registrada.',
+      lines: [['Etapas', String(doneSteps)], ['Tempo', '~' + mins + ' min']].concat(acc != null ? [['Respostas', s.results.n + ''], ['Acerto', pct(acc)]] : []),
+      stamps: quit ? [{ cls: 'rect no', x: 4, y: 30, r: -8, html: 'UNTERBROCHEN' }] : [{ cls: 'round', x: 2, y: 6, r: -8, html: '<small>SITZUNG</small>' + String(p.sessions || 0).padStart(3, '0') + '<small>' + new Date().toLocaleDateString('de-DE') + '</small>' }, { cls: 'rect ok', x: 40, y: 34, r: 6, html: 'ERLEDIGT' }],
+      fritz: quit ? 'wartet' : acc != null && acc < 0.6 ? 'prueft' : 'freut', note: 'As revisões já foram reprogramadas pelo FSRS. A próxima aula será montada a partir do que aconteceu hoje.' })}
+    <button class="btn pri big" id="e-home">Voltar ao início</button>`;
     renderSaveState();
     $('#e-home').onclick = () => { location.hash = '#hoje'; route(); };
   }
@@ -1060,7 +1089,9 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
       S.st.assess.push(a); S.store.saveAssess(a);
       for (const [sk, v] of Object.entries(bySkill)) { S.st.profile.skillStats[sk] = (S.st.profile.skillStats[sk] || []).concat({ t: now(), v, cp: 1 }).slice(-50); }
       commit({ profile: true });
-      app().innerHTML = (S.session ? sessionHeader('checkpoint') : '') + `<div class="card"><h2>${pass ? 'Unidade comprovada ✓' : 'Ainda não'}</h2><p>Total: <b>${pct(score)}</b> (meta 80%, e ≥ 70% em cada habilidade)</p>
+      app().innerHTML = (S.session ? sessionHeader('checkpoint') : '') + stampDoc({ form: 'Formular E-' + esc(u.id), title: pass ? 'Einreise genehmigt' : 'Antrag abgelehnt', sub: pass ? `Unidade ${esc(u.id)} comprovada · acesso à próxima liberado` : `Unidade ${esc(u.id)} ainda não comprovada`,
+        stamps: pass ? [{ cls: 'round', x: 2, y: 6, r: -8, html: '<small>EINREISE</small>' + esc(u.id) + '<small>' + new Date().toLocaleDateString('de-DE') + '</small>' }, { cls: 'rect ok', x: 38, y: 30, r: 6, html: 'GENEHMIGT' }] : [{ cls: 'rect no', x: 6, y: 30, r: -7, html: 'ABGELEHNT' }],
+        fritz: pass ? 'freut' : 'enttaeuscht' }) + `<div class="card"><h2>${pass ? 'Unidade comprovada ✓' : 'Ainda não'}</h2><p>Total: <b>${pct(score)}</b> (meta 80%, e ≥ 70% em cada habilidade)</p>
         ${Object.entries(bySkill).map(([sk, v]) => `<div class="bar"><span>${esc(M.SKILL_PT[sk])}</span><div class="prog"><i style="width:${v * 100}%;${v < 0.7 ? 'background:var(--bad)' : ''}"></i></div><b>${pct(v)}</b></div>`).join('')}
         ${!listen.length ? '<p class="small mut">Audição não avaliada (sem voz alemã neste aparelho). Refaça num aparelho com áudio para uma avaliação completa.</p>' : ''}
         <p class="small mut">${pass ? 'A próxima unidade foi liberada. As revisões desta continuam.' : 'O próximo plano vai reforçar as habilidades abaixo de 70%. Tente de novo depois de algumas sessões.'}</p></div><button class="btn pri big" id="c-next">Continuar</button>`;

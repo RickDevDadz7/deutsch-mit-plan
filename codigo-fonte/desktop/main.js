@@ -73,7 +73,7 @@ function desktopShortcut() { // cria atalho na Área de Trabalho e no Menu Inici
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 1100, height: 820, minWidth: 380, minHeight: 600, title: 'Deutsch mit Plan', backgroundColor: '#121214',
+    width: 1100, height: 820, minWidth: 380, minHeight: 600, title: 'Deutsch mit Plan', backgroundColor: '#26231e',
     icon: path.join(__dirname, 'icon.png'), autoHideMenuBar: true,
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true }
   });
