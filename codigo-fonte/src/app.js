@@ -195,6 +195,7 @@
       app().innerHTML = `<div class="card"><h2>Não consegui carregar seus dados</h2><p class="mut">${esc(e.code || e.message)}. Nada foi apagado. Tente abrir de novo em instantes.</p></div>`;
       return;
     }
+    for (const g of Object.values(S.st.gen || {})) C.addUnit(JSON.parse(JSON.stringify(g)));
     if (S.st.integrity.dropped) log('warn', S.st.integrity.dropped + ' registros inválidos ignorados na carga');
     window.addEventListener('hashchange', route);
     if (!S.st.profile.diag) return renderOnboarding();
@@ -203,9 +204,76 @@
     S.store.autoBackup(now()).then((r) => { if (r && r.saved) log('info', 'backup automático ' + r.saved); if (r && r.tooBig) log('warn', 'histórico grande demais para backup automático; exporte manualmente'); }).catch((e) => log('warn', 'backup automático falhou: ' + (e.code || e.message)));
     route();
     setTimeout(() => autoSync('abertura'), 1500);
+    setTimeout(() => ensureNextUnit(false), 5000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') autoSync('app em segundo plano'); else autoSync('app reaberto'); });
     setInterval(() => autoSync('periódica'), 10 * 60000);
   }
+
+  /* ---------------- Próximas unidades (professor cria) ---------------- */
+  const GEN = { busy: false, msg: '', err: null, pe: null };
+  function genCardHtml(planUnit) {
+    const pe = GEN.pe || M.nextToGenerate(S.st, now());
+    if (!pe) return '';
+    if (planUnit && !GEN.busy && !GEN.err) return ''; // preparando em segundo plano, sem alarde
+    let body;
+    if (GEN.busy) body = `<p class="small">⏳ ${esc(GEN.msg || 'Preparando…')} <span class="mut">(leva 1–3 min; pode continuar usando o app)</span></p>`;
+    else if (!S.caps.sample) body = `<p class="small">Para criar as próximas unidades o professor precisa de IA: use a versão dentro do Claude, ou configure uma chave da API em <a href="#ajustes">Ajustes</a>. Enquanto isso, suas revisões continuam normalmente.</p>`;
+    else body = `${GEN.err ? `<div class="fb warn">Não consegui preparar agora: ${esc(GEN.err)}</div>` : ''}<button class="btn pri big" id="gen-go">Preparar a próxima unidade</button>`;
+    return `<div class="card" id="gen-card"><div class="step-k">Próxima unidade · ${esc(pe.id)}</div><h2>${esc(pe.title)}</h2><p class="small mut">${esc(pe.topic)} · foco: ${esc(pe.grammar)}</p>${body}
+      <p class="tiny mut">Criada pelo professor seguindo o currículo, revisada automaticamente e marcada como “gerada por IA”. Você pode reportar erros em qualquer item.</p></div>`;
+  }
+  function updateGenUI() { const c = $('#gen-card'); if (c) { c.outerHTML = genCardHtml(false) || '<div id="gen-card"></div>'; const b = $('#gen-go'); if (b) b.onclick = () => ensureNextUnit(true); } }
+  async function ensureNextUnit(manual) {
+    if (GEN.busy || !S.st || !S.st.profile.diag) return;
+    const pe = M.nextToGenerate(S.st, now()); if (!pe) return;
+    if (!S.caps.sample) { if (manual) toast('Precisa de IA para criar a unidade (veja Ajustes).'); return; }
+    GEN.busy = true; GEN.pe = pe; GEN.err = null; GEN.msg = 'Começando…'; updateGenUI();
+    try {
+      if (syncOn()) { try { await S.store.flush(); await GF.sync.run(S.store); } catch (e) { /* segue offline */ } }
+      if (!C.units[pe.id]) {
+        const known = Object.values(C.items).map((i) => (i.type === 'noun' ? i.art + ' ' : '') + i.de);
+        const ask = (p, o) => askJSON(p, Object.assign({ maxTokens: 12000 }, o));
+        let unit;
+        try { unit = await GF.gen.generate(pe, ask, { known, recurring: recurringForPrompt() }, (m) => { GEN.msg = m; updateGenUI(); }); }
+        catch (e) { GEN.msg = 'Tentando de novo…'; updateGenUI(); unit = await GF.gen.generate(pe, ask, { known, recurring: recurringForPrompt() }, (m) => { GEN.msg = m; updateGenUI(); }); }
+        S.st.gen[unit.id] = unit; await S.store.saveGen(unit.id); C.addUnit(JSON.parse(JSON.stringify(unit)));
+        log('info', 'unidade criada ' + unit.id + ' (' + unit.itemsData.length + ' itens)');
+        toast('Nova unidade pronta: ' + unit.title, 4000);
+        autoSync('fim da sessão');
+      }
+      GEN.pe = null;
+    } catch (e) { GEN.err = (e && (e.message || e.code)) || 'erro'; log('warn', 'geração ' + pe.id + ': ' + GEN.err); }
+    finally {
+      GEN.busy = false; updateGenUI();
+      const h = (location.hash || '#hoje').slice(1);
+      if (!S.session && (h === 'hoje' || h === 'curriculo') && !(document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName))) route();
+    }
+  }
+  /* reportar erro em item gerado */
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-report]'); if (!b) return;
+    const id = b.getAttribute('data-report'); const it = C.items[id]; if (!it) return;
+    const box = document.createElement('div'); box.className = 'card';
+    box.innerHTML = `<p class="small"><b>O que está errado em “${esc(it.de)}”?</b> (opcional)</p><textarea id="rep-t" style="min-height:70px"></textarea><div class="row" style="margin-top:8px"><button class="btn" id="rep-x">Cancelar</button><button class="btn pri grow" id="rep-s">${S.caps.sample ? 'Pedir correção ao professor' : 'Suspender este item'}</button></div>`;
+    b.closest('.card') ? b.closest('.card').after(box) : app().prepend(box);
+    $('#rep-x').onclick = () => box.remove();
+    $('#rep-s').onclick = async () => {
+      const g = S.st.gen[it.unit]; const rec = g && g.itemsData.find((x) => x.id === id);
+      if (!S.caps.sample) { it.flag = true; if (rec) rec.flag = true; if (g) await S.store.saveGen(it.unit); box.innerHTML = '<p class="small">Item suspenso: ele sai das revisões até ser corrigido.</p>'; return; }
+      $('#rep-s').disabled = true; $('#rep-s').textContent = 'Verificando…';
+      try {
+        const r = await GF.gen.fixItem(it, C.units[it.unit], askJSON, $('#rep-t').value);
+        if (!r.ok && r.fixed && r.fixed.de && r.fixed.pt && (it.type !== 'noun' || ['der', 'die', 'das'].includes(r.fixed.art))) {
+          const upd = { de: String(r.fixed.de), pt: String(r.fixed.pt), ipa: String(r.fixed.ipa || ''), note: String(r.fixed.note || it.note || '') };
+          if (it.type === 'noun') { upd.art = r.fixed.art; upd.pl = String(r.fixed.pl || ''); }
+          if (it.type === 'verb' && r.fixed.conj) upd.conj = r.fixed.conj;
+          if (Array.isArray(r.fixed.ex) && r.fixed.ex[0]) upd.ex = [[String(r.fixed.ex[0]), String(r.fixed.ex[1] || '')]];
+          Object.assign(it, upd, { flag: false }); if (rec) Object.assign(rec, upd, { flag: false, fixedAt: now() }); if (g) await S.store.saveGen(it.unit);
+          box.innerHTML = `<div class="fb ok"><b>Corrigido.</b><div class="why">${esc(r.explanation_pt || '')}</div></div>`;
+        } else box.innerHTML = `<div class="fb ok"><b>O professor revisou e manteve.</b><div class="why">${esc(r.explanation_pt || '')}</div></div>`;
+      } catch (er) { box.innerHTML = '<div class="fb warn">Não consegui verificar agora. Tente mais tarde.</div>'; }
+    };
+  });
 
   /* ---------------- Sincronização ---------------- */
   const syncOn = () => !!(GF.sync && GF.sync.available() && GF.sync.cfg().token);
@@ -401,6 +469,7 @@
       ${plan.notes.map((n) => `<p class="tiny mut">${esc(n)}</p>`).join('')}
       <button class="btn pri big" id="h-start" ${plan.steps.length ? '' : 'disabled'}>Começar (${plan.steps.length} etapas)</button>
     </div>
+    ${genCardHtml(!!unit)}
     ${obs.length ? `<div class="card"><div class="step-k">O professor observou</div><ul class="list small">${obs.map((o) => `<li>${o}</li>`).join('')}</ul></div>` : ''}
     <div class="card"><div class="kpis">
       <div class="kpi"><b>${stats.due}</b><span>revisões pendentes</span></div>
@@ -409,7 +478,7 @@
       <div class="kpi"><b>${(stats.minutes / 60).toFixed(1)} h</b><span>de estudo no total</span></div>
     </div></div>
     ${us ? `<div class="card"><div class="step-k">Para concluir ${uid}</div>${unitChecklist(us)}</div>` : ''}`);
-    bindInstall();
+    bindInstall(); const gg = $('#gen-go'); if (gg) gg.onclick = () => ensureNextUnit(true);
     $('#h-min').onclick = (e) => { const b = e.target.closest('[data-m]'); if (!b) return; S.homeMinutes = +b.dataset.m; renderHome(); };
     $('#h-start').onclick = () => startSession(plan);
   }
@@ -469,7 +538,7 @@
     M.adapt(S.st, t);
     S.session = null;
     await commit({ profile: true, day: true });
-    autoSync('fim da sessão');
+    autoSync('fim da sessão'); setTimeout(() => ensureNextUnit(false), 3000);
     const mins = Math.round((t - s.started) / 60000);
     app().innerHTML = `<header class="top"><div class="brand">${quit ? 'Sessão interrompida' : 'Sessão concluída'}</div><span id="savestate" class="pill"></span></header>
     <div class="card"><h2>${quit ? 'Tudo que você fez foi salvo.' : 'Bom trabalho!'}</h2>
@@ -497,6 +566,7 @@
       <p style="font-size:18px;margin:10px 0 4px">${esc(it.pt)}</p>${conj}
       ${it.ex.map(([de, pt]) => `<div class="row" style="margin-top:10px">${audioBtn(de)}<div><div>${esc(de)}</div><div class="small mut">${esc(pt)}</div></div></div>`).join('')}
       ${it.note ? `<p class="small" style="margin-top:10px">💡 ${esc(it.note)}</p>` : ''}
+      ${C.units[it.unit] && C.units[it.unit].gen ? `<p class="tiny mut" style="margin-top:8px">✨ Criado pelo professor (IA) e revisado${it.flag ? ' · <b>suspenso</b>' : ''} · <button class="btn ghost tiny" style="min-height:0;padding:0" data-report="${esc(it.id)}">⚑ Reportar erro</button></p>` : ''}
       ${it.type === 'noun' && !opts.noColorTip ? '<p class="tiny mut">Cores fixas: <span class="art-der">der</span> · <span class="art-die">die</span> · <span class="art-das">das</span>. Exemplos são frases didáticas escritas para o nível.</p>' : ''}`;
   }
 
@@ -794,7 +864,8 @@
   function recurringForPrompt() { return Object.values(S.st.mistakes).filter((m) => m.count >= 2 && m.fixed < 3).sort((a, b) => b.count - a.count).slice(0, 5).map((m) => m.msg); }
   async function askJSON(prompt, opts) {
     const s = S.caps.sample; if (!s) throw { code: 'no_ai' };
-    try { const v = await s.json(prompt, Object.assign({ modelTier: 'default', cache: false }, opts || {})); return v; }
+    const o = Object.assign({ modelTier: 'default', cache: false }, opts || {}); if (!s.local) delete o.maxTokens;
+    try { const v = await s.json(prompt, o); return v; }
     catch (e) { if (e && e.code === 'not_granted') S.caps.sample = null; throw e; }
   }
   function convoPrompt(u, history, level) {
@@ -1057,7 +1128,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
       ${L.modules.map((m) => `<h3>${esc(m.title)}</h3>${m.units.map((uid) => { const u = C.units[uid]; const st = M.unitStatus(S.st, uid, t); const cur = M.currentUnit(S.st) === uid; return `<details ${cur ? 'open' : ''}><summary>${st.passed ? '✅' : cur ? '▶️' : uid === 'A0-P' ? '🔈' : '🔒'} ${esc(u.title)} <span class="mut small">${esc(u.subtitle)}</span></summary>
         <p class="small"><b>Objetivos:</b> ${u.goals.map(esc).join(' · ')}</p>${u.grammar.length ? `<p class="small"><b>Gramática:</b> ${u.grammar.map((g) => esc(C.grammar[g].title)).join(' · ')}</p>` : ''}
         <p class="small"><b>Pré-requisito:</b> ${u.prereq.length ? u.prereq.join(', ') : 'nenhum'} · <b>Critério:</b> ${esc(u.criteria)}</p>${unitChecklist(st)}</details>`; }).join('')}
-        ${m.planned ? `<p class="small mut">Planejado (carregado quando você chegar lá): ${m.planned.map(esc).join(' · ')}</p>` : ''}`).join('')}</div>`).join('') +
+        ${m.plan ? C.plan.filter((e) => e.level === L.id && !L.modules.some((mm) => mm.units.includes(e.id))).map((e) => { const u = C.units[e.id]; if (!u) return `<details><summary class="lock">🔒 ${esc(e.title)} <span class="mut small">${esc(e.topic)}</span></summary><p class="small">Foco gramatical: ${esc(e.grammar)}. O professor prepara esta unidade quando você chegar perto dela.</p></details>`; const st = M.unitStatus(S.st, e.id, t); const cur = M.currentUnit(S.st) === e.id; return `<details ${cur ? 'open' : ''}><summary>${st.passed ? '✅' : cur ? '▶️' : '📘'} ${esc(u.title)} <span class="mut small">${esc(u.subtitle)} · ✨ IA</span></summary><p class="small"><b>Objetivos:</b> ${u.goals.map(esc).join(' · ')}</p><p class="small"><b>Gramática:</b> ${u.grammar.map((g) => esc(C.grammar[g].title)).join(' · ')}</p>${u.gen && u.gen.changes && u.gen.changes.length ? `<p class="tiny mut">Revisão automática corrigiu: ${u.gen.changes.slice(0, 5).map(esc).join('; ')}</p>` : ''}${unitChecklist(st)}</details>`; }).join('') : ''}`).join('')}</div>`).join('') +
       `<div class="card"><p class="small mut">O conteúdo é carregado progressivamente. Versão do conteúdo: ${esc(C.version)}. Seu histórico é guardado por id de item, então correções e ampliações do currículo não apagam o progresso.</p></div>`);
   }
 

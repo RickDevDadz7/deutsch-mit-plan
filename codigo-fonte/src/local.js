@@ -12,8 +12,8 @@
   function makeSample() {
     const cfg = aiSettings();
     if (!cfg.key) return null;
-    async function call(prompt) {
-      const body = { model: cfg.model || 'claude-sonnet-5-5', max_tokens: 1200, messages: [{ role: 'user', content: prompt + '\n\nResponda somente com o JSON, sem texto antes ou depois.' }] };
+    async function call(prompt, opts) {
+      const body = { model: cfg.model || 'claude-sonnet-5-5', max_tokens: (opts && opts.maxTokens) || 1200, messages: [{ role: 'user', content: prompt + '\n\nResponda somente com o JSON, sem texto antes ou depois.' }] };
       if (window.gfsNative && window.gfsNative.anthropic) { // no PC: a chamada sai pelo processo principal
         const res = await window.gfsNative.anthropic(cfg.key, body);
         if (res.status === 401) throw { code: 'not_granted', message: 'Chave de API inválida.' };
@@ -32,9 +32,9 @@
       const j = await r.json();
       return (j.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('');
     }
-    const sample = async (prompt) => ({ text: await call(prompt), truncated: false });
-    sample.json = async (prompt) => {
-      const t = await call(prompt);
+    const sample = async (prompt, opts) => ({ text: await call(prompt, opts), truncated: false });
+    sample.json = async (prompt, opts) => {
+      const t = await call(prompt, opts);
       const a = t.indexOf('{'), b = t.lastIndexOf('}');
       if (a < 0 || b < a) throw { code: 'unavailable', message: 'Resposta sem JSON.' };
       return JSON.parse(t.slice(a, b + 1));

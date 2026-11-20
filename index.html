@@ -672,44 +672,469 @@ input[type=text],textarea,select{font-size:17px}
       matrix: { 'Hören': 'Anúncios e diálogos curtos, números, preços, horários', 'Lesen': 'Placas, formulários, mensagens curtas', 'Schreiben': 'Formulários, mensagens curtas (≈30 palavras)', 'Sprechen': 'Apresentar-se, pedir/dar informações simples', 'Grammatik': 'Presente, V2, artigos, acusativo, modais, verbos separáveis, Perfekt básico', 'Wortschatz': '≈ 650 palavras (lista Goethe A1 como referência)', 'Aussprache': 'Sistema vocálico, Umlauts, ch, r, acento', 'Landeskunde': 'Cumprimentos, du/Sie, cafés, compras, moradia' },
       modules: [
         { title: 'A1.1 — Primeiros contatos', units: ['A1-U1', 'A1-U2', 'A1-U3', 'A1-U4', 'A1-U5'] },
-        { title: 'A1.2 — Rotina e cidade', units: [], planned: ['Horários e rotina (verbos separáveis)', 'Compras e roupas', 'Na cidade: direções (Dativ com preposições)', 'Tempo livre (modais können/wollen/müssen)', 'O que eu fiz (Perfekt básico)', 'Saúde e corpo', 'Simulado Start Deutsch 1'] },
+        { title: 'A1.2 — Rotina e cidade', units: [], plan: true },
       ]
     },
     {
       id: 'A2', name: 'Situações cotidianas', hours: 'Goethe: ≈ 150–260 h acumuladas', exam: 'Goethe-Zertifikat A2',
       canDo: ['Entender frases sobre áreas de relevância imediata', 'Comunicar-se em tarefas rotineiras de troca direta', 'Descrever passado, formação e ambiente com meios simples'],
       matrix: { 'Grammatik': 'Perfekt completo, Präteritum de sein/haben/modais, Dativ, preposições de duas vias, comparativo, weil/dass/wenn, reflexivos' },
-      modules: [{ title: 'A2 — Vida prática', units: [], planned: ['Trabalho e profissões', 'Viagens e transporte', 'Médico e saúde', 'Festas e tradições', 'Mídia e tecnologia', 'Simulado A2'] }]
+      modules: [{ title: 'A2 — Vida prática', units: [], plan: true }]
     },
     {
       id: 'B1', name: 'Independência comunicativa', hours: 'Goethe: ≈ 260–490 h acumuladas', exam: 'Goethe-Zertifikat B1',
       canDo: ['Entender os pontos principais de assuntos familiares em linguagem padrão', 'Lidar com a maioria das situações de viagem', 'Relatar experiências, planos e justificar opiniões brevemente'],
       matrix: { 'Grammatik': 'Präteritum, Plusquamperfekt, Passiv (presente), Konjunktiv II (würde/hätte/wäre), orações relativas, Genitiv, declinação do adjetivo completa' },
-      modules: [{ title: 'B1 — Independência', units: [], planned: ['Moradia e vizinhança', 'Educação e carreira', 'Relações e sociedade', 'Consumo e meio ambiente', 'Simulado B1'] }]
+      modules: [{ title: 'B1 — Independência', units: [], plan: true }]
     },
     {
       id: 'B2', name: 'Comunicação independente e complexa', hours: 'Goethe: ≈ 450–600 h acumuladas', exam: 'Goethe-Zertifikat B2',
       canDo: ['Entender ideias principais de textos complexos, inclusive técnicos na sua área', 'Interagir com fluência e espontaneidade com falantes nativos', 'Produzir textos claros e detalhados defendendo um ponto de vista'],
       matrix: { 'Grammatik': 'Passiv em todos os tempos, Konjunktiv I (discurso indireto), particípios como adjetivo, conectores avançados, nominalização' },
-      modules: [{ title: 'B2 — Complexidade', units: [], planned: ['Argumentação e debate', 'Trabalho e economia', 'Ciência e tecnologia', 'Mídia e notícias autênticas', 'Simulado B2'] }]
+      modules: [{ title: 'B2 — Complexidade', units: [], plan: true }]
     },
     {
       id: 'C1', name: 'Fluência avançada', hours: 'Goethe: ≈ 600–750 h acumuladas', exam: 'Goethe-Zertifikat C1',
       canDo: ['Entender textos longos e exigentes, inclusive sentidos implícitos', 'Expressar-se fluentemente sem procurar palavras de forma óbvia', 'Usar a língua de forma flexível em contextos sociais, acadêmicos e profissionais'],
       matrix: { 'Grammatik': 'Estilo nominal, Funktionsverbgefüge, Partizipialattribute longos, registro e coesão' },
-      modules: [{ title: 'C1 — Precisão e registro', units: [], planned: ['Textos acadêmicos', 'Comunicação profissional', 'Literatura e cultura', 'Simulado C1'] }]
+      modules: [{ title: 'C1 — Precisão e registro', units: [], plan: true }]
     },
     {
       id: 'C2', name: 'Domínio altamente sofisticado', hours: 'Goethe: ≈ 750+ h acumuladas', exam: 'Goethe-Zertifikat C2: Großes Deutsches Sprachdiplom',
       canDo: ['Entender praticamente tudo que lê ou ouve', 'Resumir e reconstruir argumentos de várias fontes', 'Expressar nuances finas de significado com precisão'],
       matrix: { 'Grammatik': 'Variação estilística, variedades regionais (Áustria/Suíça), idiomatismo' },
-      modules: [{ title: 'C2 — Maestria', units: [], planned: ['Nuance e estilo', 'Variedades do alemão', 'Simulado GDS'] }]
+      modules: [{ title: 'C2 — Maestria', units: [], plan: true }]
     },
   ];
 
-  const unitOrder = ['A0-P', 'A1-U1', 'A1-U2', 'A1-U3', 'A1-U4', 'A1-U5'];
+  /* ---------------- Plano completo de unidades (A1 → C2) ----------------
+   * Cada entrada tem id estável. Unidades sem conteúdo fixo são criadas pelo
+   * professor (IA) quando você chega nelas, seguindo tema + foco gramatical. */
+  const PL = (id, title, topic, grammar, extra) => Object.assign({ id, level: id.slice(0, 2), title, topic, grammar }, extra || {});
+  const plan = [
+    PL('A1-U1', 'Hallo! Wer bist du?', 'cumprimentos e apresentação', 'sein, presente, V2, du/Sie'),
+    PL('A1-U2', 'Zahlen und Kontakt', 'números, idade, telefone', 'números'),
+    PL('A1-U3', 'Meine Familie', 'família', 'haben, possessivos'),
+    PL('A1-U4', 'Im Café', 'pedir, preço, pagar', 'artigos, acusativo'),
+    PL('A1-U5', 'Meine Wohnung', 'casa e móveis', 'kein/nicht, gênero'),
+    PL('A1-U6', 'Mein Alltag', 'rotina diária e horas', 'verbos separáveis; horas (Uhrzeit); preposições de tempo um/am'),
+    PL('A1-U7', 'Einkaufen', 'compras, roupas, cores e preços', 'acusativo com artigos definidos e indefinidos; welcher/dieser; números grandes'),
+    PL('A1-U8', 'In der Stadt', 'lugares da cidade, direções, transporte', 'dativo com preposições (mit, zu, in, an, neben, bei); imperativo formal'),
+    PL('A1-U9', 'Freizeit', 'tempo livre, hobbies, convites', 'verbos modais können, wollen, müssen, dürfen (presente e posição no fim)'),
+    PL('A1-U10', 'Was hast du gemacht?', 'contar o fim de semana', 'Perfekt com haben e sein (verbos frequentes)'),
+    PL('A1-U11', 'Gesundheit', 'corpo, sintomas, médico', 'imperativo (du/ihr/Sie); sollen; weh tun'),
+    PL('A2-U1', 'Arbeit und Beruf', 'trabalho e profissões', 'Präteritum de sein/haben/modais; weil'),
+    PL('A2-U2', 'Unterwegs', 'viagens e transporte', 'preposições de duas vias (Wechselpräpositionen)'),
+    PL('A2-U3', 'Beim Arzt', 'consultas e saúde', 'verbos reflexivos; dass'),
+    PL('A2-U4', 'Feste feiern', 'festas, datas, presentes', 'números ordinais e datas; dativo como objeto indireto; wenn'),
+    PL('A2-U5', 'Medien und Technik', 'mídia e tecnologia', 'comparativo e superlativo'),
+    PL('A2-U6', 'Wohnen', 'moradia, mudança, móveis', 'declinação do adjetivo (introdução); stellen/stehen, legen/liegen'),
+    PL('A2-U7', 'Freunde und Familie', 'relações e convivência', 'Perfekt de verbos irregulares; possessivos no dativo'),
+    PL('A2-U8', 'Pläne', 'planos e futuro', 'Futur I; zu + infinitivo (básico)'),
+    PL('B1-U1', 'Nachbarschaft', 'moradia e vizinhança', 'orações relativas (nominativo, acusativo, dativo)'),
+    PL('B1-U2', 'Bildung und Karriere', 'educação e carreira', 'Präteritum de verbos regulares e irregulares'),
+    PL('B1-U3', 'Zusammenleben', 'relações e sociedade, dar conselhos', 'Konjunktiv II (würde, hätte, wäre, könnte)'),
+    PL('B1-U4', 'Konsum und Umwelt', 'consumo e meio ambiente', 'voz passiva no presente (Vorgangspassiv)'),
+    PL('B1-U5', 'Sport und Gesundheit', 'esporte e hábitos', 'genitivo; wegen, trotz, während'),
+    PL('B1-U6', 'Reiseerlebnisse', 'experiências de viagem', 'Plusquamperfekt; nachdem, bevor'),
+    PL('B1-U7', 'Arbeitswelt', 'trabalho e candidatura', 'conectores obwohl, deshalb, trotzdem'),
+    PL('B1-U8', 'Kultur und Medien', 'cultura e mídia', 'um…zu, damit; zu + infinitivo'),
+    PL('B2-U1', 'Argumentieren', 'argumentação e debate', 'conectores avançados; nominalização'),
+    PL('B2-U2', 'Wirtschaft', 'economia e trabalho', 'passiva em todos os tempos; passiva com modais'),
+    PL('B2-U3', 'Wissenschaft und Technik', 'ciência e tecnologia', 'particípio I e II como adjetivo'),
+    PL('B2-U4', 'Nachrichten', 'notícias e discurso indireto', 'Konjunktiv I (discurso indireto)'),
+    PL('B2-U5', 'Gesellschaft', 'sociedade e política', 'preposições com genitivo (aufgrund, innerhalb, statt)'),
+    PL('B2-U6', 'Kunst und Kultur', 'arte e cultura', 'verbos com preposição; da-/wo-Wörter'),
+    PL('C1-U1', 'Wissenschaftliches Schreiben', 'textos acadêmicos', 'estilo nominal; nominalização complexa'),
+    PL('C1-U2', 'Berufliche Kommunikation', 'comunicação profissional', 'Funktionsverbgefüge'),
+    PL('C1-U3', 'Literatur', 'literatura e cultura', 'atributos participiais longos'),
+    PL('C1-U4', 'Debatte', 'debate e posicionamento', 'modalidade subjetiva (sollen/wollen/mögen); partículas modais'),
+    PL('C1-U5', 'Medienkritik', 'análise de mídia', 'registro, coesão e referência textual'),
+    PL('C2-U1', 'Nuancen', 'nuance e estilo', 'variação estilística; sinônimos e conotação'),
+    PL('C2-U2', 'Varietäten', 'alemão da Áustria e da Suíça', 'variedades regionais (léxico e pronúncia)'),
+    PL('C2-U3', 'Redewendungen', 'expressões idiomáticas', 'idiomatismo e fraseologia'),
+    PL('C2-U4', 'Zwischen den Zeilen', 'ironia e sentido implícito', 'pragmática, ironia e implícito'),
+  ];
+  // pré-requisito: a unidade anterior do plano
+  plan.forEach((e, i) => { e.prereq = i ? [plan[i - 1].id] : []; e.index = i; });
 
-  GF.content = { version: '2026.11.20-1', items, grammar, units, unitOrder, pron, levels };
+  const unitOrder = ['A0-P'];
+  function recomputeOrder() { unitOrder.length = 0; unitOrder.push('A0-P'); for (const e of plan) if (units[e.id]) unitOrder.push(e.id); }
+  recomputeOrder();
+
+  /* Registra uma unidade criada pela IA (ou carregada do banco). Itens e regras recebem ids com prefixo da unidade. */
+  function addUnit(u) {
+    if (!u || !u.id || units[u.id] && !units[u.id].gen) return false; // nunca substitui conteúdo fixo
+    for (const it of u.itemsData || []) items[it.id] = Object.assign({ ex: [], note: '' }, it, { unit: u.id });
+    for (const [gid, g] of Object.entries(u.grammarData || {})) grammar[gid] = Object.assign({}, g, { unit: u.id });
+    const pe = plan.find((e) => e.id === u.id);
+    units[u.id] = Object.assign({}, u, { items: (u.itemsData || []).map((i) => i.id), grammar: Object.keys(u.grammarData || {}), prereq: pe ? pe.prereq : [] });
+    delete units[u.id].itemsData; delete units[u.id].grammarData;
+    recomputeOrder();
+    return true;
+  }
+
+  GF.content = { version: '2026.11.20-2', items, grammar, units, unitOrder, pron, levels, plan, addUnit, recomputeOrder };
+})(globalThis.GF = globalThis.GF || {});
+
+;
+/* Conteúdo fixo A1.2 (unidades A1-U6 a A1-U11), escrito e revisado à mão.
+ * Exemplos são frases didáticas para o nível. */
+(function (GF) {
+  'use strict';
+  const C = GF.content;
+  const U = {};
+  let cur = null;
+  const add = (o) => { o.unit = cur; o.ex = o.ex || []; o.note = o.note || ''; o.ipa = o.ipa || ''; C.items[o.id] = o; U[cur].items.push(o.id); };
+  const N = (list) => list.forEach(([id, art, de, pl, pt, ipa, exde, expt, note]) => add({ id, type: 'noun', art, de, pl, pt, ipa, ex: [[exde, expt]], note }));
+  const V = (list) => list.forEach(([id, de, pt, ipa, c, exde, expt, note]) => { const [ich, du, er, wir, ihr, sie] = c.split('|'); add({ id, type: 'verb', de, pt, ipa, conj: { ich, du, er, wir, ihr, sie }, ex: [[exde, expt]], note }); });
+  const P = (list) => list.forEach(([id, de, pt, note, type, ipa]) => add({ id, type: type || 'phrase', de, pt, note, ipa }));
+  const G = (id, g) => { g.unit = cur; g.level = 'A1'; g.drills = (g.drills || []).map(([q, a, hint]) => ({ q, a, hint: hint || '' })); C.grammar[id] = g; U[cur].grammar.push(id); };
+  const unit = (id, o) => { cur = id; U[id] = Object.assign({ id, level: 'A1', items: [], grammar: [], prereq: (C.plan.find((e) => e.id === id) || {}).prereq || [] }, o); };
+
+  /* ======================= A1-U6 Mein Alltag ======================= */
+  unit('A1-U6', {
+    title: 'Mein Alltag', subtitle: 'Rotina, horas e dias da semana',
+    goals: ['Perguntar e dizer as horas', 'Descrever a rotina do dia', 'Usar verbos separáveis e um/am'],
+    dialog: [['A', 'Wann stehst du auf?'], ['B', 'Ich stehe um halb sieben auf.'], ['A', 'So früh! Wann fängt deine Arbeit an?'], ['B', 'Um acht Uhr. Am Freitag habe ich um drei Feierabend.'], ['A', 'Und was machst du am Abend?'], ['B', 'Ich koche und dann sehe ich fern.']],
+    dialogPt: 'Duas pessoas falam sobre a rotina e os horários.',
+    listening: ['Ich stehe um sechs Uhr auf.', 'Es ist Viertel nach drei.', 'Wann fängt der Kurs an?', 'Am Sonntag schlafe ich lange.', 'Am Abend sehe ich fern.'],
+    writing: 'Descreva seu dia típico em 5–6 frases, com horários (um …) e pelo menos 2 verbos separáveis.',
+    speaking: { scene: 'Você e uma colega nova do curso comparam a rotina da semana.', persona: 'Mia, 25, estudante, informal (du)', goals: ['perguntar as horas', 'dizer quando se levanta', 'falar do trabalho/estudo', 'falar do fim de semana', 'propor um dia para se encontrar'] },
+    criteria: 'Critérios padrão da unidade; ditado de horas ≥ 75%.'
+  });
+  N([
+    ['a12_wecker', 'der', 'Wecker', '=', 'o despertador', 'ˈvɛkɐ', 'Der Wecker klingelt um sechs.', 'O despertador toca às seis.'],
+    ['a12_uhr', 'die', 'Uhr', 'Uhren', 'o relógio; hora (no horário)', 'uːɐ̯', 'Es ist acht Uhr.', 'São oito horas.', '“acht Uhr” = 8 horas; “die Uhr” = o relógio.'],
+    ['a12_uhrzeit', 'die', 'Uhrzeit', 'Uhrzeiten', 'a hora, o horário', 'ˈuːɐ̯ˌtsaɪ̯t', 'Die Uhrzeit steht auf dem Ticket.', 'O horário está no bilhete.'],
+    ['a12_fruehstueck', 'das', 'Frühstück', '', 'o café da manhã', 'ˈfʁyːʃtʏk', 'Das Frühstück ist um sieben.', 'O café da manhã é às sete.'],
+    ['a12_mittagessen', 'das', 'Mittagessen', '=', 'o almoço', 'ˈmɪtaːkˌʔɛsn̩', 'Das Mittagessen ist fertig.', 'O almoço está pronto.'],
+    ['a12_abendessen', 'das', 'Abendessen', '=', 'o jantar', 'ˈaːbn̩tˌʔɛsn̩', 'Wir machen das Abendessen.', 'Nós fazemos o jantar.'],
+    ['a12_vormittag', 'der', 'Vormittag', 'Vormittage', 'a manhã (até o meio-dia)', 'ˈfoːɐ̯mɪtaːk', 'Am Vormittag arbeite ich.', 'De manhã eu trabalho.'],
+    ['a12_nachmittag', 'der', 'Nachmittag', 'Nachmittage', 'a tarde', 'ˈnaːxmɪtaːk', 'Am Nachmittag lerne ich Deutsch.', 'À tarde eu estudo alemão.'],
+    ['a12_woche', 'die', 'Woche', 'Wochen', 'a semana', 'ˈvɔxə', 'Die Woche hat sieben Tage.', 'A semana tem sete dias.'],
+    ['a12_wochenende', 'das', 'Wochenende', 'Wochenenden', 'o fim de semana', 'ˈvɔxn̩ˌʔɛndə', 'Am Wochenende schlafe ich lange.', 'No fim de semana eu durmo até tarde.'],
+    ['a12_feierabend', 'der', 'Feierabend', 'Feierabende', 'o fim do expediente', 'ˈfaɪ̯ɐˌʔaːbn̩t', 'Um fünf habe ich Feierabend.', 'Às cinco termino o expediente.', 'Palavra muito usada: “Schönen Feierabend!”'],
+    ['a12_montag', 'der', 'Montag', 'Montage', 'a segunda-feira', 'ˈmoːntaːk', 'Am Montag beginnt die Woche.', 'Na segunda começa a semana.', 'Dias: Montag, Dienstag, Mittwoch, Donnerstag, Freitag, Samstag, Sonntag — todos “der”.'],
+    ['a12_mittwoch', 'der', 'Mittwoch', 'Mittwoche', 'a quarta-feira', 'ˈmɪtvɔx', 'Am Mittwoch habe ich Kurs.', 'Na quarta tenho curso.'],
+    ['a12_freitag', 'der', 'Freitag', 'Freitage', 'a sexta-feira', 'ˈfʁaɪ̯taːk', 'Am Freitag gehe ich ins Kino.', 'Na sexta vou ao cinema.'],
+    ['a12_sonntag', 'der', 'Sonntag', 'Sonntage', 'o domingo', 'ˈzɔntaːk', 'Am Sonntag ist alles zu.', 'No domingo está tudo fechado.', 'Na Alemanha, lojas fecham aos domingos.'],
+  ]);
+  V([
+    ['a12_aufstehen', 'aufstehen', 'levantar-se', 'ˈaʊ̯fˌʃteːən', 'stehe auf|stehst auf|steht auf|stehen auf|steht auf|stehen auf', 'Ich stehe um sechs Uhr auf.', 'Eu me levanto às seis.', 'Separável: o “auf” vai para o fim.'],
+    ['a12_anfangen', 'anfangen', 'começar', 'ˈanˌfaŋən', 'fange an|fängst an|fängt an|fangen an|fangt an|fangen an', 'Der Kurs fängt um zehn an.', 'O curso começa às dez.', 'Separável; a→ä em du/er.'],
+    ['a12_aufhoeren', 'aufhören', 'parar, terminar', 'ˈaʊ̯fˌhøːʁən', 'höre auf|hörst auf|hört auf|hören auf|hört auf|hören auf', 'Wann hörst du heute auf?', 'Quando você termina hoje?'],
+    ['a12_einkaufen', 'einkaufen', 'fazer compras', 'ˈaɪ̯nˌkaʊ̯fn̩', 'kaufe ein|kaufst ein|kauft ein|kaufen ein|kauft ein|kaufen ein', 'Wir kaufen am Samstag ein.', 'Fazemos compras no sábado.'],
+    ['a12_fernsehen', 'fernsehen', 'ver televisão', 'ˈfɛʁnˌzeːən', 'sehe fern|siehst fern|sieht fern|sehen fern|seht fern|sehen fern', 'Am Abend sehe ich fern.', 'À noite eu vejo TV.', 'Separável; e→ie em du/er.'],
+    ['a12_anrufen', 'anrufen', 'ligar (telefonar)', 'ˈanˌʁuːfn̩', 'rufe an|rufst an|ruft an|rufen an|ruft an|rufen an', 'Ich rufe dich morgen an.', 'Eu te ligo amanhã.'],
+    ['a12_fruehstuecken', 'frühstücken', 'tomar café da manhã', 'ˈfʁyːʃtʏkn̩', 'frühstücke|frühstückst|frühstückt|frühstücken|frühstückt|frühstücken', 'Ich frühstücke um sieben.', 'Tomo café às sete.', 'NÃO é separável.'],
+    ['a12_schlafen', 'schlafen', 'dormir', 'ˈʃlaːfn̩', 'schlafe|schläfst|schläft|schlafen|schlaft|schlafen', 'Am Sonntag schläft er lange.', 'No domingo ele dorme até tarde.', 'a→ä em du/er.'],
+    ['a12_arbeiten', 'arbeiten', 'trabalhar', 'ˈaʁbaɪ̯tn̩', 'arbeite|arbeitest|arbeitet|arbeiten|arbeitet|arbeiten', 'Sie arbeitet von neun bis fünf.', 'Ela trabalha das nove às cinco.', 'Radical em -t: du arbeitest, er arbeitet.'],
+  ]);
+  P([
+    ['a12_wiespaet', 'Wie spät ist es?', 'Que horas são?', 'Também: Wie viel Uhr ist es?'],
+    ['a12_halbacht', 'Es ist halb acht.', 'São sete e meia.', '“halb acht” = meia hora ANTES das oito.'],
+    ['a12_viertelnach', 'Es ist Viertel nach drei.', 'São três e quinze.', ''],
+    ['a12_viertelvor', 'Es ist Viertel vor neun.', 'São quinze para as nove.', ''],
+    ['a12_umwieviel', 'Um wie viel Uhr?', 'A que horas?', 'Resposta: um + hora (um acht Uhr).'],
+    ['a12_keinezeit', 'Ich habe keine Zeit.', 'Eu não tenho tempo.', ''],
+    ['a12_frueh', 'früh', 'cedo', '', 'word', 'fʁyː'],
+    ['a12_spaet', 'spät', 'tarde', '', 'word', 'ʃpɛːt'],
+    ['a12_dann', 'dann', 'então, depois', '', 'word', 'dan'],
+    ['a12_oft', 'oft', 'frequentemente', 'Frequência: immer > oft > manchmal > nie.', 'word', 'ɔft'],
+    ['a12_manchmal', 'manchmal', 'às vezes', '', 'word', 'ˈmançmaːl'],
+    ['a12_nie', 'nie', 'nunca', '', 'word', 'niː'],
+  ]);
+  G('g_trennbar', {
+    title: 'Verbos separáveis', explain: 'Alguns verbos têm um prefixo que se separa no presente: <b>auf</b>stehen → Ich stehe um sechs <b>auf</b>.<br>O verbo conjugado fica na 2ª posição e o prefixo vai para o <b>fim</b> da frase. Prefixos separáveis comuns: an-, auf-, aus-, ein-, mit-, fern-, zurück-. Na fala, o prefixo é tônico: ANfangen.',
+    compare: 'Não existe em português. Pense no inglês “get up” → “I get up at six”: a partícula também se separa.',
+    examples: [['Ich stehe früh auf.', 'Eu me levanto cedo.'], ['Wann fängt der Film an?', 'Quando começa o filme?'], ['Wir kaufen heute ein.', 'Hoje fazemos compras.']],
+    drills: [['Ich ___ um sechs auf. (aufstehen)', ['stehe']], ['Der Kurs fängt um zehn ___.', ['an']], ['Wir ___ am Samstag ein. (einkaufen)', ['kaufen']], ['Er ___ am Abend fern. (fernsehen)', ['sieht'], 'e→ie'], ['Du ___ um acht an. (anfangen)', ['fängst', 'faengst'], 'a→ä'], ['Ich rufe dich morgen ___.', ['an']], ['Wann ___ du auf? (aufhören)', ['hörst', 'hoerst']]]
+  });
+  G('g_uhrzeit', {
+    title: 'Horas e expressões de tempo (um, am)', explain: 'Hora oficial: <b>Es ist 7:30 Uhr</b> (sieben Uhr dreißig). Hora do dia a dia: <b>halb acht</b> (= 7:30, meia hora antes das 8), <b>Viertel nach drei</b> (3:15), <b>Viertel vor neun</b> (8:45), <b>zehn nach vier</b> (4:10).<br><b>um</b> + hora: um acht Uhr. <b>am</b> + dia ou parte do dia: am Montag, am Abend, am Wochenende. Exceção: <b>in der Nacht</b>.',
+    compare: '“halb acht” engana brasileiros: NÃO é “oito e meia”, é sete e meia.',
+    examples: [['Der Zug fährt um halb zehn.', 'O trem sai às nove e meia.'], ['Am Montag arbeite ich.', 'Na segunda eu trabalho.'], ['In der Nacht schlafe ich.', 'À noite (madrugada) eu durmo.']],
+    drills: [['7:30 = Es ist ___ acht.', ['halb']], ['8:45 = Es ist Viertel ___ neun.', ['vor']], ['3:15 = Es ist Viertel ___ drei.', ['nach']], ['Der Kurs ist ___ zehn Uhr.', ['um']], ['Ich arbeite ___ Montag.', ['am']], ['___ Abend sehe ich fern.', ['am']], ['Ich schlafe ___ der Nacht.', ['in']]]
+  });
+
+  /* ======================= A1-U7 Einkaufen ======================= */
+  unit('A1-U7', {
+    title: 'Einkaufen', subtitle: 'Roupas, cores, tamanhos e preços',
+    goals: ['Pedir ajuda numa loja e perguntar preço', 'Descrever roupas com cores e tamanhos', 'Dizer o que agrada e o que vai levar'],
+    dialog: [['A', 'Guten Tag! Kann ich Ihnen helfen?'], ['B', 'Ja, ich suche eine Jacke.'], ['A', 'Welche Größe brauchen Sie?'], ['B', 'Größe M. Haben Sie die Jacke auch in Blau?'], ['A', 'Ja, hier. Die kostet 59 Euro.'], ['B', 'Sie gefällt mir. Ich nehme die Jacke.']],
+    dialogPt: 'Numa loja de roupas: procurar uma jaqueta, tamanho, cor e preço.',
+    listening: ['Ich suche eine Hose.', 'Die Schuhe kosten achtzig Euro.', 'Kann ich das anprobieren?', 'Das Hemd ist zu klein.', 'Der Pullover gefällt mir.'],
+    writing: 'Escreva uma mensagem curta a um amigo contando o que você comprou: o quê, a cor, o preço e se gostou.',
+    speaking: { scene: 'Você está numa loja de roupas em Colônia e quer comprar um casaco para o inverno.', persona: 'Herr Klein, vendedor, formal (Sie)', goals: ['dizer o que procura', 'dizer tamanho e cor', 'perguntar o preço', 'pedir para experimentar', 'decidir e dizer o que leva'] },
+    criteria: 'Critérios padrão; acusativo com artigo definido ≥ 80%.'
+  });
+  N([
+    ['a12_kleidung', 'die', 'Kleidung', '', 'a roupa (coletivo)', 'ˈklaɪ̯dʊŋ', 'Die Kleidung ist hier billig.', 'A roupa aqui é barata.'],
+    ['a12_hose', 'die', 'Hose', 'Hosen', 'a calça', 'ˈhoːzə', 'Die Hose ist zu lang.', 'A calça é comprida demais.', 'Singular em alemão: “eine Hose” = uma calça.'],
+    ['a12_hemd', 'das', 'Hemd', 'Hemden', 'a camisa', 'hɛmt', 'Das Hemd ist weiß.', 'A camisa é branca.'],
+    ['a12_tshirt', 'das', 'T-Shirt', 'T-Shirts', 'a camiseta', 'ˈtiːʃœɐ̯t', 'Ich kaufe ein T-Shirt.', 'Eu compro uma camiseta.'],
+    ['a12_pullover', 'der', 'Pullover', '=', 'o suéter, a blusa de frio', 'pʊˈloːvɐ', 'Der Pullover ist warm.', 'O suéter é quente.'],
+    ['a12_jacke', 'die', 'Jacke', 'Jacken', 'a jaqueta, o casaco', 'ˈjakə', 'Die Jacke kostet 59 Euro.', 'A jaqueta custa 59 euros.'],
+    ['a12_kleid', 'das', 'Kleid', 'Kleider', 'o vestido', 'klaɪ̯t', 'Das Kleid ist sehr schön.', 'O vestido é muito bonito.'],
+    ['a12_schuh', 'der', 'Schuh', 'Schuhe', 'o sapato', 'ʃuː', 'Die Schuhe sind neu.', 'Os sapatos são novos.'],
+    ['a12_groesse', 'die', 'Größe', 'Größen', 'o tamanho', 'ˈɡʁøːsə', 'Welche Größe haben Sie?', 'Qual é o seu tamanho?'],
+    ['a12_preis', 'der', 'Preis', 'Preise', 'o preço', 'pʁaɪ̯s', 'Der Preis ist gut.', 'O preço é bom.'],
+    ['a12_geschaeft', 'das', 'Geschäft', 'Geschäfte', 'a loja', 'ɡəˈʃɛft', 'Das Geschäft ist bis acht offen.', 'A loja fica aberta até as oito.'],
+    ['a12_supermarkt', 'der', 'Supermarkt', 'Supermärkte', 'o supermercado', 'ˈzuːpɐˌmaʁkt', 'Der Supermarkt ist um die Ecke.', 'O supermercado fica na esquina.'],
+    ['a12_kasse', 'die', 'Kasse', 'Kassen', 'o caixa (de pagar)', 'ˈkasə', 'Bitte zahlen Sie an der Kasse.', 'Por favor, pague no caixa.'],
+  ]);
+  V([
+    ['a12_kaufen', 'kaufen', 'comprar', 'ˈkaʊ̯fn̩', 'kaufe|kaufst|kauft|kaufen|kauft|kaufen', 'Ich kaufe einen Pullover.', 'Eu compro um suéter.'],
+    ['a12_brauchen', 'brauchen', 'precisar de', 'ˈbʁaʊ̯xn̩', 'brauche|brauchst|braucht|brauchen|braucht|brauchen', 'Ich brauche neue Schuhe.', 'Preciso de sapatos novos.', 'Objeto direto no acusativo.'],
+    ['a12_suchen', 'suchen', 'procurar', 'ˈzuːxn̩', 'suche|suchst|sucht|suchen|sucht|suchen', 'Wir suchen ein Geschäft.', 'Procuramos uma loja.'],
+    ['a12_anprobieren', 'anprobieren', 'experimentar (roupa)', 'ˈanpʁoˌbiːʁən', 'probiere an|probierst an|probiert an|probieren an|probiert an|probieren an', 'Kann ich das Kleid anprobieren?', 'Posso experimentar o vestido?', 'Separável.'],
+    ['a12_nehmen', 'nehmen', 'pegar; levar (comprar)', 'ˈneːmən', 'nehme|nimmst|nimmt|nehmen|nehmt|nehmen', 'Ich nehme die Jacke.', 'Vou levar a jaqueta.', 'Irregular: du nimmst, er nimmt.'],
+    ['a12_gefallen', 'gefallen', 'agradar', 'ɡəˈfalən', 'gefalle|gefällst|gefällt|gefallen|gefallt|gefallen', 'Die Jacke gefällt mir.', 'Gosto da jaqueta. (A jaqueta me agrada.)', 'Quem agrada é o sujeito: “Die Schuhe gefallen mir”.'],
+  ]);
+  P([
+    ['a12_rot', 'rot', 'vermelho', '', 'word', 'ʁoːt'], ['a12_blau', 'blau', 'azul', '', 'word', 'blaʊ̯'], ['a12_gruen', 'grün', 'verde', '', 'word', 'ɡʁyːn'],
+    ['a12_schwarz', 'schwarz', 'preto', '', 'word', 'ʃvaʁts'], ['a12_weiss', 'weiß', 'branco', '', 'word', 'vaɪ̯s'], ['a12_grau', 'grau', 'cinza', '', 'word', 'ɡʁaʊ̯'],
+    ['a12_ichsuche', 'Ich suche eine Jacke.', 'Estou procurando uma jaqueta.', ''],
+    ['a12_inblau', 'Haben Sie das auch in Blau?', 'Tem também em azul?', 'Cores como substantivo: in Blau, in Rot.'],
+    ['a12_anprobieren_p', 'Kann ich das anprobieren?', 'Posso experimentar?', ''],
+    ['a12_zugross', 'Das ist zu groß.', 'Está grande demais.', '“zu” + adjetivo = demais.'],
+    ['a12_gefaelltmir', 'Das gefällt mir.', 'Gosto disso.', 'Negação: Das gefällt mir nicht.'],
+    ['a12_ichnehme', 'Ich nehme den Pullover.', 'Vou levar o suéter.', 'den = acusativo masculino.'],
+  ]);
+  G('g_akk_def', {
+    title: 'Acusativo com artigo definido', explain: 'Objeto direto no acusativo: só o masculino muda — <b>der → den</b>. Feminino <b>die</b>, neutro <b>das</b> e plural <b>die</b> ficam iguais.<br>Verbos com acusativo frequentes: haben, brauchen, kaufen, suchen, nehmen, finden, möchten.',
+    compare: 'Como em “eu o compro”, o alemão marca o objeto — mas no artigo: Der Pullover ist teuer → Ich kaufe den Pullover.',
+    examples: [['Ich nehme den Rock.', 'Levo a saia.'], ['Er kauft die Hose.', 'Ele compra a calça.'], ['Wir suchen das Geschäft.', 'Procuramos a loja.']],
+    drills: [['Ich nehme ___ Pullover.', ['den']], ['Ich kaufe ___ Jacke.', ['die']], ['Er sucht ___ Hemd.', ['das']], ['Wir brauchen ___ Schuhe.', ['die']], ['Ich finde ___ Preis gut.', ['den']], ['Kann ich ___ Kleid anprobieren?', ['das']], ['___ Pullover ist warm. (sujeito)', ['der']]]
+  });
+  G('g_gefallen', {
+    title: 'gefallen: “gostar” de coisas', explain: 'Para dizer que algo agrada: <b>[coisa] gefällt mir</b>. A coisa é o sujeito; por isso o verbo concorda com ela: Die Jacke <b>gefällt</b> mir / Die Schuhe <b>gefallen</b> mir.<br>Perguntas: Wie gefällt <b>dir</b> (du) / <b>Ihnen</b> (Sie) die Jacke?',
+    compare: 'Igual ao espanhol “me gusta / me gustan”: o verbo concorda com a coisa, não com a pessoa.',
+    examples: [['Das Kleid gefällt mir.', 'Gosto do vestido.'], ['Die Farben gefallen mir nicht.', 'Não gosto das cores.']],
+    drills: [['Die Jacke ___ mir.', ['gefällt', 'gefaellt']], ['Die Schuhe ___ mir.', ['gefallen']], ['Das Hemd ___ mir nicht.', ['gefällt', 'gefaellt']], ['Wie gefällt ___ der Rock? (du)', ['dir']], ['Wie gefällt ___ das Kleid? (Sie)', ['Ihnen']]]
+  });
+
+  /* ======================= A1-U8 In der Stadt ======================= */
+  unit('A1-U8', {
+    title: 'In der Stadt', subtitle: 'Lugares, transporte e direções',
+    goals: ['Perguntar e explicar o caminho', 'Dizer como você vai (mit dem Bus…)', 'Entender instruções formais (Gehen Sie…)'],
+    dialog: [['A', 'Entschuldigung, wie komme ich zum Bahnhof?'], ['B', 'Gehen Sie hier geradeaus und dann die zweite Straße links.'], ['A', 'Ist das weit?'], ['B', 'Zu Fuß zehn Minuten. Sie können auch mit dem Bus fahren.'], ['A', 'Wo ist die Haltestelle?'], ['B', 'Neben der Apotheke. Steigen Sie am Marktplatz aus.']],
+    dialogPt: 'Uma pessoa pergunta o caminho até a estação.',
+    listening: ['Wie komme ich zum Museum?', 'Gehen Sie geradeaus.', 'Ich fahre mit der U-Bahn.', 'Die Bank ist neben dem Kino.', 'Steigen Sie an der Haltestelle aus.'],
+    writing: 'Explique a um amigo como chegar da estação à sua casa (5 frases, com mit, zu e direções).',
+    speaking: { scene: 'Você está perdido em Munique e pergunta o caminho para o museu a uma senhora na rua.', persona: 'Frau Huber, moradora, formal (Sie), prestativa', goals: ['pedir licença e perguntar o caminho', 'perguntar se é longe', 'perguntar qual transporte usar', 'confirmar a direção (links/rechts)', 'agradecer'] },
+    criteria: 'Critérios padrão; dativo com preposições ≥ 80%.'
+  });
+  N([
+    ['a12_bahnhof', 'der', 'Bahnhof', 'Bahnhöfe', 'a estação de trem', 'ˈbaːnhoːf', 'Der Bahnhof ist in der Stadtmitte.', 'A estação fica no centro.'],
+    ['a12_haltestelle', 'die', 'Haltestelle', 'Haltestellen', 'o ponto (de ônibus, bonde)', 'ˈhaltəˌʃtɛlə', 'Die Haltestelle ist neben der Bank.', 'O ponto fica ao lado do banco.'],
+    ['a12_bus', 'der', 'Bus', 'Busse', 'o ônibus', 'bʊs', 'Der Bus kommt in fünf Minuten.', 'O ônibus chega em cinco minutos.'],
+    ['a12_ubahn', 'die', 'U-Bahn', 'U-Bahnen', 'o metrô', 'ˈuːbaːn', 'Ich fahre mit der U-Bahn.', 'Eu vou de metrô.'],
+    ['a12_strassenbahn', 'die', 'Straßenbahn', 'Straßenbahnen', 'o bonde', 'ˈʃtʁaːsn̩ˌbaːn', 'Die Straßenbahn ist voll.', 'O bonde está cheio.'],
+    ['a12_zug', 'der', 'Zug', 'Züge', 'o trem', 'tsuːk', 'Der Zug hat Verspätung.', 'O trem está atrasado.'],
+    ['a12_fahrrad', 'das', 'Fahrrad', 'Fahrräder', 'a bicicleta', 'ˈfaːɐ̯ʁaːt', 'Sie fährt mit dem Fahrrad.', 'Ela vai de bicicleta.'],
+    ['a12_strasse', 'die', 'Straße', 'Straßen', 'a rua', 'ˈʃtʁaːsə', 'Nehmen Sie die erste Straße links.', 'Pegue a primeira rua à esquerda.'],
+    ['a12_ampel', 'die', 'Ampel', 'Ampeln', 'o semáforo', 'ˈampl̩', 'An der Ampel gehen Sie rechts.', 'No semáforo, vire à direita.'],
+    ['a12_apotheke', 'die', 'Apotheke', 'Apotheken', 'a farmácia', 'apoˈteːkə', 'Die Apotheke ist am Marktplatz.', 'A farmácia fica na praça do mercado.'],
+    ['a12_bank', 'die', 'Bank', 'Banken', 'o banco (instituição)', 'baŋk', 'Ich gehe zur Bank.', 'Eu vou ao banco.', 'Banco de sentar: die Bank, plural Bänke.'],
+    ['a12_museum', 'das', 'Museum', 'Museen', 'o museu', 'muˈzeːʊm', 'Das Museum ist montags zu.', 'O museu fecha às segundas.'],
+    ['a12_kino', 'das', 'Kino', 'Kinos', 'o cinema', 'ˈkiːno', 'Wir treffen uns vor dem Kino.', 'Nos encontramos na frente do cinema.'],
+    ['a12_fahrkarte', 'die', 'Fahrkarte', 'Fahrkarten', 'a passagem, o bilhete', 'ˈfaːɐ̯ˌkaʁtə', 'Die Fahrkarte kostet drei Euro.', 'O bilhete custa três euros.'],
+  ]);
+  V([
+    ['a12_fahren', 'fahren', 'ir (com veículo), dirigir', 'ˈfaːʁən', 'fahre|fährst|fährt|fahren|fahrt|fahren', 'Wir fahren mit dem Zug.', 'Vamos de trem.', 'a→ä em du/er. A pé: gehen.'],
+    ['a12_gehen', 'gehen', 'ir (a pé), andar', 'ˈɡeːən', 'gehe|gehst|geht|gehen|geht|gehen', 'Ich gehe zu Fuß.', 'Eu vou a pé.'],
+    ['a12_finden', 'finden', 'encontrar; achar (opinião)', 'ˈfɪndn̩', 'finde|findest|findet|finden|findet|finden', 'Ich finde die Haltestelle nicht.', 'Não encontro o ponto.'],
+    ['a12_aussteigen', 'aussteigen', 'descer (do veículo)', 'ˈaʊ̯sˌʃtaɪ̯ɡn̩', 'steige aus|steigst aus|steigt aus|steigen aus|steigt aus|steigen aus', 'Wir steigen am Bahnhof aus.', 'Descemos na estação.'],
+    ['a12_umsteigen', 'umsteigen', 'fazer baldeação', 'ˈʊmˌʃtaɪ̯ɡn̩', 'steige um|steigst um|steigt um|steigen um|steigt um|steigen um', 'Sie müssen in Köln umsteigen.', 'O senhor precisa trocar de trem em Colônia.'],
+  ]);
+  P([
+    ['a12_links', 'links', 'à esquerda', '', 'word', 'lɪŋks'], ['a12_rechts', 'rechts', 'à direita', '', 'word', 'ʁɛçts'], ['a12_geradeaus', 'geradeaus', 'em frente, reto', '', 'word', 'ɡəʁaːdəˈʔaʊ̯s'],
+    ['a12_weit', 'weit', 'longe', 'Perto: nah.', 'word', 'vaɪ̯t'],
+    ['a12_wiekomme', 'Wie komme ich zum Bahnhof?', 'Como chego à estação?', 'zum = zu dem; zur = zu der.'],
+    ['a12_istdasweit', 'Ist das weit?', 'É longe?', ''],
+    ['a12_zufuss', 'Ich gehe zu Fuß.', 'Eu vou a pé.', ''],
+    ['a12_mitdembus', 'Ich fahre mit dem Bus.', 'Eu vou de ônibus.', 'mit + dativo.'],
+    ['a12_ersteStrasse', 'Nehmen Sie die erste Straße links.', 'Pegue a primeira rua à esquerda.', ''],
+  ]);
+  G('g_dativ_praep', {
+    title: 'Dativo com preposições (mit, zu, bei, neben, in)', explain: 'Depois de <b>mit, zu, bei, von, aus, nach, seit</b> vem sempre o <b>dativo</b>. Artigos no dativo: <b>der → dem</b>, <b>das → dem</b>, <b>die → der</b>, plural <b>die → den (+n)</b>.<br>Contrações: <b>zum</b> = zu dem, <b>zur</b> = zu der, <b>im</b> = in dem, <b>am</b> = an dem, <b>beim</b> = bei dem.<br>Para dizer onde algo está (lugar): in, an, neben, vor + dativo.',
+    compare: 'Português não marca caso no artigo. Memorize blocos prontos: mit dem Bus, mit der U-Bahn, zum Bahnhof, zur Bank.',
+    examples: [['Ich fahre mit dem Fahrrad.', 'Vou de bicicleta.'], ['Wie komme ich zur Apotheke?', 'Como chego à farmácia?'], ['Die Bank ist neben dem Kino.', 'O banco fica ao lado do cinema.']],
+    drills: [['Ich fahre mit ___ Bus.', ['dem']], ['Wir fahren mit ___ U-Bahn.', ['der']], ['Wie komme ich ___ Bahnhof? (zu + dem)', ['zum']], ['Ich gehe ___ Apotheke. (zu + der)', ['zur']], ['Die Bank ist neben ___ Kino.', ['dem']], ['Er fährt mit ___ Fahrrad.', ['dem']], ['Wir treffen uns ___ Museum. (in + dem)', ['im']]]
+  });
+  G('g_imp_sie', {
+    title: 'Imperativo formal (Sie)', explain: 'Para instruções educadas: <b>verbo + Sie</b>. Gehen Sie geradeaus! Nehmen Sie den Bus!<br>Verbos separáveis: o prefixo vai para o fim: Steigen Sie am Bahnhof <b>aus</b>!<br>Com “bitte” fica mais gentil: Fahren Sie bitte langsam.',
+    compare: 'Equivale a “Siga em frente”, “Pegue o ônibus” — mas em alemão o “Sie” vem depois do verbo.',
+    examples: [['Gehen Sie die zweite Straße rechts.', 'Pegue a segunda rua à direita.'], ['Steigen Sie hier um.', 'Faça baldeação aqui.']],
+    drills: [['___ Sie geradeaus! (gehen)', ['Gehen']], ['___ Sie die U2! (nehmen)', ['Nehmen']], ['Steigen Sie am Rathaus ___! (aussteigen)', ['aus']], ['___ Sie bitte langsam! (sprechen)', ['Sprechen']], ['___ Sie an der Ampel rechts! (fahren)', ['Fahren']]]
+  });
+
+  /* ======================= A1-U9 Freizeit ======================= */
+  unit('A1-U9', {
+    title: 'Freizeit', subtitle: 'Hobbies, convites e verbos modais',
+    goals: ['Falar de hobbies e do que sabe fazer', 'Convidar, aceitar e recusar', 'Usar können, wollen, müssen, dürfen'],
+    dialog: [['A', 'Hast du am Samstag Zeit?'], ['B', 'Am Vormittag muss ich arbeiten. Warum?'], ['A', 'Wollen wir am Nachmittag Fußball spielen?'], ['B', 'Gute Idee! Aber ich kann nicht so gut spielen.'], ['A', 'Kein Problem. Danach können wir ins Kino gehen.'], ['B', 'Super, das machen wir!']],
+    dialogPt: 'Dois amigos combinam o programa de sábado.',
+    listening: ['Ich kann gut schwimmen.', 'Wollen wir ins Kino gehen?', 'Leider muss ich arbeiten.', 'Hier darf man nicht parken.', 'Was machst du gern in der Freizeit?'],
+    writing: 'Escreva uma mensagem convidando um amigo para algo no fim de semana: o quê, quando, onde. Inclua 2 verbos modais.',
+    speaking: { scene: 'Você liga para um amigo alemão para combinar algo no fim de semana.', persona: 'Jonas, 30, amigo, informal (du), meio ocupado', goals: ['perguntar se ele tem tempo', 'propor uma atividade com wollen', 'reagir a uma recusa com outra proposta', 'combinar dia e hora'] },
+    criteria: 'Critérios padrão; modais (forma e posição do infinitivo) ≥ 80%.'
+  });
+  N([
+    ['a12_freizeit', 'die', 'Freizeit', '', 'o tempo livre', 'ˈfʁaɪ̯ˌtsaɪ̯t', 'In der Freizeit lese ich.', 'No tempo livre eu leio.'],
+    ['a12_hobby', 'das', 'Hobby', 'Hobbys', 'o hobby', 'ˈhɔbi', 'Mein Hobby ist Musik.', 'Meu hobby é música.'],
+    ['a12_sport', 'der', 'Sport', '', 'o esporte', 'ʃpɔʁt', 'Sport macht Spaß.', 'Esporte é divertido.'],
+    ['a12_fussball', 'der', 'Fußball', 'Fußbälle', 'o futebol; a bola de futebol', 'ˈfuːsbal', 'Wir spielen am Sonntag Fußball.', 'Jogamos futebol no domingo.'],
+    ['a12_schwimmbad', 'das', 'Schwimmbad', 'Schwimmbäder', 'a piscina (pública)', 'ˈʃvɪmbaːt', 'Das Schwimmbad ist im Sommer voll.', 'A piscina fica cheia no verão.'],
+    ['a12_park', 'der', 'Park', 'Parks', 'o parque', 'paʁk', 'Wir gehen in den Park.', 'Vamos ao parque.'],
+    ['a12_konzert', 'das', 'Konzert', 'Konzerte', 'o show, o concerto', 'kɔnˈtsɛʁt', 'Das Konzert beginnt um acht.', 'O show começa às oito.'],
+    ['a12_buch', 'das', 'Buch', 'Bücher', 'o livro', 'buːx', 'Das Buch ist spannend.', 'O livro é emocionante.'],
+    ['a12_musik', 'die', 'Musik', '', 'a música', 'muˈziːk', 'Ich höre gern Musik.', 'Gosto de ouvir música.'],
+    ['a12_film', 'der', 'Film', 'Filme', 'o filme', 'fɪlm', 'Der Film ist lustig.', 'O filme é engraçado.'],
+    ['a12_zeit', 'die', 'Zeit', 'Zeiten', 'o tempo (horas)', 'tsaɪ̯t', 'Ich habe heute keine Zeit.', 'Hoje não tenho tempo.', 'Tempo/clima é outro: das Wetter.'],
+  ]);
+  V([
+    ['a12_koennen', 'können', 'poder; saber (fazer)', 'ˈkœnən', 'kann|kannst|kann|können|könnt|können', 'Ich kann gut kochen.', 'Eu sei cozinhar bem.', 'Modal: infinitivo no fim. ich/er sem terminação.'],
+    ['a12_wollen', 'wollen', 'querer', 'ˈvɔlən', 'will|willst|will|wollen|wollt|wollen', 'Wir wollen ins Kino gehen.', 'Queremos ir ao cinema.', '“Ich will” é direto; educado: “Ich möchte”.'],
+    ['a12_muessen', 'müssen', 'ter de, precisar', 'ˈmʏsn̩', 'muss|musst|muss|müssen|müsst|müssen', 'Ich muss morgen arbeiten.', 'Tenho de trabalhar amanhã.'],
+    ['a12_duerfen', 'dürfen', 'poder (ter permissão)', 'ˈdʏʁfn̩', 'darf|darfst|darf|dürfen|dürft|dürfen', 'Hier darf man nicht rauchen.', 'Aqui não se pode fumar.'],
+    ['a12_moegen', 'mögen', 'gostar de', 'ˈmøːɡn̩', 'mag|magst|mag|mögen|mögt|mögen', 'Ich mag Jazz.', 'Eu gosto de jazz.', 'Com substantivo. Com atividade: Ich spiele gern…'],
+    ['a12_spielen', 'spielen', 'jogar; tocar (instrumento)', 'ˈʃpiːlən', 'spiele|spielst|spielt|spielen|spielt|spielen', 'Er spielt Gitarre.', 'Ele toca violão.'],
+    ['a12_schwimmen', 'schwimmen', 'nadar', 'ˈʃvɪmən', 'schwimme|schwimmst|schwimmt|schwimmen|schwimmt|schwimmen', 'Im Sommer schwimme ich viel.', 'No verão eu nado muito.'],
+    ['a12_lesen', 'lesen', 'ler', 'ˈleːzn̩', 'lese|liest|liest|lesen|lest|lesen', 'Sie liest gern Romane.', 'Ela gosta de ler romances.', 'e→ie: du liest, er liest.'],
+    ['a12_treffen', 'treffen', 'encontrar (alguém)', 'ˈtʁɛfn̩', 'treffe|triffst|trifft|treffen|trefft|treffen', 'Ich treffe Anna im Café.', 'Encontro a Anna no café.', 'e→i: du triffst.'],
+  ]);
+  P([
+    ['a12_gern', 'gern', 'com prazer (gostar de fazer)', 'verbo + gern: Ich lese gern.', 'word', 'ɡɛʁn'],
+    ['a12_leider', 'leider', 'infelizmente', '', 'word', 'ˈlaɪ̯dɐ'],
+    ['a12_hastduzeit', 'Hast du heute Zeit?', 'Você tem tempo hoje?', ''],
+    ['a12_wollenwir', 'Wollen wir ins Kino gehen?', 'Vamos ao cinema?', 'Convite com “wollen wir”.'],
+    ['a12_guteidee', 'Gute Idee!', 'Boa ideia!', ''],
+    ['a12_leiderkann', 'Leider kann ich nicht.', 'Infelizmente não posso.', ''],
+    ['a12_wasmachstdugern', 'Was machst du gern?', 'O que você gosta de fazer?', ''],
+  ]);
+  G('g_modal', {
+    title: 'Verbos modais: können, wollen, müssen, dürfen', explain: 'O modal fica na 2ª posição, conjugado; o outro verbo vai no <b>infinitivo, no fim</b>: Ich <b>kann</b> gut <b>schwimmen</b>.<br>No singular, ich e er/sie/es são iguais e sem -t: ich kann, er kann; ich muss, er muss.<br>können = saber/conseguir · wollen = querer · müssen = ter de · dürfen = ter permissão.',
+    compare: 'Como em português (“eu posso nadar”), mas o infinitivo vai para o final da frase: “Ich kann heute nicht kommen”.',
+    examples: [['Ich muss heute lange arbeiten.', 'Hoje tenho de trabalhar até tarde.'], ['Kannst du Gitarre spielen?', 'Você sabe tocar violão?']],
+    drills: [['Ich ___ gut schwimmen. (können)', ['kann']], ['Du ___ heute arbeiten. (müssen)', ['musst']], ['Er ___ ins Kino gehen. (wollen)', ['will']], ['Hier ___ man nicht rauchen. (dürfen)', ['darf']], ['Wir ___ zusammen tanzen. (wollen)', ['wollen']], ['___ du Gitarre spielen? (können)', ['Kannst']], ['Ihr ___ morgen früh aufstehen. (müssen)', ['müsst', 'muesst']]]
+  });
+  G('g_modal_order', {
+    title: 'Frase com modal: o infinitivo no fim', explain: 'Monte as frases com o modal na 2ª posição (ou 1ª, em pergunta sim/não) e o infinitivo no fim — a “moldura” (Satzklammer).',
+    compare: 'Em português o infinitivo vem logo depois do modal; em alemão ele espera o fim da frase.',
+    examples: [['Am Samstag will ich Fußball spielen.', 'No sábado quero jogar futebol.']],
+    order: [['Ich kann heute nicht kommen.', 'Não posso vir hoje.'], ['Wir wollen ins Kino gehen.', 'Queremos ir ao cinema.'], ['Musst du morgen arbeiten?', 'Você tem de trabalhar amanhã?'], ['Er darf hier nicht parken.', 'Ele não pode estacionar aqui.'], ['Am Samstag will ich Fußball spielen.', 'No sábado quero jogar futebol.']]
+  });
+
+  /* ======================= A1-U10 Was hast du gemacht? ======================= */
+  unit('A1-U10', {
+    title: 'Was hast du gemacht?', subtitle: 'Contar o passado com o Perfekt',
+    goals: ['Contar o que fez no fim de semana', 'Usar haben/sein + particípio', 'Reagir ao relato de alguém'],
+    dialog: [['A', 'Was hast du am Wochenende gemacht?'], ['B', 'Am Samstag habe ich meine Eltern besucht.'], ['A', 'Und am Sonntag?'], ['B', 'Da bin ich zu Hause geblieben und habe ein Buch gelesen.'], ['A', 'Ich bin mit Freunden an den See gefahren.'], ['B', 'Toll! Wie war das Wetter?']],
+    dialogPt: 'Colegas contam o que fizeram no fim de semana.',
+    listening: ['Ich habe Pizza gekocht.', 'Wir sind nach Hamburg gefahren.', 'Was hast du gestern gemacht?', 'Er ist zu Hause geblieben.', 'Das war toll!'],
+    writing: 'Conte em 6 frases o que você fez no último fim de semana (pelo menos 2 verbos com “sein”).',
+    speaking: { scene: 'Segunda-feira de manhã: um colega pergunta sobre o seu fim de semana.', persona: 'Lukas, colega de trabalho, informal (du), curioso', goals: ['contar o que fez no sábado', 'contar o que fez no domingo', 'usar um verbo com sein', 'perguntar sobre o fim de semana dele'] },
+    criteria: 'Critérios padrão; Perfekt (auxiliar e particípio) ≥ 80%.'
+  });
+  N([
+    ['a12_ausflug', 'der', 'Ausflug', 'Ausflüge', 'o passeio, a excursão', 'ˈaʊ̯sfluːk', 'Wir machen einen Ausflug.', 'Fazemos um passeio.'],
+    ['a12_urlaub', 'der', 'Urlaub', 'Urlaube', 'as férias (do trabalho)', 'ˈuːɐ̯laʊ̯p', 'Im Urlaub war ich in Spanien.', 'Nas férias estive na Espanha.'],
+    ['a12_restaurant', 'das', 'Restaurant', 'Restaurants', 'o restaurante', 'ʁɛstoˈʁɑ̃ː', 'Das Restaurant war sehr gut.', 'O restaurante foi muito bom.'],
+    ['a12_wetter', 'das', 'Wetter', '', 'o tempo (clima)', 'ˈvɛtɐ', 'Das Wetter war schön.', 'O tempo estava bonito.'],
+    ['a12_strand', 'der', 'Strand', 'Strände', 'a praia', 'ʃtʁant', 'Wir waren am Strand.', 'Estivemos na praia.'],
+    ['a12_foto', 'das', 'Foto', 'Fotos', 'a foto', 'ˈfoːto', 'Ich habe viele Fotos gemacht.', 'Tirei muitas fotos.'],
+    ['a12_reise', 'die', 'Reise', 'Reisen', 'a viagem', 'ˈʁaɪ̯zə', 'Die Reise war lang.', 'A viagem foi longa.'],
+    ['a12_see', 'der', 'See', 'Seen', 'o lago', 'zeː', 'Der See ist sehr schön.', 'O lago é muito bonito.', 'die See = o mar (poético/norte); comum: das Meer.'],
+    ['a12_meer', 'das', 'Meer', 'Meere', 'o mar', 'meːɐ̯', 'Im Sommer fahren wir ans Meer.', 'No verão vamos para o mar.'],
+  ]);
+  V([
+    ['a12_machen', 'machen', 'fazer', 'ˈmaxn̩', 'mache|machst|macht|machen|macht|machen', 'Was hast du gemacht?', 'O que você fez?', 'Perfekt: hat gemacht.'],
+    ['a12_besuchen', 'besuchen', 'visitar', 'bəˈzuːxn̩', 'besuche|besuchst|besucht|besuchen|besucht|besuchen', 'Ich habe meine Eltern besucht.', 'Visitei meus pais.', 'Perfekt: hat besucht (sem ge-, por causa de be-).'],
+    ['a12_kochen', 'kochen', 'cozinhar', 'ˈkɔxn̩', 'koche|kochst|kocht|kochen|kocht|kochen', 'Gestern habe ich Pasta gekocht.', 'Ontem cozinhei macarrão.', 'Perfekt: hat gekocht.'],
+    ['a12_fliegen', 'fliegen', 'voar, ir de avião', 'ˈfliːɡn̩', 'fliege|fliegst|fliegt|fliegen|fliegt|fliegen', 'Wir sind nach Lissabon geflogen.', 'Voamos para Lisboa.', 'Perfekt: ist geflogen (movimento).'],
+    ['a12_bleiben', 'bleiben', 'ficar, permanecer', 'ˈblaɪ̯bn̩', 'bleibe|bleibst|bleibt|bleiben|bleibt|bleiben', 'Ich bin zu Hause geblieben.', 'Fiquei em casa.', 'Perfekt: ist geblieben (exceção a decorar).'],
+    ['a12_schreiben', 'schreiben', 'escrever', 'ˈʃʁaɪ̯bn̩', 'schreibe|schreibst|schreibt|schreiben|schreibt|schreiben', 'Sie hat eine E-Mail geschrieben.', 'Ela escreveu um e-mail.', 'Perfekt: hat geschrieben.'],
+    ['a12_sehen', 'sehen', 'ver', 'ˈzeːən', 'sehe|siehst|sieht|sehen|seht|sehen', 'Hast du den Film gesehen?', 'Você viu o filme?', 'Perfekt: hat gesehen.'],
+    ['a12_reisen', 'reisen', 'viajar', 'ˈʁaɪ̯zn̩', 'reise|reist|reist|reisen|reist|reisen', 'Wir sind durch Italien gereist.', 'Viajamos pela Itália.', 'Perfekt: ist gereist.'],
+  ]);
+  P([
+    ['a12_gestern', 'gestern', 'ontem', '', 'word', 'ˈɡɛstɐn'],
+    ['a12_toll', 'toll', 'ótimo, demais', '', 'word', 'tɔl'],
+    ['a12_langweilig', 'langweilig', 'chato, entediante', '', 'word', 'ˈlaŋvaɪ̯lɪç'],
+    ['a12_wasgemacht', 'Was hast du am Wochenende gemacht?', 'O que você fez no fim de semana?', ''],
+    ['a12_daswartoll', 'Das war toll!', 'Foi ótimo!', '“war” = Präteritum de sein, mais usado que “ist gewesen”.'],
+    ['a12_wiewar', 'Wie war dein Urlaub?', 'Como foram suas férias?', ''],
+    ['a12_zuhause', 'Ich bin zu Hause geblieben.', 'Fiquei em casa.', ''],
+  ]);
+  G('g_perfekt', {
+    title: 'Perfekt: o passado da conversa', explain: 'Forma: <b>haben/sein</b> conjugado (2ª posição) + <b>particípio II no fim</b>.<br>Regulares: <b>ge-…-t</b> (machen → gemacht, kochen → gekocht). Irregulares: <b>ge-…-en</b>, às vezes com vogal diferente (sehen → gesehen, schreiben → geschrieben).<br>Verbos com be-, ver-, er- e em -ieren não levam ge-: besucht, studiert.<br><b>sein</b> com verbos de movimento ou mudança (fahren, fliegen, gehen, kommen) e com <b>bleiben</b>; o resto usa <b>haben</b>.',
+    compare: 'O Perfekt é o passado normal da fala alemã: “Ich habe gekocht” = “eu cozinhei”. Não tem o sentido do “tenho cozinhado”.',
+    examples: [['Ich habe am Samstag gearbeitet.', 'Trabalhei no sábado.'], ['Wir sind ans Meer gefahren.', 'Fomos para o mar.'], ['Hast du das Buch gelesen?', 'Você leu o livro?']],
+    drills: [['Ich ___ Pizza gekocht.', ['habe']], ['Wir ___ nach Berlin gefahren.', ['sind']], ['Er hat einen Film ___. (sehen)', ['gesehen']], ['Hast du Anna ___? (besuchen)', ['besucht']], ['Sie (ela) ___ zu Hause geblieben.', ['ist']], ['Ich habe eine E-Mail ___. (schreiben)', ['geschrieben']], ['Was ___ du gestern gemacht?', ['hast']], ['Wir haben viele Fotos ___. (machen)', ['gemacht']]]
+  });
+
+  /* ======================= A1-U11 Gesundheit ======================= */
+  unit('A1-U11', {
+    title: 'Gesundheit', subtitle: 'Corpo, sintomas e médico',
+    goals: ['Dizer o que dói e como se sente', 'Marcar consulta e entender conselhos', 'Usar o imperativo e sollen'],
+    dialog: [['A', 'Guten Tag, was fehlt Ihnen?'], ['B', 'Ich habe Kopfschmerzen und Fieber.'], ['A', 'Seit wann haben Sie Fieber?'], ['B', 'Seit gestern. Und mir tut der Hals weh.'], ['A', 'Bleiben Sie drei Tage im Bett und trinken Sie viel Tee.'], ['B', 'Danke, Frau Doktor.']],
+    dialogPt: 'Consulta médica: sintomas e recomendações.',
+    listening: ['Mir tut der Bauch weh.', 'Ich habe Fieber.', 'Nimm eine Tablette!', 'Sie sollen viel Wasser trinken.', 'Gute Besserung!'],
+    writing: 'Escreva uma mensagem ao seu chefe dizendo que está doente: o que tem, que vai ao médico e quando volta.',
+    speaking: { scene: 'Você liga para um consultório para marcar uma consulta e explica seus sintomas.', persona: 'Frau Wagner, recepcionista do consultório, formal (Sie)', goals: ['dizer que quer marcar uma consulta', 'explicar o que dói', 'dizer desde quando', 'combinar dia e hora'] },
+    criteria: 'Critérios padrão; imperativo ≥ 80%. Conclui o A1.2.'
+  });
+  N([
+    ['a12_koerper', 'der', 'Körper', '=', 'o corpo', 'ˈkœʁpɐ', 'Sport ist gut für den Körper.', 'Esporte é bom para o corpo.'],
+    ['a12_kopf', 'der', 'Kopf', 'Köpfe', 'a cabeça', 'kɔpf', 'Mir tut der Kopf weh.', 'Estou com dor de cabeça.'],
+    ['a12_bauch', 'der', 'Bauch', 'Bäuche', 'a barriga', 'baʊ̯x', 'Mir tut der Bauch weh.', 'Estou com dor de barriga.'],
+    ['a12_ruecken', 'der', 'Rücken', '=', 'as costas', 'ˈʁʏkn̩', 'Mein Rücken tut weh.', 'Minhas costas doem.', 'Singular em alemão.'],
+    ['a12_bein', 'das', 'Bein', 'Beine', 'a perna', 'baɪ̯n', 'Das Bein ist gebrochen.', 'A perna está quebrada.'],
+    ['a12_arm', 'der', 'Arm', 'Arme', 'o braço', 'aʁm', 'Mein Arm tut weh.', 'Meu braço dói.'],
+    ['a12_hand', 'die', 'Hand', 'Hände', 'a mão', 'hant', 'Wasch dir die Hände!', 'Lave as mãos!'],
+    ['a12_fuss', 'der', 'Fuß', 'Füße', 'o pé', 'fuːs', 'Mir tun die Füße weh.', 'Meus pés doem.'],
+    ['a12_auge', 'das', 'Auge', 'Augen', 'o olho', 'ˈaʊ̯ɡə', 'Sie hat blaue Augen.', 'Ela tem olhos azuis.'],
+    ['a12_hals', 'der', 'Hals', 'Hälse', 'o pescoço; a garganta', 'hals', 'Mir tut der Hals weh.', 'Estou com dor de garganta.'],
+    ['a12_zahn', 'der', 'Zahn', 'Zähne', 'o dente', 'tsaːn', 'Ich muss zum Zahnarzt.', 'Preciso ir ao dentista.'],
+    ['a12_arzt', 'der', 'Arzt', 'Ärzte', 'o médico', 'aːɐ̯tst', 'Ich gehe zum Arzt.', 'Vou ao médico.', 'Médica: die Ärztin.'],
+    ['a12_praxis', 'die', 'Praxis', 'Praxen', 'o consultório', 'ˈpʁaksɪs', 'Die Praxis ist am Mittwoch zu.', 'O consultório fecha na quarta.'],
+    ['a12_fieber', 'das', 'Fieber', '', 'a febre', 'ˈfiːbɐ', 'Das Kind hat Fieber.', 'A criança está com febre.'],
+    ['a12_termin', 'der', 'Termin', 'Termine', 'a consulta marcada, o compromisso', 'tɛʁˈmiːn', 'Ich habe morgen einen Termin.', 'Amanhã tenho uma consulta.'],
+    ['a12_tablette', 'die', 'Tablette', 'Tabletten', 'o comprimido', 'taˈblɛtə', 'Nehmen Sie zwei Tabletten am Tag.', 'Tome dois comprimidos por dia.'],
+  ]);
+  V([
+    ['a12_sollen', 'sollen', 'dever (conselho, ordem de outro)', 'ˈzɔlən', 'soll|sollst|soll|sollen|sollt|sollen', 'Der Arzt sagt, ich soll im Bett bleiben.', 'O médico diz que devo ficar de cama.'],
+    ['a12_helfen', 'helfen', 'ajudar', 'ˈhɛlfn̩', 'helfe|hilfst|hilft|helfen|helft|helfen', 'Kannst du mir helfen?', 'Você pode me ajudar?', 'e→i; pede dativo: mir, dir.'],
+    ['a12_liegen', 'liegen', 'estar deitado; ficar (localização)', 'ˈliːɡn̩', 'liege|liegst|liegt|liegen|liegt|liegen', 'Er liegt im Bett.', 'Ele está deitado na cama.'],
+  ]);
+  P([
+    ['a12_krank', 'krank', 'doente', '', 'word', 'kʁaŋk'], ['a12_gesund', 'gesund', 'saudável', '', 'word', 'ɡəˈzʊnt'], ['a12_muede', 'müde', 'cansado', '', 'word', 'ˈmyːdə'],
+    ['a12_wasfehlt', 'Was fehlt Ihnen?', 'O que o senhor tem?', 'Pergunta típica do médico.'],
+    ['a12_kopfschmerzen', 'Ich habe Kopfschmerzen.', 'Estou com dor de cabeça.', 'Também: Bauchschmerzen, Halsschmerzen.'],
+    ['a12_tutweh', 'Mir tut der Bauch weh.', 'Estou com dor de barriga.', 'Plural: Mir tun die Füße weh.'],
+    ['a12_besserung', 'Gute Besserung!', 'Melhoras!', ''],
+    ['a12_termin_p', 'Ich möchte einen Termin machen.', 'Gostaria de marcar uma consulta.', ''],
+    ['a12_seitwann', 'Seit wann?', 'Desde quando?', 'seit + dativo: seit gestern, seit einer Woche.'],
+  ]);
+  G('g_imperativ', {
+    title: 'Imperativo: du, ihr e Sie', explain: '<b>du</b>: radical do verbo, sem “du”: Trink! Komm! Geh!<br>Verbos e→i/ie mantêm a mudança: <b>Nimm!</b> <b>Hilf!</b> <b>Iss!</b> <b>Lies!</b> (mas a→ä não: <b>Schlaf!</b>, <b>Fahr!</b>).<br><b>ihr</b>: igual ao presente sem “ihr”: Trinkt! Bleibt!<br><b>Sie</b>: verbo + Sie: Trinken Sie!<br>Separáveis: prefixo no fim: <b>Ruf</b> den Arzt <b>an</b>!',
+    compare: 'Equivale ao “Beba!”, “Bebam!”, “Beba (o senhor)!”. Use “bitte” para soar gentil.',
+    examples: [['Trink viel Wasser!', 'Beba muita água!'], ['Nimm eine Tablette!', 'Tome um comprimido!'], ['Bleiben Sie im Bett!', 'Fique de cama!']],
+    drills: [['(du, trinken) ___ viel Wasser!', ['Trink', 'Trinke']], ['(Sie, nehmen) ___ Sie die Tabletten!', ['Nehmen']], ['(du, nehmen) ___ eine Tablette!', ['Nimm']], ['(ihr, bleiben) ___ zu Hause!', ['Bleibt']], ['(du, anrufen) Ruf den Arzt ___!', ['an']], ['(du, schlafen) ___ viel!', ['Schlaf', 'Schlafe']], ['(du, helfen) ___ mir bitte!', ['Hilf']]]
+  });
+  G('g_wehtun', {
+    title: 'Dor: Mir tut … weh', explain: 'Para dizer o que dói: <b>Mir tut [parte do corpo] weh</b>. O verbo concorda com a parte do corpo: Mir <b>tut</b> der Kopf weh / Mir <b>tun</b> die Füße weh.<br>Alternativa com -schmerzen: Ich habe Kopfschmerzen, Bauchschmerzen, Halsschmerzen.',
+    compare: 'Literalmente “a mim dói a cabeça” — parecido com o espanhol “me duele la cabeza”.',
+    examples: [['Mir tut der Rücken weh.', 'Estou com dor nas costas.'], ['Tut dir das Bein weh?', 'Sua perna dói?']],
+    drills: [['Mir ___ der Rücken weh.', ['tut']], ['Mir ___ die Augen weh.', ['tun']], ['Mir tut der Bauch ___.', ['weh']], ['Tut ___ der Hals weh? (du)', ['dir']], ['Mir ___ das Bein weh.', ['tut']]]
+  });
+
+  for (const u of Object.values(U)) C.units[u.id] = u;
+  C.recomputeOrder();
+  C.version = '2026.11.20-3';
 })(globalThis.GF = globalThis.GF || {});
 
 ;
@@ -874,12 +1299,29 @@ input[type=text],textarea,select{font-size:17px}
     return null; // tudo concluído no conteúdo carregado
   }
   function estimateLevel(state) {
+    const C = GF.content; let done = null;
+    for (const lv of ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']) {
+      const us = C.plan.filter((e) => e.level === lv);
+      const passed = us.filter((e) => (state.profile.unitState[e.id] || {}).passed).length;
+      if (passed === us.length) { done = lv; continue; }
+      if (!done && passed === 0) return { code: 'A0', label: 'A0 — iniciando A1', detail: 'Nenhuma unidade A1 comprovada ainda.' };
+      return { code: lv, label: lv + ' em progresso (' + passed + '/' + us.length + ')', detail: (done ? done + ' comprovado. ' : '') + passed + ' de ' + us.length + ' unidades do ' + lv + ' comprovadas por checkpoint.' };
+    }
+    return { code: 'C2', label: 'C2 — currículo completo', detail: 'Todas as unidades comprovadas. Para certificar, faça o exame oficial Goethe.' };
+  }
+  /** Próxima unidade do plano que ainda não existe e já pode ser preparada. */
+  function nextToGenerate(state, now) {
     const C = GF.content;
-    const a1 = C.unitOrder.filter((u) => u.startsWith('A1'));
-    const passed = a1.filter((u) => (state.profile.unitState[u] || {}).passed).length;
-    if (passed === 0) return { code: 'A0', label: 'A0 — iniciando A1', detail: 'Nenhuma unidade A1 comprovada ainda.' };
-    if (passed < a1.length) return { code: 'A1.1', label: 'A1.1 em progresso', detail: passed + ' de ' + a1.length + ' unidades do A1.1 comprovadas.' };
-    return { code: 'A1.1', label: 'A1.1 concluído', detail: 'Todas as unidades A1.1 carregadas comprovadas. A1 completo exige o módulo A1.2 e o simulado Start Deutsch 1.' };
+    for (const e of C.plan) {
+      if (C.units[e.id]) continue;
+      const prev = C.plan[e.index - 1];
+      if (!prev || !C.units[prev.id]) return null;
+      const ps = state.profile.unitState[prev.id] || {};
+      if (ps.passed) return e;
+      const st = unitStatus(state, prev.id, now || Date.now());
+      return st.intro / Math.max(1, st.items) >= 0.5 ? e : null; // prepara com antecedência
+    }
+    return null;
   }
 
   /** Adaptação da quantidade de conteúdo novo (registrada com motivo). */
@@ -904,7 +1346,7 @@ input[type=text],textarea,select{font-size:17px}
     const out = [];
     const horizon = now + 2 * 3600000;
     for (const card of Object.values(state.cards)) {
-      const item = GF.content.items[card.id]; if (!item) continue;
+      const item = GF.content.items[card.id]; if (!item || item.flag) continue;
       for (const st of stagesFor(item)) {
         const s = card.stages[st];
         if (!stageUnlocked(card, st)) continue;
@@ -990,7 +1432,7 @@ input[type=text],textarea,select{font-size:17px}
     } else if (unit) {
       take({ kind: 'speak', unit: uid });
     }
-    if (!unit) notes.push('Todo o conteúdo carregado foi comprovado. O próximo módulo (A1.2) precisa ser carregado.');
+    if (!unit) notes.push('Todo o conteúdo pronto foi comprovado. A próxima unidade está sendo preparada pelo professor (veja abaixo); hoje a sessão é de revisão.');
     return { steps, minutes, unit: uid, notes, dueTotal: due.length };
   }
 
@@ -1056,7 +1498,7 @@ input[type=text],textarea,select{font-size:17px}
     return hits;
   }
 
-  GF.model = { allDays, STAGES, STAGE_PT, SKILLS, SKILL_PT, MASTERY_PT, dayKey, newProfile, newCard, stagesFor, stageUnlocked, mastery, forgetting, recordAnswer, unitStatus, checkpointPass, currentUnit, estimateLevel, adapt, dueList, buildSession, forecast, streak, stats, recentRate, spontaneousHits, EST };
+  GF.model = { nextToGenerate, allDays, STAGES, STAGE_PT, SKILLS, SKILL_PT, MASTERY_PT, dayKey, newProfile, newCard, stagesFor, stageUnlocked, mastery, forgetting, recordAnswer, unitStatus, checkpointPass, currentUnit, estimateLevel, adapt, dueList, buildSession, forecast, streak, stats, recentRate, spontaneousHits, EST };
 })(globalThis.GF = globalThis.GF || {});
 
 ;
@@ -1114,11 +1556,11 @@ input[type=text],textarea,select{font-size:17px}
   }
   Store.prototype.load = async function (now) {
     const b = this.b, M = GF.model;
-    const st = { profile: null, cards: {}, mistakes: {}, days: {}, assess: [], ext: {}, integrity: { dropped: 0 } };
+    const st = { profile: null, cards: {}, mistakes: {}, days: {}, assess: [], ext: {}, gen: {}, integrity: { dropped: 0 } };
     st.profile = await b.get('profile');
     if (st.profile && st.profile.schema !== SCHEMA) this.log('warn', 'schema diferente: ' + st.profile.schema);
     const levels = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
-    const lists = await Promise.all([...levels.map((l) => b.list('srs/' + l)), b.list('mistakes/m'), b.list('days/' + new Date(now).getFullYear()), b.list('days/' + (new Date(now).getFullYear() - 1)), b.list('assess/a'), b.list('ext/d')]);
+    const lists = await Promise.all([...levels.map((l) => b.list('srs/' + l)), b.list('mistakes/m'), b.list('days/' + new Date(now).getFullYear()), b.list('days/' + (new Date(now).getFullYear() - 1)), b.list('assess/a'), b.list('ext/d'), b.list('gen/u')]);
     for (let i = 0; i < levels.length; i++) for (const { data } of lists[i]) {
       if (validCard(data)) st.cards[data.id] = data; else st.integrity.dropped++;
     }
@@ -1126,6 +1568,7 @@ input[type=text],textarea,select{font-size:17px}
     for (const { data } of [...lists[levels.length + 1], ...lists[levels.length + 2]]) if (data && data.date) st.days[data.date] = data;
     st.assess = lists[levels.length + 3].map((x) => x.data).filter(Boolean).sort((a, b) => a.at - b.at);
     for (const { data } of lists[levels.length + 4]) if (data && data.id) st.ext[data.id] = data;
+    for (const { data } of lists[levels.length + 5]) if (data && data.id && data.itemsData) st.gen[data.id] = data;
     if (!st.profile) st.profile = M.newProfile(now);
     // migrações leves
     st.profile.pronStats = st.profile.pronStats || { pairs: [], done: {} };
@@ -1158,6 +1601,7 @@ input[type=text],textarea,select{font-size:17px}
     return entry.promise;
   };
   Store.prototype.saveProfile = function (o) { if (!(o && o.keepStamp)) this.state.profile._u = Date.now(); return this._write('profile', this.state.profile); };
+  Store.prototype.saveGen = function (id) { return this._write('gen/u/' + safeId(id), this.state.gen[id]); };
   Store.prototype.saveExt = function (id) { return this._write('ext/d/' + safeId(id), this.state.ext[id]); };
   Store.prototype.saveCard = function (id) { const c = this.state.cards[id]; return this._write('srs/' + (c.level || 'A1') + '/' + safeId(id), c); };
   Store.prototype.saveMistake = function (key) { return this._write('mistakes/m/' + safeId(key), this.state.mistakes[key]); };
@@ -1176,7 +1620,7 @@ input[type=text],textarea,select{font-size:17px}
   /* ---------- Backup / restauração ---------- */
   Store.prototype.exportData = function (now) {
     const s = this.state;
-    const data = { profile: s.profile, cards: Object.values(s.cards), mistakes: Object.values(s.mistakes), days: Object.values(s.days), assess: s.assess, ext: Object.values(s.ext || {}) };
+    const data = { profile: s.profile, cards: Object.values(s.cards), mistakes: Object.values(s.mistakes), days: Object.values(s.days), assess: s.assess, ext: Object.values(s.ext || {}), gen: Object.values(s.gen || {}) };
     return { app: 'german-fluency-system', schema: SCHEMA, contentVersion: GF.content.version, exportedAt: now, checksum: fnv(stable(data)), data };
   };
   function validateBackup(obj) {
@@ -1191,8 +1635,9 @@ input[type=text],textarea,select{font-size:17px}
   Store.prototype.importData = async function (obj) {
     const err = validateBackup(obj); if (err) throw new Error(err);
     const d = obj.data;
-    const st = { profile: d.profile, cards: {}, mistakes: {}, days: {}, assess: d.assess || [], ext: {}, integrity: { dropped: 0 } };
+    const st = { profile: d.profile, cards: {}, mistakes: {}, days: {}, assess: d.assess || [], ext: {}, gen: {}, integrity: { dropped: 0 } };
     for (const e of d.ext || []) st.ext[e.id] = e;
+    for (const g of d.gen || []) st.gen[g.id] = g;
     for (const c of d.cards) st.cards[c.id] = c;
     for (const m of d.mistakes || []) st.mistakes[m.key] = m;
     for (const x of d.days || []) st.days[x.date] = x;
@@ -1203,6 +1648,7 @@ input[type=text],textarea,select{font-size:17px}
     for (const k of Object.keys(st.days)) ps.push(this.saveDay(k));
     for (const a of st.assess) ps.push(this.saveAssess(a));
     for (const k of Object.keys(st.ext)) ps.push(this.saveExt(k));
+    for (const k of Object.keys(st.gen)) ps.push(this.saveGen(k));
     const res = await Promise.allSettled(ps);
     const failed = res.filter((r) => r.status === 'rejected').length;
     if (failed) throw new Error(failed + ' documentos não puderam ser gravados.');
@@ -1306,8 +1752,8 @@ input[type=text],textarea,select{font-size:17px}
   function makeSample() {
     const cfg = aiSettings();
     if (!cfg.key) return null;
-    async function call(prompt) {
-      const body = { model: cfg.model || 'claude-sonnet-5-5', max_tokens: 1200, messages: [{ role: 'user', content: prompt + '\n\nResponda somente com o JSON, sem texto antes ou depois.' }] };
+    async function call(prompt, opts) {
+      const body = { model: cfg.model || 'claude-sonnet-5-5', max_tokens: (opts && opts.maxTokens) || 1200, messages: [{ role: 'user', content: prompt + '\n\nResponda somente com o JSON, sem texto antes ou depois.' }] };
       if (window.gfsNative && window.gfsNative.anthropic) { // no PC: a chamada sai pelo processo principal
         const res = await window.gfsNative.anthropic(cfg.key, body);
         if (res.status === 401) throw { code: 'not_granted', message: 'Chave de API inválida.' };
@@ -1326,9 +1772,9 @@ input[type=text],textarea,select{font-size:17px}
       const j = await r.json();
       return (j.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('');
     }
-    const sample = async (prompt) => ({ text: await call(prompt), truncated: false });
-    sample.json = async (prompt) => {
-      const t = await call(prompt);
+    const sample = async (prompt, opts) => ({ text: await call(prompt, opts), truncated: false });
+    sample.json = async (prompt, opts) => {
+      const t = await call(prompt, opts);
       const a = t.indexOf('{'), b = t.lastIndexOf('}');
       if (a < 0 || b < a) throw { code: 'unavailable', message: 'Resposta sem JSON.' };
       return JSON.parse(t.slice(a, b + 1));
@@ -1523,7 +1969,9 @@ input[type=text],textarea,select{font-size:17px}
   }
   /** Mescla o pacote de outro aparelho no estado local. Retorna o que mudou. */
   function mergeRemote(state, remote, remoteDevice) {
-    const t = { profile: false, cards: [], mistakes: [], assess: [], ext: false };
+    const t = { profile: false, cards: [], mistakes: [], assess: [], ext: false, gen: [] };
+    state.gen = state.gen || {};
+    for (const g of remote.gen || []) { if (!state.gen[g.id] && g.itemsData) { state.gen[g.id] = clone(g); t.gen.push(g.id); } } // a unidade já existente aqui nunca é trocada (o progresso aponta para os itens dela)
     const p = mergeProfile(state.profile, remote.profile); if (p.changed) { state.profile = p.v; t.profile = true; }
     for (const rc of remote.cards || []) { const r = mergeCard(state.cards[rc.id], rc); if (r.changed) { state.cards[rc.id] = r.v; t.cards.push(rc.id); } }
     for (const rm of remote.mistakes || []) { const r = mergeMistake(state.mistakes[rm.key], rm); if (r.changed) { state.mistakes[rm.key] = r.v; t.mistakes.push(rm.key); } }
@@ -1578,7 +2026,7 @@ input[type=text],textarea,select{font-size:17px}
       if (!keyCache || keyCache.salt !== meta.salt || keyCache.pass !== c.pass) keyCache = { salt: meta.salt, pass: c.pass, key: await deriveKey(c.pass, meta.salt) };
       const key = keyCache.key;
       const st = store.state; const devices = [];
-      const touched = { profile: false, cards: [], mistakes: [], assess: [], ext: [] };
+      const touched = { profile: false, cards: [], mistakes: [], assess: [], ext: [], gen: [] };
       for (const [name, f] of Object.entries(gist.files)) {
         const m = /^device-(.+)\.enc$/.exec(name); if (!m) continue;
         const wrap = JSON.parse(await fileContent(f));
@@ -1587,7 +2035,7 @@ input[type=text],textarea,select{font-size:17px}
         const data = await decrypt(key, wrap.box);
         const t = mergeRemote(st, data, { id: wrap.deviceId, name: wrap.name, at: wrap.at });
         if (t.profile) touched.profile = true;
-        touched.cards.push(...t.cards); touched.mistakes.push(...t.mistakes); touched.assess.push(...t.assess); if (t.ext) touched.ext.push(wrap.deviceId);
+        touched.gen.push(...t.gen); touched.cards.push(...t.cards); touched.mistakes.push(...t.mistakes); touched.assess.push(...t.assess); if (t.ext) touched.ext.push(wrap.deviceId);
       }
       // grava localmente o que veio dos outros
       const ps = [];
@@ -1596,16 +2044,17 @@ input[type=text],textarea,select{font-size:17px}
       for (const k of new Set(touched.mistakes)) ps.push(store.saveMistake(k));
       for (const a of touched.assess) ps.push(store.saveAssess(a));
       for (const d of touched.ext) ps.push(store.saveExt(d));
+      for (const g of new Set(touched.gen)) { ps.push(store.saveGen(g)); if (GF.content && GF.content.addUnit) GF.content.addUnit(clone(st.gen[g])); }
       await Promise.allSettled(ps);
       // envia o meu pacote (já mesclado; dias só os meus)
-      const mine = { profile: st.profile, cards: Object.values(st.cards), mistakes: Object.values(st.mistakes), assess: st.assess, days: st.days };
+      const mine = { profile: st.profile, cards: Object.values(st.cards), mistakes: Object.values(st.mistakes), assess: st.assess, days: st.days, gen: Object.values(st.gen || {}) };
       const box = await encrypt(key, mine);
       const fname = 'device-' + me + '.enc';
       const name = c.name || 'Aparelho';
       await gh(c.token, '/gists/' + gist.id, { method: 'PATCH', body: JSON.stringify({ files: { [fname]: { content: JSON.stringify({ v: 1, deviceId: me, name, at: now, box }) } } }) });
       if (!devices.some((d) => d.me)) devices.push({ id: me, name, at: now, me: true }); else devices.find((d) => d.me).at = now;
       const c2 = cfg(); c2.lastSync = now; c2.lastError = null; c2.devices = devices; saveCfg(c2);
-      return { merged: touched.cards.length + touched.mistakes.length + (touched.profile ? 1 : 0) + touched.ext.length, devices };
+      return { merged: touched.cards.length + touched.mistakes.length + (touched.profile ? 1 : 0) + touched.ext.length + touched.gen.length, devices };
     })();
     try { return await running; }
     catch (e) { const c2 = cfg(); c2.lastError = e.message; saveCfg(c2); throw e; }
@@ -1621,6 +2070,152 @@ input[type=text],textarea,select{font-size:17px}
   const available = () => typeof fetch !== 'undefined' && typeof crypto !== 'undefined' && !!crypto.subtle && !globalThis.claude;
 
   GF.sync = { cfg, saveCfg, deviceId, setup, disable, run, available, mergeCard, mergeMistake, mergeProfile, mergeUnit, mergeRemote, encrypt, decrypt, deriveKey, DESC };
+})(globalThis.GF = globalThis.GF || {});
+
+;
+/* Geração de unidades pelo professor (IA), com validação estrutural e revisão.
+ * A unidade gerada fica guardada no banco do aluno (e sincroniza), então é criada uma vez só. */
+(function (GF) {
+  'use strict';
+  const C = GF.content;
+  const slug = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40);
+  const ARTS = ['der', 'die', 'das'];
+  const SAFE = (h) => String(h || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+    .replace(/&lt;(\/?)(b|i)&gt;/g, '<$1$2>').replace(/&lt;br\s*\/?&gt;/g, '<br>'); // só <b>, <i>, <br>
+
+  const SIZES = { A1: [18, 26], A2: [20, 28], B1: [20, 28], B2: [18, 26], C1: [16, 24], C2: [14, 22] };
+  const PT_SHARE = { A1: 'Explicações 100% em português do Brasil.', A2: 'Explicações em português do Brasil.', B1: 'Explicações em português, exemplos e termos técnicos em alemão.', B2: 'Explicações metade em alemão simples, metade em português.', C1: 'Explicações principalmente em alemão, com notas curtas em português.', C2: 'Explicações em alemão.' };
+
+  function schemaText(level) {
+    const [lo, hi] = SIZES[level] || [18, 26];
+    return `JSON com EXATAMENTE este formato:
+{
+ "title": "título curto em alemão",
+ "subtitle": "subtítulo em português",
+ "goals": ["3 objetivos can-do em português"],
+ "items": [  // ${lo}-${hi} itens de ALTA FREQUÊNCIA para o tema, sem repetir os já conhecidos
+   {"type":"noun","art":"der|die|das","de":"Wort (sem artigo, com maiúscula)","pl":"plural sem artigo | \\"=\\" se igual | \\"\\" se não usual | \\"—\\" se só plural","pt":"tradução","ipa":"IPA sem colchetes (ou \\"\\")","ex":["frase natural em alemão","tradução"],"note":"dica curta ou \\"\\""},
+   {"type":"verb","de":"infinitivo","pt":"tradução","ipa":"","conj":{"ich":"","du":"","er":"","wir":"","ihr":"","sie":""},"ex":["frase","tradução"],"note":"ex.: separável, irregular, Perfekt com sein"},
+   {"type":"phrase","de":"bloco/frase útil","pt":"tradução","note":"quando usar"},
+   {"type":"word","de":"adjetivo/advérbio/conector","pt":"tradução","ipa":"","note":""}
+ ],
+ "grammar": [  // 1 ou 2 tópicos, o foco gramatical pedido
+   {"title":"","explain":"explicação curta; só <b>, <i>, <br> permitidos","compare":"comparação com o português","examples":[["frase","tradução"],["",""],["",""]],
+    "drills":[{"q":"frase com ___ no lugar da resposta (pode ter dica entre parênteses)","a":["resposta aceita","variante aceita"],"hint":"opcional"}]  // 6-8 drills, resposta curta (1-3 palavras)
+   }
+ ],
+ "dialog": [["A","fala"],["B","fala"]],  // 6-8 falas naturais usando o vocabulário
+ "dialogPt": "resumo do diálogo em português",
+ "listening": ["5 frases para ditado, curtas, do tema"],
+ "writing": "tarefa de escrita em português, adequada ao nível",
+ "speaking": {"scene":"cena em português","persona":"personagem do parceiro","goals":["4-5 metas comunicativas"]}
+}`;
+  }
+  function genPrompt(pe, known, recurring) {
+    return `Você é um autor de material didático de alemão (DaF), alinhado ao CEFR e ao Goethe-Institut, escrevendo para um aluno brasileiro.
+Crie a unidade ${pe.id} (nível ${pe.level}) do currículo.
+TEMA: ${pe.topic}. TÍTULO SUGERIDO: ${pe.title}. FOCO GRAMATICAL: ${pe.grammar}.
+${PT_SHARE[pe.level] || ''}
+REGRAS DE QUALIDADE (obrigatórias):
+- Alemão padrão da Alemanha, natural e correto; nada inventado. Gênero e plural conferidos (como no Duden).
+- Substantivos SEMPRE com artigo e plural. Verbos com presente completo correto (incluindo mudanças de vogal).
+- Vocabulário adequado ao nível ${pe.level}, de alta frequência, útil para o tema.
+- Exemplos curtos e naturais; não use nomes de marcas.
+- Drills: a lacuna "___" deve ter UMA resposta claramente correta; inclua variantes aceitas (ex.: ß/ss).
+- Não repita estes itens que o aluno já conhece: ${known.slice(0, 400).join(', ') || '(nenhum)'}
+- Dificuldades recorrentes do aluno (reutilize de forma natural nos exercícios): ${recurring.join(' | ') || 'nenhuma'}
+${schemaText(pe.level)}
+Responda SOMENTE com o JSON.`;
+  }
+  function reviewPrompt(pe, json) {
+    return `Você é um revisor nativo de alemão e professor de DaF. Revise rigorosamente esta unidade de nível ${pe.level} (${pe.topic}; foco: ${pe.grammar}).
+Corrija QUALQUER erro: gênero/artigo, plural, conjugação, ortografia, maiúsculas, naturalidade das frases, tradução para o português, adequação ao nível, drills com mais de uma resposta possível (acrescente as variantes em "a" ou reescreva a frase), explicações gramaticais imprecisas.
+Mantenha exatamente o mesmo formato JSON. Devolva o JSON CORRIGIDO completo, com um campo extra "review": {"changes": ["lista curta do que você corrigiu"], "confidence": "alta|média|baixa"}.
+UNIDADE:
+${JSON.stringify(json)}
+Responda SOMENTE com o JSON.`;
+  }
+
+  /** Valida e normaliza o JSON da IA. Lança erro se inutilizável; descarta itens ruins. */
+  function validate(pe, raw) {
+    const errs = [];
+    if (!raw || typeof raw !== 'object') throw new Error('resposta sem JSON');
+    const prefix = pe.id.toLowerCase().replace(/-/g, '') + '_';
+    const seen = new Set(Object.values(C.items).map((i) => (i.type === 'noun' ? i.art + ' ' : '') + i.de.toLowerCase()));
+    const itemsData = [];
+    for (const it of Array.isArray(raw.items) ? raw.items : []) {
+      const type = ['noun', 'verb', 'phrase', 'word'].includes(it.type) ? it.type : null;
+      const de = String(it.de || '').trim(), pt = String(it.pt || '').trim();
+      if (!type || !de || !pt) { errs.push('item incompleto'); continue; }
+      const o = { type, de, pt, ipa: String(it.ipa || '').replace(/[\[\]\/]/g, ''), note: String(it.note || '').slice(0, 200), ex: [] };
+      if (Array.isArray(it.ex) && it.ex[0] && it.ex[1]) o.ex = [[String(it.ex[0]), String(it.ex[1])]];
+      if (type === 'noun') {
+        if (!ARTS.includes(it.art)) { errs.push('artigo inválido: ' + de); continue; }
+        if (!/^[A-ZÄÖÜ]/.test(de) || de.includes(' ')) { errs.push('substantivo inválido: ' + de); continue; }
+        o.art = it.art; o.pl = typeof it.pl === 'string' ? it.pl.replace(/^die\s+/, '') : '';
+        if (!o.ex.length) { errs.push('substantivo sem exemplo: ' + de); continue; }
+      }
+      if (type === 'verb') {
+        const c = it.conj || {}; const keys = ['ich', 'du', 'er', 'wir', 'ihr', 'sie'];
+        if (!keys.every((k) => typeof c[k] === 'string' && c[k].trim())) { errs.push('conjugação incompleta: ' + de); continue; }
+        o.conj = {}; keys.forEach((k) => { o.conj[k] = c[k].trim(); });
+      }
+      const key = (type === 'noun' ? o.art + ' ' : '') + de.toLowerCase();
+      if (seen.has(key)) continue; seen.add(key);
+      o.id = prefix + (type === 'noun' ? 'n_' : type === 'verb' ? 'v_' : type === 'phrase' ? 'p_' : 'w_') + slug(de);
+      if (itemsData.some((x) => x.id === o.id)) continue;
+      itemsData.push(o);
+    }
+    if (itemsData.length < 10) throw new Error('poucos itens válidos (' + itemsData.length + ')');
+    const grammarData = {};
+    (Array.isArray(raw.grammar) ? raw.grammar : []).slice(0, 2).forEach((g, gi) => {
+      const drills = (Array.isArray(g.drills) ? g.drills : []).filter((d) => d && /___/.test(d.q || '') && Array.isArray(d.a) && d.a.length && d.a.every((x) => typeof x === 'string' && x.trim()))
+        .map((d) => ({ q: String(d.q), a: d.a.map((x) => String(x).trim()), hint: String(d.hint || '') }));
+      if (drills.length < 4) { errs.push('gramática com poucos exercícios válidos'); return; }
+      grammarData['g_' + prefix + gi] = { title: String(g.title || pe.grammar).slice(0, 120), level: pe.level, explain: SAFE(g.explain), compare: String(g.compare || ''), examples: (g.examples || []).filter((e) => Array.isArray(e) && e[0]).slice(0, 4).map((e) => [String(e[0]), String(e[1] || '')]), drills, gen: true };
+    });
+    if (!Object.keys(grammarData).length) throw new Error('nenhum tópico de gramática válido');
+    const dialog = (Array.isArray(raw.dialog) ? raw.dialog : []).filter((l) => Array.isArray(l) && (l[0] === 'A' || l[0] === 'B') && l[1]).map((l) => [l[0], String(l[1])]);
+    const listening = (Array.isArray(raw.listening) ? raw.listening : []).filter((x) => typeof x === 'string' && x.trim()).slice(0, 6);
+    if (dialog.length < 4 || listening.length < 3) throw new Error('diálogo ou ditado insuficiente');
+    const sp = raw.speaking || {};
+    const unit = {
+      id: pe.id, level: pe.level, title: String(raw.title || pe.title), subtitle: String(raw.subtitle || pe.topic),
+      goals: (raw.goals || []).map(String).slice(0, 4), dialog, dialogPt: String(raw.dialogPt || ''), listening,
+      writing: String(raw.writing || 'Escreva um texto curto sobre o tema da unidade.'),
+      speaking: { scene: String(sp.scene || pe.topic), persona: String(sp.persona || 'parceiro de conversa'), goals: (sp.goals || []).map(String).slice(0, 5) },
+      criteria: '≥ 90% dos itens no nível “lembra”; gramática ≥ 80%; ditado ≥ 75%; 1 conversa; texto aprovado; checkpoint ≥ 80% (≥ 70% por habilidade).',
+      itemsData, grammarData,
+      gen: { at: Date.now(), reviewed: !!raw.review, changes: (raw.review && raw.review.changes || []).slice(0, 20), confidence: raw.review && raw.review.confidence || null, warnings: errs.slice(0, 20), contentVersion: C.version }
+    };
+    if (!unit.speaking.goals.length) unit.speaking.goals = ['cumprimentar', 'fazer perguntas sobre o tema', 'responder com frases completas', 'despedir-se'];
+    return unit;
+  }
+
+  /** Cria a unidade: geração → validação → revisão → validação. */
+  async function generate(pe, ask, ctx, onStep) {
+    const step = (t) => { try { onStep && onStep(t); } catch (e) { /* */ } };
+    step('Escrevendo a unidade…');
+    const draft = await ask(genPrompt(pe, ctx.known || [], ctx.recurring || []), { modelTier: 'complex' });
+    validate(pe, draft); // falha cedo se o rascunho for inutilizável
+    step('Revisando o alemão…');
+    let reviewed;
+    try { reviewed = await ask(reviewPrompt(pe, draft), { modelTier: 'complex' }); validate(pe, reviewed); }
+    catch (e) { reviewed = Object.assign({}, draft, { review: { changes: [], confidence: 'não revisado (' + (e.message || e.code) + ')' } }); }
+    step('Conferindo a estrutura…');
+    return validate(pe, reviewed);
+  }
+
+  /** Corrige um item reportado como errado. */
+  async function fixItem(item, unit, ask, complaint) {
+    const r = await ask(`Um aluno reportou erro neste item de vocabulário alemão (unidade ${unit.id}, nível ${unit.level}). Reclamação: "${complaint || 'não especificada'}".
+Item: ${JSON.stringify({ type: item.type, art: item.art, de: item.de, pl: item.pl, pt: item.pt, ipa: item.ipa, conj: item.conj, ex: item.ex[0], note: item.note })}
+Verifique com rigor (gênero, plural, conjugação, ortografia, tradução, naturalidade do exemplo). Responda SOMENTE com JSON:
+{"ok": true|false, "explanation_pt": "o que estava errado (ou por que está certo)", "fixed": { mesmo formato do item, corrigido } }`, { modelTier: 'complex' });
+    return r;
+  }
+
+  GF.gen = { genPrompt, reviewPrompt, validate, generate, fixItem, slug };
 })(globalThis.GF = globalThis.GF || {});
 
 ;
@@ -1821,6 +2416,7 @@ input[type=text],textarea,select{font-size:17px}
       app().innerHTML = `<div class="card"><h2>Não consegui carregar seus dados</h2><p class="mut">${esc(e.code || e.message)}. Nada foi apagado. Tente abrir de novo em instantes.</p></div>`;
       return;
     }
+    for (const g of Object.values(S.st.gen || {})) C.addUnit(JSON.parse(JSON.stringify(g)));
     if (S.st.integrity.dropped) log('warn', S.st.integrity.dropped + ' registros inválidos ignorados na carga');
     window.addEventListener('hashchange', route);
     if (!S.st.profile.diag) return renderOnboarding();
@@ -1829,9 +2425,76 @@ input[type=text],textarea,select{font-size:17px}
     S.store.autoBackup(now()).then((r) => { if (r && r.saved) log('info', 'backup automático ' + r.saved); if (r && r.tooBig) log('warn', 'histórico grande demais para backup automático; exporte manualmente'); }).catch((e) => log('warn', 'backup automático falhou: ' + (e.code || e.message)));
     route();
     setTimeout(() => autoSync('abertura'), 1500);
+    setTimeout(() => ensureNextUnit(false), 5000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') autoSync('app em segundo plano'); else autoSync('app reaberto'); });
     setInterval(() => autoSync('periódica'), 10 * 60000);
   }
+
+  /* ---------------- Próximas unidades (professor cria) ---------------- */
+  const GEN = { busy: false, msg: '', err: null, pe: null };
+  function genCardHtml(planUnit) {
+    const pe = GEN.pe || M.nextToGenerate(S.st, now());
+    if (!pe) return '';
+    if (planUnit && !GEN.busy && !GEN.err) return ''; // preparando em segundo plano, sem alarde
+    let body;
+    if (GEN.busy) body = `<p class="small">⏳ ${esc(GEN.msg || 'Preparando…')} <span class="mut">(leva 1–3 min; pode continuar usando o app)</span></p>`;
+    else if (!S.caps.sample) body = `<p class="small">Para criar as próximas unidades o professor precisa de IA: use a versão dentro do Claude, ou configure uma chave da API em <a href="#ajustes">Ajustes</a>. Enquanto isso, suas revisões continuam normalmente.</p>`;
+    else body = `${GEN.err ? `<div class="fb warn">Não consegui preparar agora: ${esc(GEN.err)}</div>` : ''}<button class="btn pri big" id="gen-go">Preparar a próxima unidade</button>`;
+    return `<div class="card" id="gen-card"><div class="step-k">Próxima unidade · ${esc(pe.id)}</div><h2>${esc(pe.title)}</h2><p class="small mut">${esc(pe.topic)} · foco: ${esc(pe.grammar)}</p>${body}
+      <p class="tiny mut">Criada pelo professor seguindo o currículo, revisada automaticamente e marcada como “gerada por IA”. Você pode reportar erros em qualquer item.</p></div>`;
+  }
+  function updateGenUI() { const c = $('#gen-card'); if (c) { c.outerHTML = genCardHtml(false) || '<div id="gen-card"></div>'; const b = $('#gen-go'); if (b) b.onclick = () => ensureNextUnit(true); } }
+  async function ensureNextUnit(manual) {
+    if (GEN.busy || !S.st || !S.st.profile.diag) return;
+    const pe = M.nextToGenerate(S.st, now()); if (!pe) return;
+    if (!S.caps.sample) { if (manual) toast('Precisa de IA para criar a unidade (veja Ajustes).'); return; }
+    GEN.busy = true; GEN.pe = pe; GEN.err = null; GEN.msg = 'Começando…'; updateGenUI();
+    try {
+      if (syncOn()) { try { await S.store.flush(); await GF.sync.run(S.store); } catch (e) { /* segue offline */ } }
+      if (!C.units[pe.id]) {
+        const known = Object.values(C.items).map((i) => (i.type === 'noun' ? i.art + ' ' : '') + i.de);
+        const ask = (p, o) => askJSON(p, Object.assign({ maxTokens: 12000 }, o));
+        let unit;
+        try { unit = await GF.gen.generate(pe, ask, { known, recurring: recurringForPrompt() }, (m) => { GEN.msg = m; updateGenUI(); }); }
+        catch (e) { GEN.msg = 'Tentando de novo…'; updateGenUI(); unit = await GF.gen.generate(pe, ask, { known, recurring: recurringForPrompt() }, (m) => { GEN.msg = m; updateGenUI(); }); }
+        S.st.gen[unit.id] = unit; await S.store.saveGen(unit.id); C.addUnit(JSON.parse(JSON.stringify(unit)));
+        log('info', 'unidade criada ' + unit.id + ' (' + unit.itemsData.length + ' itens)');
+        toast('Nova unidade pronta: ' + unit.title, 4000);
+        autoSync('fim da sessão');
+      }
+      GEN.pe = null;
+    } catch (e) { GEN.err = (e && (e.message || e.code)) || 'erro'; log('warn', 'geração ' + pe.id + ': ' + GEN.err); }
+    finally {
+      GEN.busy = false; updateGenUI();
+      const h = (location.hash || '#hoje').slice(1);
+      if (!S.session && (h === 'hoje' || h === 'curriculo') && !(document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName))) route();
+    }
+  }
+  /* reportar erro em item gerado */
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-report]'); if (!b) return;
+    const id = b.getAttribute('data-report'); const it = C.items[id]; if (!it) return;
+    const box = document.createElement('div'); box.className = 'card';
+    box.innerHTML = `<p class="small"><b>O que está errado em “${esc(it.de)}”?</b> (opcional)</p><textarea id="rep-t" style="min-height:70px"></textarea><div class="row" style="margin-top:8px"><button class="btn" id="rep-x">Cancelar</button><button class="btn pri grow" id="rep-s">${S.caps.sample ? 'Pedir correção ao professor' : 'Suspender este item'}</button></div>`;
+    b.closest('.card') ? b.closest('.card').after(box) : app().prepend(box);
+    $('#rep-x').onclick = () => box.remove();
+    $('#rep-s').onclick = async () => {
+      const g = S.st.gen[it.unit]; const rec = g && g.itemsData.find((x) => x.id === id);
+      if (!S.caps.sample) { it.flag = true; if (rec) rec.flag = true; if (g) await S.store.saveGen(it.unit); box.innerHTML = '<p class="small">Item suspenso: ele sai das revisões até ser corrigido.</p>'; return; }
+      $('#rep-s').disabled = true; $('#rep-s').textContent = 'Verificando…';
+      try {
+        const r = await GF.gen.fixItem(it, C.units[it.unit], askJSON, $('#rep-t').value);
+        if (!r.ok && r.fixed && r.fixed.de && r.fixed.pt && (it.type !== 'noun' || ['der', 'die', 'das'].includes(r.fixed.art))) {
+          const upd = { de: String(r.fixed.de), pt: String(r.fixed.pt), ipa: String(r.fixed.ipa || ''), note: String(r.fixed.note || it.note || '') };
+          if (it.type === 'noun') { upd.art = r.fixed.art; upd.pl = String(r.fixed.pl || ''); }
+          if (it.type === 'verb' && r.fixed.conj) upd.conj = r.fixed.conj;
+          if (Array.isArray(r.fixed.ex) && r.fixed.ex[0]) upd.ex = [[String(r.fixed.ex[0]), String(r.fixed.ex[1] || '')]];
+          Object.assign(it, upd, { flag: false }); if (rec) Object.assign(rec, upd, { flag: false, fixedAt: now() }); if (g) await S.store.saveGen(it.unit);
+          box.innerHTML = `<div class="fb ok"><b>Corrigido.</b><div class="why">${esc(r.explanation_pt || '')}</div></div>`;
+        } else box.innerHTML = `<div class="fb ok"><b>O professor revisou e manteve.</b><div class="why">${esc(r.explanation_pt || '')}</div></div>`;
+      } catch (er) { box.innerHTML = '<div class="fb warn">Não consegui verificar agora. Tente mais tarde.</div>'; }
+    };
+  });
 
   /* ---------------- Sincronização ---------------- */
   const syncOn = () => !!(GF.sync && GF.sync.available() && GF.sync.cfg().token);
@@ -2027,6 +2690,7 @@ input[type=text],textarea,select{font-size:17px}
       ${plan.notes.map((n) => `<p class="tiny mut">${esc(n)}</p>`).join('')}
       <button class="btn pri big" id="h-start" ${plan.steps.length ? '' : 'disabled'}>Começar (${plan.steps.length} etapas)</button>
     </div>
+    ${genCardHtml(!!unit)}
     ${obs.length ? `<div class="card"><div class="step-k">O professor observou</div><ul class="list small">${obs.map((o) => `<li>${o}</li>`).join('')}</ul></div>` : ''}
     <div class="card"><div class="kpis">
       <div class="kpi"><b>${stats.due}</b><span>revisões pendentes</span></div>
@@ -2035,7 +2699,7 @@ input[type=text],textarea,select{font-size:17px}
       <div class="kpi"><b>${(stats.minutes / 60).toFixed(1)} h</b><span>de estudo no total</span></div>
     </div></div>
     ${us ? `<div class="card"><div class="step-k">Para concluir ${uid}</div>${unitChecklist(us)}</div>` : ''}`);
-    bindInstall();
+    bindInstall(); const gg = $('#gen-go'); if (gg) gg.onclick = () => ensureNextUnit(true);
     $('#h-min').onclick = (e) => { const b = e.target.closest('[data-m]'); if (!b) return; S.homeMinutes = +b.dataset.m; renderHome(); };
     $('#h-start').onclick = () => startSession(plan);
   }
@@ -2095,7 +2759,7 @@ input[type=text],textarea,select{font-size:17px}
     M.adapt(S.st, t);
     S.session = null;
     await commit({ profile: true, day: true });
-    autoSync('fim da sessão');
+    autoSync('fim da sessão'); setTimeout(() => ensureNextUnit(false), 3000);
     const mins = Math.round((t - s.started) / 60000);
     app().innerHTML = `<header class="top"><div class="brand">${quit ? 'Sessão interrompida' : 'Sessão concluída'}</div><span id="savestate" class="pill"></span></header>
     <div class="card"><h2>${quit ? 'Tudo que você fez foi salvo.' : 'Bom trabalho!'}</h2>
@@ -2123,6 +2787,7 @@ input[type=text],textarea,select{font-size:17px}
       <p style="font-size:18px;margin:10px 0 4px">${esc(it.pt)}</p>${conj}
       ${it.ex.map(([de, pt]) => `<div class="row" style="margin-top:10px">${audioBtn(de)}<div><div>${esc(de)}</div><div class="small mut">${esc(pt)}</div></div></div>`).join('')}
       ${it.note ? `<p class="small" style="margin-top:10px">💡 ${esc(it.note)}</p>` : ''}
+      ${C.units[it.unit] && C.units[it.unit].gen ? `<p class="tiny mut" style="margin-top:8px">✨ Criado pelo professor (IA) e revisado${it.flag ? ' · <b>suspenso</b>' : ''} · <button class="btn ghost tiny" style="min-height:0;padding:0" data-report="${esc(it.id)}">⚑ Reportar erro</button></p>` : ''}
       ${it.type === 'noun' && !opts.noColorTip ? '<p class="tiny mut">Cores fixas: <span class="art-der">der</span> · <span class="art-die">die</span> · <span class="art-das">das</span>. Exemplos são frases didáticas escritas para o nível.</p>' : ''}`;
   }
 
@@ -2420,7 +3085,8 @@ input[type=text],textarea,select{font-size:17px}
   function recurringForPrompt() { return Object.values(S.st.mistakes).filter((m) => m.count >= 2 && m.fixed < 3).sort((a, b) => b.count - a.count).slice(0, 5).map((m) => m.msg); }
   async function askJSON(prompt, opts) {
     const s = S.caps.sample; if (!s) throw { code: 'no_ai' };
-    try { const v = await s.json(prompt, Object.assign({ modelTier: 'default', cache: false }, opts || {})); return v; }
+    const o = Object.assign({ modelTier: 'default', cache: false }, opts || {}); if (!s.local) delete o.maxTokens;
+    try { const v = await s.json(prompt, o); return v; }
     catch (e) { if (e && e.code === 'not_granted') S.caps.sample = null; throw e; }
   }
   function convoPrompt(u, history, level) {
@@ -2683,7 +3349,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
       ${L.modules.map((m) => `<h3>${esc(m.title)}</h3>${m.units.map((uid) => { const u = C.units[uid]; const st = M.unitStatus(S.st, uid, t); const cur = M.currentUnit(S.st) === uid; return `<details ${cur ? 'open' : ''}><summary>${st.passed ? '✅' : cur ? '▶️' : uid === 'A0-P' ? '🔈' : '🔒'} ${esc(u.title)} <span class="mut small">${esc(u.subtitle)}</span></summary>
         <p class="small"><b>Objetivos:</b> ${u.goals.map(esc).join(' · ')}</p>${u.grammar.length ? `<p class="small"><b>Gramática:</b> ${u.grammar.map((g) => esc(C.grammar[g].title)).join(' · ')}</p>` : ''}
         <p class="small"><b>Pré-requisito:</b> ${u.prereq.length ? u.prereq.join(', ') : 'nenhum'} · <b>Critério:</b> ${esc(u.criteria)}</p>${unitChecklist(st)}</details>`; }).join('')}
-        ${m.planned ? `<p class="small mut">Planejado (carregado quando você chegar lá): ${m.planned.map(esc).join(' · ')}</p>` : ''}`).join('')}</div>`).join('') +
+        ${m.plan ? C.plan.filter((e) => e.level === L.id && !L.modules.some((mm) => mm.units.includes(e.id))).map((e) => { const u = C.units[e.id]; if (!u) return `<details><summary class="lock">🔒 ${esc(e.title)} <span class="mut small">${esc(e.topic)}</span></summary><p class="small">Foco gramatical: ${esc(e.grammar)}. O professor prepara esta unidade quando você chegar perto dela.</p></details>`; const st = M.unitStatus(S.st, e.id, t); const cur = M.currentUnit(S.st) === e.id; return `<details ${cur ? 'open' : ''}><summary>${st.passed ? '✅' : cur ? '▶️' : '📘'} ${esc(u.title)} <span class="mut small">${esc(u.subtitle)} · ✨ IA</span></summary><p class="small"><b>Objetivos:</b> ${u.goals.map(esc).join(' · ')}</p><p class="small"><b>Gramática:</b> ${u.grammar.map((g) => esc(C.grammar[g].title)).join(' · ')}</p>${u.gen && u.gen.changes && u.gen.changes.length ? `<p class="tiny mut">Revisão automática corrigiu: ${u.gen.changes.slice(0, 5).map(esc).join('; ')}</p>` : ''}${unitChecklist(st)}</details>`; }).join('') : ''}`).join('')}</div>`).join('') +
       `<div class="card"><p class="small mut">O conteúdo é carregado progressivamente. Versão do conteúdo: ${esc(C.version)}. Seu histórico é guardado por id de item, então correções e ampliações do currículo não apagam o progresso.</p></div>`);
   }
 

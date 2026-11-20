@@ -159,12 +159,29 @@
     return null; // tudo concluído no conteúdo carregado
   }
   function estimateLevel(state) {
+    const C = GF.content; let done = null;
+    for (const lv of ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']) {
+      const us = C.plan.filter((e) => e.level === lv);
+      const passed = us.filter((e) => (state.profile.unitState[e.id] || {}).passed).length;
+      if (passed === us.length) { done = lv; continue; }
+      if (!done && passed === 0) return { code: 'A0', label: 'A0 — iniciando A1', detail: 'Nenhuma unidade A1 comprovada ainda.' };
+      return { code: lv, label: lv + ' em progresso (' + passed + '/' + us.length + ')', detail: (done ? done + ' comprovado. ' : '') + passed + ' de ' + us.length + ' unidades do ' + lv + ' comprovadas por checkpoint.' };
+    }
+    return { code: 'C2', label: 'C2 — currículo completo', detail: 'Todas as unidades comprovadas. Para certificar, faça o exame oficial Goethe.' };
+  }
+  /** Próxima unidade do plano que ainda não existe e já pode ser preparada. */
+  function nextToGenerate(state, now) {
     const C = GF.content;
-    const a1 = C.unitOrder.filter((u) => u.startsWith('A1'));
-    const passed = a1.filter((u) => (state.profile.unitState[u] || {}).passed).length;
-    if (passed === 0) return { code: 'A0', label: 'A0 — iniciando A1', detail: 'Nenhuma unidade A1 comprovada ainda.' };
-    if (passed < a1.length) return { code: 'A1.1', label: 'A1.1 em progresso', detail: passed + ' de ' + a1.length + ' unidades do A1.1 comprovadas.' };
-    return { code: 'A1.1', label: 'A1.1 concluído', detail: 'Todas as unidades A1.1 carregadas comprovadas. A1 completo exige o módulo A1.2 e o simulado Start Deutsch 1.' };
+    for (const e of C.plan) {
+      if (C.units[e.id]) continue;
+      const prev = C.plan[e.index - 1];
+      if (!prev || !C.units[prev.id]) return null;
+      const ps = state.profile.unitState[prev.id] || {};
+      if (ps.passed) return e;
+      const st = unitStatus(state, prev.id, now || Date.now());
+      return st.intro / Math.max(1, st.items) >= 0.5 ? e : null; // prepara com antecedência
+    }
+    return null;
   }
 
   /** Adaptação da quantidade de conteúdo novo (registrada com motivo). */
@@ -189,7 +206,7 @@
     const out = [];
     const horizon = now + 2 * 3600000;
     for (const card of Object.values(state.cards)) {
-      const item = GF.content.items[card.id]; if (!item) continue;
+      const item = GF.content.items[card.id]; if (!item || item.flag) continue;
       for (const st of stagesFor(item)) {
         const s = card.stages[st];
         if (!stageUnlocked(card, st)) continue;
@@ -275,7 +292,7 @@
     } else if (unit) {
       take({ kind: 'speak', unit: uid });
     }
-    if (!unit) notes.push('Todo o conteúdo carregado foi comprovado. O próximo módulo (A1.2) precisa ser carregado.');
+    if (!unit) notes.push('Todo o conteúdo pronto foi comprovado. A próxima unidade está sendo preparada pelo professor (veja abaixo); hoje a sessão é de revisão.');
     return { steps, minutes, unit: uid, notes, dueTotal: due.length };
   }
 
@@ -341,5 +358,5 @@
     return hits;
   }
 
-  GF.model = { allDays, STAGES, STAGE_PT, SKILLS, SKILL_PT, MASTERY_PT, dayKey, newProfile, newCard, stagesFor, stageUnlocked, mastery, forgetting, recordAnswer, unitStatus, checkpointPass, currentUnit, estimateLevel, adapt, dueList, buildSession, forecast, streak, stats, recentRate, spontaneousHits, EST };
+  GF.model = { nextToGenerate, allDays, STAGES, STAGE_PT, SKILLS, SKILL_PT, MASTERY_PT, dayKey, newProfile, newCard, stagesFor, stageUnlocked, mastery, forgetting, recordAnswer, unitStatus, checkpointPass, currentUnit, estimateLevel, adapt, dueList, buildSession, forecast, streak, stats, recentRate, spontaneousHits, EST };
 })(globalThis.GF = globalThis.GF || {});

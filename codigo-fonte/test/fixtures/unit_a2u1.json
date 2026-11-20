@@ -1,0 +1,22 @@
+{"title":"Arbeit und Beruf","subtitle":"Trabalho e profissões","goals":["Falar da profissão","Contar sobre empregos anteriores","Justificar com weil"],
+"items":[
+{"type":"noun","art":"der","de":"Beruf","pl":"Berufe","pt":"a profissão","ipa":"bəˈʁuːf","ex":["Was sind Sie von Beruf?","Qual é a sua profissão?"]},
+{"type":"noun","art":"die","de":"Firma","pl":"Firmen","pt":"a empresa","ipa":"ˈfɪʁma","ex":["Die Firma ist in Berlin.","A empresa fica em Berlim."]},
+{"type":"noun","art":"der","de":"Kollege","pl":"Kollegen","pt":"o colega","ipa":"kɔˈleːɡə","ex":["Mein Kollege ist nett.","Meu colega é legal."]},
+{"type":"noun","art":"die","de":"Kollegin","pl":"Kolleginnen","pt":"a colega","ipa":"kɔˈleːɡɪn","ex":["Die Kollegin hilft mir.","A colega me ajuda."]},
+{"type":"noun","art":"der","de":"Chef","pl":"Chefs","pt":"o chefe","ipa":"ʃɛf","ex":["Der Chef ist heute nicht da.","O chefe não está hoje."]},
+{"type":"noun","art":"das","de":"Büro","pl":"Büros","pt":"o escritório","ipa":"byˈʁoː","ex":["Ich arbeite im Büro.","Trabalho no escritório."]},
+{"type":"noun","art":"die","de":"Stelle","pl":"Stellen","pt":"a vaga, o emprego","ipa":"ˈʃtɛlə","ex":["Ich suche eine neue Stelle.","Procuro um novo emprego."]},
+{"type":"noun","art":"der","de":"Lohn","pl":"Löhne","pt":"o salário","ipa":"loːn","ex":["Der Lohn ist gut.","O salário é bom."]},
+{"type":"noun","art":"die","de":"Bewerbung","pl":"Bewerbungen","pt":"a candidatura","ipa":"bəˈvɛʁbʊŋ","ex":["Ich schreibe eine Bewerbung.","Escrevo uma candidatura."]},
+{"type":"verb","de":"verdienen","pt":"ganhar (dinheiro)","conj":{"ich":"verdiene","du":"verdienst","er":"verdient","wir":"verdienen","ihr":"verdient","sie":"verdienen"},"ex":["Sie verdient gut.","Ela ganha bem."]},
+{"type":"phrase","de":"Ich arbeite als Ingenieur.","pt":"Trabalho como engenheiro."},
+{"type":"phrase","de":"Was sind Sie von Beruf?","pt":"Qual é a sua profissão?"},
+{"type":"word","de":"weil","pt":"porque","ipa":"vaɪ̯l"},
+{"type":"word","de":"damals","pt":"naquela época","ipa":"ˈdaːmaːls"}
+],
+"grammar":[{"title":"Präteritum de sein e haben","explain":"<b>war</b> e <b>hatte</b>.","compare":"Passado simples.","examples":[["Ich war müde.","Eu estava cansado."]],
+"drills":[{"q":"Ich ___ gestern krank. (sein)","a":["war"]},{"q":"Wir ___ keine Zeit. (haben)","a":["hatten"]},{"q":"Du ___ müde. (sein)","a":["warst"]},{"q":"Er ___ einen Termin. (haben)","a":["hatte"]},{"q":"Ihr ___ im Büro. (sein)","a":["wart"]}]}],
+"dialog":[["A","Was sind Sie von Beruf?"],["B","Ich bin Ingenieur."],["A","Und wo arbeiten Sie?"],["B","Bei einer Firma in Berlin."],["A","Gefällt Ihnen die Arbeit?"],["B","Ja, weil die Kollegen nett sind."]],
+"dialogPt":"Conversa sobre profissão.","listening":["Ich war gestern im Büro.","Der Lohn ist gut.","Ich suche eine neue Stelle.","Meine Kollegin hilft mir.","Was sind Sie von Beruf?"],
+"writing":"Escreva sobre seu trabalho.","speaking":{"scene":"Entrevista de emprego.","persona":"Frau Berg, RH, formal","goals":["dizer a profissão","contar experiência","justificar com weil","perguntar sobre a vaga"]}}

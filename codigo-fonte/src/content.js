@@ -390,42 +390,107 @@
       matrix: { 'Hören': 'Anúncios e diálogos curtos, números, preços, horários', 'Lesen': 'Placas, formulários, mensagens curtas', 'Schreiben': 'Formulários, mensagens curtas (≈30 palavras)', 'Sprechen': 'Apresentar-se, pedir/dar informações simples', 'Grammatik': 'Presente, V2, artigos, acusativo, modais, verbos separáveis, Perfekt básico', 'Wortschatz': '≈ 650 palavras (lista Goethe A1 como referência)', 'Aussprache': 'Sistema vocálico, Umlauts, ch, r, acento', 'Landeskunde': 'Cumprimentos, du/Sie, cafés, compras, moradia' },
       modules: [
         { title: 'A1.1 — Primeiros contatos', units: ['A1-U1', 'A1-U2', 'A1-U3', 'A1-U4', 'A1-U5'] },
-        { title: 'A1.2 — Rotina e cidade', units: [], planned: ['Horários e rotina (verbos separáveis)', 'Compras e roupas', 'Na cidade: direções (Dativ com preposições)', 'Tempo livre (modais können/wollen/müssen)', 'O que eu fiz (Perfekt básico)', 'Saúde e corpo', 'Simulado Start Deutsch 1'] },
+        { title: 'A1.2 — Rotina e cidade', units: [], plan: true },
       ]
     },
     {
       id: 'A2', name: 'Situações cotidianas', hours: 'Goethe: ≈ 150–260 h acumuladas', exam: 'Goethe-Zertifikat A2',
       canDo: ['Entender frases sobre áreas de relevância imediata', 'Comunicar-se em tarefas rotineiras de troca direta', 'Descrever passado, formação e ambiente com meios simples'],
       matrix: { 'Grammatik': 'Perfekt completo, Präteritum de sein/haben/modais, Dativ, preposições de duas vias, comparativo, weil/dass/wenn, reflexivos' },
-      modules: [{ title: 'A2 — Vida prática', units: [], planned: ['Trabalho e profissões', 'Viagens e transporte', 'Médico e saúde', 'Festas e tradições', 'Mídia e tecnologia', 'Simulado A2'] }]
+      modules: [{ title: 'A2 — Vida prática', units: [], plan: true }]
     },
     {
       id: 'B1', name: 'Independência comunicativa', hours: 'Goethe: ≈ 260–490 h acumuladas', exam: 'Goethe-Zertifikat B1',
       canDo: ['Entender os pontos principais de assuntos familiares em linguagem padrão', 'Lidar com a maioria das situações de viagem', 'Relatar experiências, planos e justificar opiniões brevemente'],
       matrix: { 'Grammatik': 'Präteritum, Plusquamperfekt, Passiv (presente), Konjunktiv II (würde/hätte/wäre), orações relativas, Genitiv, declinação do adjetivo completa' },
-      modules: [{ title: 'B1 — Independência', units: [], planned: ['Moradia e vizinhança', 'Educação e carreira', 'Relações e sociedade', 'Consumo e meio ambiente', 'Simulado B1'] }]
+      modules: [{ title: 'B1 — Independência', units: [], plan: true }]
     },
     {
       id: 'B2', name: 'Comunicação independente e complexa', hours: 'Goethe: ≈ 450–600 h acumuladas', exam: 'Goethe-Zertifikat B2',
       canDo: ['Entender ideias principais de textos complexos, inclusive técnicos na sua área', 'Interagir com fluência e espontaneidade com falantes nativos', 'Produzir textos claros e detalhados defendendo um ponto de vista'],
       matrix: { 'Grammatik': 'Passiv em todos os tempos, Konjunktiv I (discurso indireto), particípios como adjetivo, conectores avançados, nominalização' },
-      modules: [{ title: 'B2 — Complexidade', units: [], planned: ['Argumentação e debate', 'Trabalho e economia', 'Ciência e tecnologia', 'Mídia e notícias autênticas', 'Simulado B2'] }]
+      modules: [{ title: 'B2 — Complexidade', units: [], plan: true }]
     },
     {
       id: 'C1', name: 'Fluência avançada', hours: 'Goethe: ≈ 600–750 h acumuladas', exam: 'Goethe-Zertifikat C1',
       canDo: ['Entender textos longos e exigentes, inclusive sentidos implícitos', 'Expressar-se fluentemente sem procurar palavras de forma óbvia', 'Usar a língua de forma flexível em contextos sociais, acadêmicos e profissionais'],
       matrix: { 'Grammatik': 'Estilo nominal, Funktionsverbgefüge, Partizipialattribute longos, registro e coesão' },
-      modules: [{ title: 'C1 — Precisão e registro', units: [], planned: ['Textos acadêmicos', 'Comunicação profissional', 'Literatura e cultura', 'Simulado C1'] }]
+      modules: [{ title: 'C1 — Precisão e registro', units: [], plan: true }]
     },
     {
       id: 'C2', name: 'Domínio altamente sofisticado', hours: 'Goethe: ≈ 750+ h acumuladas', exam: 'Goethe-Zertifikat C2: Großes Deutsches Sprachdiplom',
       canDo: ['Entender praticamente tudo que lê ou ouve', 'Resumir e reconstruir argumentos de várias fontes', 'Expressar nuances finas de significado com precisão'],
       matrix: { 'Grammatik': 'Variação estilística, variedades regionais (Áustria/Suíça), idiomatismo' },
-      modules: [{ title: 'C2 — Maestria', units: [], planned: ['Nuance e estilo', 'Variedades do alemão', 'Simulado GDS'] }]
+      modules: [{ title: 'C2 — Maestria', units: [], plan: true }]
     },
   ];
 
-  const unitOrder = ['A0-P', 'A1-U1', 'A1-U2', 'A1-U3', 'A1-U4', 'A1-U5'];
+  /* ---------------- Plano completo de unidades (A1 → C2) ----------------
+   * Cada entrada tem id estável. Unidades sem conteúdo fixo são criadas pelo
+   * professor (IA) quando você chega nelas, seguindo tema + foco gramatical. */
+  const PL = (id, title, topic, grammar, extra) => Object.assign({ id, level: id.slice(0, 2), title, topic, grammar }, extra || {});
+  const plan = [
+    PL('A1-U1', 'Hallo! Wer bist du?', 'cumprimentos e apresentação', 'sein, presente, V2, du/Sie'),
+    PL('A1-U2', 'Zahlen und Kontakt', 'números, idade, telefone', 'números'),
+    PL('A1-U3', 'Meine Familie', 'família', 'haben, possessivos'),
+    PL('A1-U4', 'Im Café', 'pedir, preço, pagar', 'artigos, acusativo'),
+    PL('A1-U5', 'Meine Wohnung', 'casa e móveis', 'kein/nicht, gênero'),
+    PL('A1-U6', 'Mein Alltag', 'rotina diária e horas', 'verbos separáveis; horas (Uhrzeit); preposições de tempo um/am'),
+    PL('A1-U7', 'Einkaufen', 'compras, roupas, cores e preços', 'acusativo com artigos definidos e indefinidos; welcher/dieser; números grandes'),
+    PL('A1-U8', 'In der Stadt', 'lugares da cidade, direções, transporte', 'dativo com preposições (mit, zu, in, an, neben, bei); imperativo formal'),
+    PL('A1-U9', 'Freizeit', 'tempo livre, hobbies, convites', 'verbos modais können, wollen, müssen, dürfen (presente e posição no fim)'),
+    PL('A1-U10', 'Was hast du gemacht?', 'contar o fim de semana', 'Perfekt com haben e sein (verbos frequentes)'),
+    PL('A1-U11', 'Gesundheit', 'corpo, sintomas, médico', 'imperativo (du/ihr/Sie); sollen; weh tun'),
+    PL('A2-U1', 'Arbeit und Beruf', 'trabalho e profissões', 'Präteritum de sein/haben/modais; weil'),
+    PL('A2-U2', 'Unterwegs', 'viagens e transporte', 'preposições de duas vias (Wechselpräpositionen)'),
+    PL('A2-U3', 'Beim Arzt', 'consultas e saúde', 'verbos reflexivos; dass'),
+    PL('A2-U4', 'Feste feiern', 'festas, datas, presentes', 'números ordinais e datas; dativo como objeto indireto; wenn'),
+    PL('A2-U5', 'Medien und Technik', 'mídia e tecnologia', 'comparativo e superlativo'),
+    PL('A2-U6', 'Wohnen', 'moradia, mudança, móveis', 'declinação do adjetivo (introdução); stellen/stehen, legen/liegen'),
+    PL('A2-U7', 'Freunde und Familie', 'relações e convivência', 'Perfekt de verbos irregulares; possessivos no dativo'),
+    PL('A2-U8', 'Pläne', 'planos e futuro', 'Futur I; zu + infinitivo (básico)'),
+    PL('B1-U1', 'Nachbarschaft', 'moradia e vizinhança', 'orações relativas (nominativo, acusativo, dativo)'),
+    PL('B1-U2', 'Bildung und Karriere', 'educação e carreira', 'Präteritum de verbos regulares e irregulares'),
+    PL('B1-U3', 'Zusammenleben', 'relações e sociedade, dar conselhos', 'Konjunktiv II (würde, hätte, wäre, könnte)'),
+    PL('B1-U4', 'Konsum und Umwelt', 'consumo e meio ambiente', 'voz passiva no presente (Vorgangspassiv)'),
+    PL('B1-U5', 'Sport und Gesundheit', 'esporte e hábitos', 'genitivo; wegen, trotz, während'),
+    PL('B1-U6', 'Reiseerlebnisse', 'experiências de viagem', 'Plusquamperfekt; nachdem, bevor'),
+    PL('B1-U7', 'Arbeitswelt', 'trabalho e candidatura', 'conectores obwohl, deshalb, trotzdem'),
+    PL('B1-U8', 'Kultur und Medien', 'cultura e mídia', 'um…zu, damit; zu + infinitivo'),
+    PL('B2-U1', 'Argumentieren', 'argumentação e debate', 'conectores avançados; nominalização'),
+    PL('B2-U2', 'Wirtschaft', 'economia e trabalho', 'passiva em todos os tempos; passiva com modais'),
+    PL('B2-U3', 'Wissenschaft und Technik', 'ciência e tecnologia', 'particípio I e II como adjetivo'),
+    PL('B2-U4', 'Nachrichten', 'notícias e discurso indireto', 'Konjunktiv I (discurso indireto)'),
+    PL('B2-U5', 'Gesellschaft', 'sociedade e política', 'preposições com genitivo (aufgrund, innerhalb, statt)'),
+    PL('B2-U6', 'Kunst und Kultur', 'arte e cultura', 'verbos com preposição; da-/wo-Wörter'),
+    PL('C1-U1', 'Wissenschaftliches Schreiben', 'textos acadêmicos', 'estilo nominal; nominalização complexa'),
+    PL('C1-U2', 'Berufliche Kommunikation', 'comunicação profissional', 'Funktionsverbgefüge'),
+    PL('C1-U3', 'Literatur', 'literatura e cultura', 'atributos participiais longos'),
+    PL('C1-U4', 'Debatte', 'debate e posicionamento', 'modalidade subjetiva (sollen/wollen/mögen); partículas modais'),
+    PL('C1-U5', 'Medienkritik', 'análise de mídia', 'registro, coesão e referência textual'),
+    PL('C2-U1', 'Nuancen', 'nuance e estilo', 'variação estilística; sinônimos e conotação'),
+    PL('C2-U2', 'Varietäten', 'alemão da Áustria e da Suíça', 'variedades regionais (léxico e pronúncia)'),
+    PL('C2-U3', 'Redewendungen', 'expressões idiomáticas', 'idiomatismo e fraseologia'),
+    PL('C2-U4', 'Zwischen den Zeilen', 'ironia e sentido implícito', 'pragmática, ironia e implícito'),
+  ];
+  // pré-requisito: a unidade anterior do plano
+  plan.forEach((e, i) => { e.prereq = i ? [plan[i - 1].id] : []; e.index = i; });
 
-  GF.content = { version: '2026.11.20-1', items, grammar, units, unitOrder, pron, levels };
+  const unitOrder = ['A0-P'];
+  function recomputeOrder() { unitOrder.length = 0; unitOrder.push('A0-P'); for (const e of plan) if (units[e.id]) unitOrder.push(e.id); }
+  recomputeOrder();
+
+  /* Registra uma unidade criada pela IA (ou carregada do banco). Itens e regras recebem ids com prefixo da unidade. */
+  function addUnit(u) {
+    if (!u || !u.id || units[u.id] && !units[u.id].gen) return false; // nunca substitui conteúdo fixo
+    for (const it of u.itemsData || []) items[it.id] = Object.assign({ ex: [], note: '' }, it, { unit: u.id });
+    for (const [gid, g] of Object.entries(u.grammarData || {})) grammar[gid] = Object.assign({}, g, { unit: u.id });
+    const pe = plan.find((e) => e.id === u.id);
+    units[u.id] = Object.assign({}, u, { items: (u.itemsData || []).map((i) => i.id), grammar: Object.keys(u.grammarData || {}), prereq: pe ? pe.prereq : [] });
+    delete units[u.id].itemsData; delete units[u.id].grammarData;
+    recomputeOrder();
+    return true;
+  }
+
+  GF.content = { version: '2026.11.20-2', items, grammar, units, unitOrder, pron, levels, plan, addUnit, recomputeOrder };
 })(globalThis.GF = globalThis.GF || {});

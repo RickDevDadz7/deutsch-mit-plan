@@ -119,7 +119,9 @@
   }
   /** Mescla o pacote de outro aparelho no estado local. Retorna o que mudou. */
   function mergeRemote(state, remote, remoteDevice) {
-    const t = { profile: false, cards: [], mistakes: [], assess: [], ext: false };
+    const t = { profile: false, cards: [], mistakes: [], assess: [], ext: false, gen: [] };
+    state.gen = state.gen || {};
+    for (const g of remote.gen || []) { if (!state.gen[g.id] && g.itemsData) { state.gen[g.id] = clone(g); t.gen.push(g.id); } } // a unidade já existente aqui nunca é trocada (o progresso aponta para os itens dela)
     const p = mergeProfile(state.profile, remote.profile); if (p.changed) { state.profile = p.v; t.profile = true; }
     for (const rc of remote.cards || []) { const r = mergeCard(state.cards[rc.id], rc); if (r.changed) { state.cards[rc.id] = r.v; t.cards.push(rc.id); } }
     for (const rm of remote.mistakes || []) { const r = mergeMistake(state.mistakes[rm.key], rm); if (r.changed) { state.mistakes[rm.key] = r.v; t.mistakes.push(rm.key); } }
@@ -174,7 +176,7 @@
       if (!keyCache || keyCache.salt !== meta.salt || keyCache.pass !== c.pass) keyCache = { salt: meta.salt, pass: c.pass, key: await deriveKey(c.pass, meta.salt) };
       const key = keyCache.key;
       const st = store.state; const devices = [];
-      const touched = { profile: false, cards: [], mistakes: [], assess: [], ext: [] };
+      const touched = { profile: false, cards: [], mistakes: [], assess: [], ext: [], gen: [] };
       for (const [name, f] of Object.entries(gist.files)) {
         const m = /^device-(.+)\.enc$/.exec(name); if (!m) continue;
         const wrap = JSON.parse(await fileContent(f));
@@ -183,7 +185,7 @@
         const data = await decrypt(key, wrap.box);
         const t = mergeRemote(st, data, { id: wrap.deviceId, name: wrap.name, at: wrap.at });
         if (t.profile) touched.profile = true;
-        touched.cards.push(...t.cards); touched.mistakes.push(...t.mistakes); touched.assess.push(...t.assess); if (t.ext) touched.ext.push(wrap.deviceId);
+        touched.gen.push(...t.gen); touched.cards.push(...t.cards); touched.mistakes.push(...t.mistakes); touched.assess.push(...t.assess); if (t.ext) touched.ext.push(wrap.deviceId);
       }
       // grava localmente o que veio dos outros
       const ps = [];
@@ -192,16 +194,17 @@
       for (const k of new Set(touched.mistakes)) ps.push(store.saveMistake(k));
       for (const a of touched.assess) ps.push(store.saveAssess(a));
       for (const d of touched.ext) ps.push(store.saveExt(d));
+      for (const g of new Set(touched.gen)) { ps.push(store.saveGen(g)); if (GF.content && GF.content.addUnit) GF.content.addUnit(clone(st.gen[g])); }
       await Promise.allSettled(ps);
       // envia o meu pacote (já mesclado; dias só os meus)
-      const mine = { profile: st.profile, cards: Object.values(st.cards), mistakes: Object.values(st.mistakes), assess: st.assess, days: st.days };
+      const mine = { profile: st.profile, cards: Object.values(st.cards), mistakes: Object.values(st.mistakes), assess: st.assess, days: st.days, gen: Object.values(st.gen || {}) };
       const box = await encrypt(key, mine);
       const fname = 'device-' + me + '.enc';
       const name = c.name || 'Aparelho';
       await gh(c.token, '/gists/' + gist.id, { method: 'PATCH', body: JSON.stringify({ files: { [fname]: { content: JSON.stringify({ v: 1, deviceId: me, name, at: now, box }) } } }) });
       if (!devices.some((d) => d.me)) devices.push({ id: me, name, at: now, me: true }); else devices.find((d) => d.me).at = now;
       const c2 = cfg(); c2.lastSync = now; c2.lastError = null; c2.devices = devices; saveCfg(c2);
-      return { merged: touched.cards.length + touched.mistakes.length + (touched.profile ? 1 : 0) + touched.ext.length, devices };
+      return { merged: touched.cards.length + touched.mistakes.length + (touched.profile ? 1 : 0) + touched.ext.length + touched.gen.length, devices };
     })();
     try { return await running; }
     catch (e) { const c2 = cfg(); c2.lastError = e.message; saveCfg(c2); throw e; }
