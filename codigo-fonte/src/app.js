@@ -227,7 +227,7 @@
     const nav = $('nav.tabs'); if (nav) nav.classList.add('hide');
     const D = { name: 'Rick', prior: 'zero', minutes: 20, days: [1, 2, 3, 4, 5], goals: [], pref: 'equilibrado', focus: 20 };
     const chips = (key, opts, multi) => `<div class="chips" data-k="${key}">${opts.map(([v, l]) => `<button class="chip" data-v="${v}">${l}</button>`).join('')}</div>`;
-    app().innerHTML = `<header class="top"><div class="brand">Deutsch mit Plan<small>Diagnóstico inicial · ~2 min</small></div></header>
+    app().innerHTML = `<header class="top"><div class="brand">Deutsch mit Plan<small>Diagnóstico inicial · ~2 min</small></div></header>${installCardHtml()}
     <div class="card"><h2>Vamos configurar seu professor</h2><p class="mut small">Só o necessário para montar o plano. Tudo pode ser mudado depois. Seu progresso fica salvo num banco de dados seu, independente da IA usada.</p>
     <h3>Como quer ser chamado?</h3><input type="text" id="o-name" value="${esc(D.name)}">
     <h3>Seu contato com alemão até hoje</h3>${chips('prior', [['zero', 'Nunca estudei'], ['words', 'Sei algumas palavras'], ['some', 'Já estudei um pouco']])}
@@ -242,7 +242,7 @@
       const b = e.target.closest('.chip'); if (!b) return; const k = c.dataset.k; const v = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v;
       if (Array.isArray(D[k])) D[k] = D[k].includes(v) ? D[k].filter((x) => x !== v) : D[k].concat(v); else D[k] = v; sync();
     }));
-    sync();
+    sync(); bindInstall();
     $('#o-go').onclick = () => {
       D.name = $('#o-name').value.trim() || 'Aluno';
       if (!D.days.length) return toast('Escolha ao menos um dia.');
