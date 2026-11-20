@@ -39,12 +39,19 @@
     if (pose === 'auto') return `<div class="fritz fz-auto fz-shadow" style="width:${w}px;height:${h}px" aria-hidden="true">${['dienst', 'wartet', 'prueft', 'freut'].map((n, i) => `<img src="${F[n]}" class="fa${i}" alt="">`).join('')}</div>`;
     return `<div class="fritz fz-${pose} fz-shadow" style="width:${w}px;height:${h}px" aria-hidden="true"><img src="${F[pose] || F.dienst}" alt=""></div>`;
   }
+  function bindPaperSound() {
+    document.addEventListener('click', (e) => {
+      const b = e.target.closest('.btn.pri'); if (!b || !S.session || !GF.sfx) return;
+      if (/next|go|ok|start/i.test(b.id || '') && !/ok$/i.test(b.id || '')) GF.sfx.play('paper');
+    }, true);
+  }
   function watchFeedback() {
     const F = window.GF_FRITZ || {}; if (!F.freut || !window.MutationObserver) return;
     new MutationObserver(() => {
       if (!S.session) return;
       document.querySelectorAll('.fb.ok:not([data-fz]),.fb.bad:not([data-fz])').forEach((el) => {
         el.dataset.fz = '1'; const ok = el.classList.contains('ok');
+        if (GF.sfx) GF.sfx.play(ok ? 'stamp' : 'reject');
         const img = document.createElement('img'); img.className = 'fritz-react'; img.alt = ''; img.src = ok ? F.freut : F.enttaeuscht; el.appendChild(img);
         if (!ok) { const c = el.closest('.card') || el; c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }
       });
@@ -223,7 +230,7 @@
     }
     for (const g of Object.values(S.st.gen || {})) C.addUnit(JSON.parse(JSON.stringify(g)));
     if (S.st.integrity.dropped) log('warn', S.st.integrity.dropped + ' registros inválidos ignorados na carga');
-    watchFeedback();
+    watchFeedback(); bindPaperSound(); if (GF.sfx) GF.sfx.bind();
     window.addEventListener('hashchange', route);
     if (!S.st.profile.diag) return renderOnboarding();
     // adaptação + backup automático ao abrir
@@ -574,7 +581,7 @@
       stamps: quit ? [{ cls: 'rect no', x: 4, y: 30, r: -8, html: 'UNTERBROCHEN' }] : [{ cls: 'round', x: 2, y: 6, r: -8, html: '<small>SITZUNG</small>' + String(p.sessions || 0).padStart(3, '0') + '<small>' + new Date().toLocaleDateString('de-DE') + '</small>' }, { cls: 'rect ok', x: 40, y: 34, r: 6, html: 'ERLEDIGT' }],
       fritz: quit ? 'wartet' : acc != null && acc < 0.6 ? 'prueft' : 'freut', note: 'As revisões já foram reprogramadas pelo FSRS. A próxima aula será montada a partir do que aconteceu hoje.' })}
     <button class="btn pri big" id="e-home">Voltar ao início</button>`;
-    renderSaveState();
+    renderSaveState(); if (GF.sfx) setTimeout(() => GF.sfx.play(quit ? 'stamp' : 'done'), 250);
     $('#e-home').onclick = () => { location.hash = '#hoje'; route(); };
   }
   function tally(ok) { if (S.session) { S.session.results.n++; if (ok) S.session.results.ok++; } }
@@ -1095,6 +1102,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
         ${Object.entries(bySkill).map(([sk, v]) => `<div class="bar"><span>${esc(M.SKILL_PT[sk])}</span><div class="prog"><i style="width:${v * 100}%;${v < 0.7 ? 'background:var(--bad)' : ''}"></i></div><b>${pct(v)}</b></div>`).join('')}
         ${!listen.length ? '<p class="small mut">Audição não avaliada (sem voz alemã neste aparelho). Refaça num aparelho com áudio para uma avaliação completa.</p>' : ''}
         <p class="small mut">${pass ? 'A próxima unidade foi liberada. As revisões desta continuam.' : 'O próximo plano vai reforçar as habilidades abaixo de 70%. Tente de novo depois de algumas sessões.'}</p></div><button class="btn pri big" id="c-next">Continuar</button>`;
+      if (GF.sfx) setTimeout(() => GF.sfx.play(pass ? 'approve' : 'reject'), 250);
       $('#c-next').onclick = done;
     };
     one();
@@ -1211,12 +1219,19 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
       <h3>Retenção-alvo do FSRS: <span id="s-rv">${Math.round(p.settings.desiredR * 100)}%</span></h3><input type="range" id="s-r" min="80" max="95" value="${Math.round(p.settings.desiredR * 100)}" style="width:100%"><p class="tiny mut">Mais alta = mais revisões e menos esquecimento. 90% é o padrão recomendado.</p>
       <h3>Itens novos por dia: <span id="s-nv">${p.settings.newPerDay}</span></h3><input type="range" id="s-n" min="3" max="20" value="${p.settings.newPerDay}" style="width:100%"><p class="tiny mut">O sistema continua ajustando isto pela sua retenção.</p>
       <h3>Velocidade da voz: <span id="s-tv">${p.settings.ttsRate}</span></h3><input type="range" id="s-t" min="60" max="110" value="${Math.round(p.settings.ttsRate * 100)}" style="width:100%">
+      <h3>Efeitos sonoros</h3><div class="chips" id="s-fx">${[['on', 'Carimbos e papel'], ['type', 'Máquina de escrever']].map(([k, l]) => `<button class="chip ${GF.sfx && GF.sfx.cfg()[k] ? 'on' : ''}" data-fx="${k}">${l}</button>`).join('')}</div>
+      <h3>Volume dos efeitos: <span id="s-fxv">${Math.round((GF.sfx ? GF.sfx.cfg().vol : 0.6) * 100)}%</span></h3><input type="range" id="s-fxr" min="0" max="100" value="${Math.round((GF.sfx ? GF.sfx.cfg().vol : 0.6) * 100)}" style="width:100%"><p class="tiny mut">Vale só para este aparelho. A voz em alemão não é afetada.</p>
       <h3>Tempo por dia</h3><div class="chips" id="s-min">${[10, 20, 30, 45].map((m) => `<button class="chip ${p.diag.minutes === m ? 'on' : ''}" data-m="${m}">${m} min</button>`).join('')}</div>
       ${!window.claude ? `<h3>Professor com IA (opcional)</h3><p class="small mut">Fora do Claude.ai, a conversa livre e a correção de textos usam a API da Anthropic com <b>sua</b> chave (cobrança por uso, separada da assinatura do Claude). Crie em console.anthropic.com → API Keys. A chave fica só neste aparelho e nunca entra nos backups. Sem chave, a conversa usa o modo roteirizado.</p>
         <input type="text" id="s-key" placeholder="sk-ant-..." value="${esc(GF.local.aiSettings().key ? '••••••••' + GF.local.aiSettings().key.slice(-4) : '')}" autocomplete="off" spellcheck="false">
         <div class="chips" id="s-model" style="margin-top:8px">${[['claude-sonnet-5-5', 'Sonnet (melhor correção)'], ['claude-haiku-5-5', 'Haiku (mais barato)']].map(([m, l]) => `<button class="chip ${(GF.local.aiSettings().model || 'claude-sonnet-5-5') === m ? 'on' : ''}" data-mod="${m}">${l}</button>`).join('')}</div>
         <div class="row" style="margin-top:8px"><button class="btn" id="s-ktest">Testar e salvar chave</button><button class="btn ghost" id="s-kdel">Remover chave</button></div>` : ''}
       <div style="height:12px"></div><button class="btn pri big" id="s-save">Salvar</button><button class="btn big" id="s-diag" style="margin-top:8px">Refazer diagnóstico (mantém o histórico)</button></div>`);
+    if (GF.sfx) {
+      $('#s-fx').onclick = (e) => { const b = e.target.closest('[data-fx]'); if (!b) return; const c = GF.sfx.cfg(); c[b.dataset.fx] = !c[b.dataset.fx]; GF.sfx.save(c); b.classList.toggle('on', c[b.dataset.fx]); GF.sfx.play(b.dataset.fx === 'type' ? 'key' : 'stamp'); };
+      $('#s-fxr').oninput = (e) => { $('#s-fxv').textContent = e.target.value + '%'; const c = GF.sfx.cfg(); c.vol = e.target.value / 100; GF.sfx.save(c); };
+      $('#s-fxr').onchange = () => GF.sfx.play('stamp');
+    }
     $('#s-r').oninput = (e) => $('#s-rv').textContent = e.target.value + '%';
     $('#s-n').oninput = (e) => $('#s-nv').textContent = e.target.value;
     $('#s-t').oninput = (e) => $('#s-tv').textContent = (e.target.value / 100).toFixed(2);
