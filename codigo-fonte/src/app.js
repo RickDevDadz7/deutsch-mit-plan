@@ -54,6 +54,7 @@
       raf = 0;
       const nav = $('nav.tabs'); const focus = !nav || nav.classList.contains('hide');
       document.body.classList.toggle('focus', focus);
+      const fab = $('#rep-fab'); if (fab) fab.classList.toggle('hide', !(focus && S.solo && !$('#s-quit')));
       $$('#app > .card.fill').forEach((c) => { c.classList.remove('fill'); c.style.minHeight = ''; });
       if (focus) {
         const cards = $$('#app > .card'); const last = cards[cards.length - 1];
@@ -70,6 +71,83 @@
       queue();
     }).observe(root, { childList: true, subtree: true });
     window.addEventListener('resize', queue);
+  }
+  /* ---------------- Reportar problema ----------------
+   * Cada reporte guarda o que estava na tela (etapa, unidade, texto visível) para a correção ser exata.
+   * Fica salvo no aparelho, entra no backup e na sincronização; pode ser copiado ou aberto como issue no GitHub. */
+  const REP_CATS = [['de', 'Erro no alemão'], ['pt', 'Tradução ou explicação'], ['audio', 'Áudio ou pronúncia'], ['grade', 'Correção injusta'], ['bug', 'Bug ou tela quebrada'], ['idea', 'Sugestão'], ['other', 'Outro']];
+  const repCat = (k) => (REP_CATS.find((c) => c[0] === k) || [k, k])[1];
+  function initReports() {
+    if (!$('#rep-fab')) { const b = document.createElement('button'); b.id = 'rep-fab'; b.className = 'btn rep-fab hide'; b.setAttribute('data-report', ''); b.setAttribute('aria-label', 'Reportar problema nesta tela'); b.textContent = '⚑'; document.body.appendChild(b); }
+    document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-report]'); if (!b) return; e.preventDefault(); openReport(b.dataset.report ? { general: true } : null); });
+  }
+  function screenContext() {
+    const s = S.session; const step = s && s.plan.steps[s.i];
+    const text = $$('#app .card, #app .fb').map((el) => el.innerText.replace(/\s+\n/g, '\n').replace(/[ \t]+/g, ' ').trim()).join('\n---\n').slice(0, 900);
+    return { screen: s ? 'aula' : S.solo ? 'treino' : hashId(), step: step ? JSON.stringify(step).slice(0, 300) : null, unit: (s && s.plan.unit) || S.st.profile.unit || null, text, content: C.version, ua: (navigator.userAgent.match(/(Android|iPhone|Windows|Mac OS X|Linux)[^;)]*/) || [''])[0] };
+  }
+  function openReport(opt) {
+    const old = $('#rep-modal'); if (old) old.remove();
+    const general = opt && opt.general; const ctx = general ? null : screenContext();
+    const m = document.createElement('div'); m.id = 'rep-modal'; m.className = 'rep-modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-labelledby', 'rep-t');
+    m.innerHTML = `<div class="card"><div class="step-k">Formular M-1 · Mängelbericht</div><h2 id="rep-t">Reportar problema</h2>
+      <p class="small mut">${general ? 'Descreva o problema ou a sugestão.' : 'O que estava na tela vai junto, para eu achar e corrigir exatamente esse ponto.'}</p>
+      <div class="chips" id="rep-cat">${REP_CATS.map(([k, l]) => `<button class="chip" data-c="${k}">${l}</button>`).join('')}</div>
+      <label class="small" for="rep-txt" style="display:block;margin:12px 0 4px">O que aconteceu? <span class="mut">(o que esperava, o que apareceu)</span></label>
+      <textarea id="rep-txt" placeholder="Ex.: a resposta certa é 'die Tür', mas o app disse 'der Tür'."></textarea>
+      ${ctx ? `<details><summary class="small">Ver o que vai junto</summary><pre class="tiny rep-ctx">${esc(ctx.text || '(tela sem texto)')}</pre></details>` : ''}
+      <div class="row" style="margin-top:12px"><button class="btn" id="rep-cancel">Cancelar</button><button class="btn pri grow" id="rep-send" disabled>Enviar reporte</button></div></div>`;
+    document.body.appendChild(m);
+    let cat = null; const send = $('#rep-send'); const txt = $('#rep-txt');
+    const upd = () => { send.disabled = !cat || (cat === 'other' || cat === 'idea' || general ? !txt.value.trim() : false); };
+    $('#rep-cat').onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; cat = b.dataset.c; $$('#rep-cat .chip').forEach((c) => c.classList.toggle('on', c === b)); upd(); };
+    txt.oninput = upd;
+    const close = () => m.remove();
+    $('#rep-cancel').onclick = close; m.onclick = (e) => { if (e.target === m) close(); };
+    m.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    send.onclick = async () => {
+      const t = now(); const id = 'r' + t.toString(36) + Math.random().toString(36).slice(2, 6);
+      S.st.reports = S.st.reports || {};
+      S.st.reports[id] = { id, at: t, upd: t, cat, text: txt.value.trim().slice(0, 2000), ctx, status: 'aberto', device: GF.sync && GF.sync.cfg().name || '' };
+      close(); await commit({ reports: [id] });
+      if (GF.sfx) GF.sfx.play('stamp');
+      toast('Reporte registrado. Obrigado! Veja em Mais → Problemas reportados.', 3500);
+      autoSync('reporte');
+      if (hashId() === 'problemas' && !S.session && !S.solo) renderReports();
+    };
+    setTimeout(() => { const f = $('#rep-cat .chip'); if (f) f.focus(); }, 30);
+  }
+  function reportText(r) {
+    const d = new Date(r.at).toLocaleString('pt-BR');
+    let t = `[${repCat(r.cat)}] ${d}${r.status === 'resolvido' ? ' (resolvido)' : ''}\n${r.text || '(sem descrição)'}`;
+    if (r.ctx) t += `\nTela: ${r.ctx.screen}${r.ctx.unit ? ' · unidade ' + r.ctx.unit : ''}${r.ctx.step ? '\nEtapa: ' + r.ctx.step : ''}\nConteúdo: ${r.ctx.content} · ${r.ctx.ua}\nNa tela:\n${r.ctx.text}`;
+    return t;
+  }
+  function renderReports() {
+    const all = Object.values(S.st.reports || {}).filter((r) => !r.deleted).sort((a, b) => b.at - a.at);
+    const open = all.filter((r) => r.status !== 'resolvido');
+    shell('mais', `<div class="card"><h2>Problemas reportados</h2>
+      <p class="small">Durante a aula, toque em <b>⚑ Reportar</b> no topo (nos treinos avulsos, no botão ⚑ do canto). O que estava na tela vai junto.</p>
+      <p class="small mut">Para eu corrigir, toque em <b>Copiar em aberto</b> e cole aqui no chat do Claude. Ou abra como issue no GitHub.</p>
+      <div class="row"><button class="btn pri" data-report="geral">⚑ Novo reporte</button><button class="btn" id="rp-copy" ${open.length ? '' : 'disabled'}>Copiar em aberto (${open.length})</button><button class="btn" id="rp-dl" ${all.length ? '' : 'disabled'}>Baixar (.json)</button></div></div>
+      ${all.length ? all.map((r) => `<div class="card rep-item ${r.status === 'resolvido' ? 'lock' : ''}"><div class="row sp"><span class="pill ${r.status === 'resolvido' ? 'ok' : 'warn'}">${r.status === 'resolvido' ? 'erledigt' : 'offen'}</span><span class="tiny mut">${new Date(r.at).toLocaleString('pt-BR')}</span></div>
+        <h3 style="margin-top:8px">${esc(repCat(r.cat))}</h3><p class="small" style="white-space:pre-wrap">${esc(r.text || '(sem descrição)')}</p>
+        ${r.ctx ? `<details><summary class="small">Contexto: ${esc(r.ctx.screen)}${r.ctx.unit ? ' · ' + esc(r.ctx.unit) : ''}</summary><pre class="tiny rep-ctx">${esc(r.ctx.text || '')}</pre></details>` : ''}
+        <div class="row" style="margin-top:8px"><button class="btn" data-rs="${r.id}">${r.status === 'resolvido' ? 'Reabrir' : 'Marcar resolvido'}</button><a class="btn" target="_blank" rel="noopener" data-gh="${r.id}" href="${ghIssueUrl(r)}">Abrir no GitHub</a><button class="btn ghost" data-rd="${r.id}">Apagar</button></div></div>`).join('') : '<div class="card"><p class="mut">Nenhum problema reportado ainda.</p></div>'}`);
+    $$('[data-rs]').forEach((b) => b.onclick = async () => { const r = S.st.reports[b.dataset.rs]; r.status = r.status === 'resolvido' ? 'aberto' : 'resolvido'; r.upd = now(); await commit({ reports: [r.id] }); renderReports(); });
+    $$('[data-rd]').forEach((b) => b.onclick = async () => { const r = S.st.reports[b.dataset.rd]; if (!confirm('Apagar este reporte?')) return; r.status = 'resolvido'; r.deleted = true; r.upd = now(); await commit({ reports: [r.id] }); renderReports(); });
+    const c = $('#rp-copy'); if (c) c.onclick = async () => {
+      const txt = 'Problemas reportados no Deutsch mit Plan (' + open.length + '):\n\n' + open.slice().reverse().map(reportText).join('\n\n==========\n\n');
+      try { await navigator.clipboard.writeText(txt); toast('Copiado. Cole no chat do Claude.'); } catch (e) { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('Copiado.'); } catch (e2) { toast('Não deu para copiar neste aparelho; use Baixar.'); } ta.remove(); }
+    };
+    const d = $('#rp-dl'); if (d) d.onclick = async () => {
+      const data = JSON.stringify({ app: 'deutsch-mit-plan', kind: 'reports', exportedAt: now(), reports: all }, null, 2); const name = 'deutsch-mit-plan-reportes-' + M.dayKey(now()) + '.json';
+      try { if (S.caps.downloads) await S.caps.downloads.save({ filename: name, data }); else throw 0; toast('Arquivo salvo.'); } catch (e) { toast('Não foi possível salvar o arquivo aqui.'); }
+    };
+  }
+  function ghIssueUrl(r) {
+    const body = reportText(r).slice(0, 5500);
+    return 'https://github.com/RickDevDadz7/deutsch-mit-plan/issues/new?title=' + encodeURIComponent('[' + repCat(r.cat) + '] ' + (r.text || '').split('\n')[0].slice(0, 70)) + '&body=' + encodeURIComponent(body + '\n\n_Enviado pelo botão Reportar do app._') + '&labels=reporte';
   }
   function watchFeedback() {
     const F = window.GF_FRITZ || {}; if (!F.freut || !window.MutationObserver) return;
@@ -256,7 +334,7 @@
     }
     for (const g of Object.values(S.st.gen || {})) C.addUnit(JSON.parse(JSON.stringify(g)));
     if (S.st.integrity.dropped) log('warn', S.st.integrity.dropped + ' registros inválidos ignorados na carga');
-    watchFeedback(); watchLayout(); bindPaperSound(); if (GF.sfx) GF.sfx.bind();
+    initReports(); watchFeedback(); watchLayout(); bindPaperSound(); if (GF.sfx) GF.sfx.bind();
     try { history.replaceState({ depth: 0 }, '', location.href); } catch (e) { /* */ }
     window.addEventListener('popstate', onPop);
     document.addEventListener('click', onLinkClick);
@@ -454,7 +532,7 @@
   function route() {
     if (S.session) return; // durante a aula não troca de tela
     const h = hashId();
-    const r = { sync: renderSync, hoje: renderHome, praticar: renderPractice, progresso: renderProgress, curriculo: renderCurriculum, mais: renderMore, calendario: renderCalendar, metodo: renderMethod, dados: renderData, vocabulario: renderVocab, ajustes: renderSettings }[h] || renderHome;
+    const r = { sync: renderSync, hoje: renderHome, praticar: renderPractice, progresso: renderProgress, curriculo: renderCurriculum, mais: renderMore, calendario: renderCalendar, metodo: renderMethod, dados: renderData, vocabulario: renderVocab, ajustes: renderSettings, problemas: renderReports }[h] || renderHome;
     r();
   }
 
@@ -601,7 +679,7 @@
   }
   function sessionHeader(kind) {
     const s = S.session; const n = s.plan.steps.length;
-    return `<header class="top"><button class="btn ghost" id="s-quit" style="padding-left:0">✕ Sair</button><span id="savestate" class="pill"></span></header>
+    return `<header class="top"><button class="btn ghost" id="s-quit" style="padding-left:0">✕ Sair</button><span class="row" style="gap:6px;flex-wrap:nowrap"><button class="btn ghost rep-btn" data-report aria-label="Reportar problema nesta tela">⚑ Reportar</button><span id="savestate" class="pill"></span></span></header>
     <div class="prog" style="margin-bottom:14px"><i style="width:${Math.round(100 * s.i / n)}%"></i></div><div class="step-k" style="margin-bottom:8px">${KIND_PT[kind] || ''} · ${s.i + 1}/${n}</div>`;
   }
   function bindQuit() { const q = $('#s-quit'); if (q) q.onclick = () => endSession(true); renderSaveState(); }
@@ -1240,6 +1318,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
       <a class="btn big" href="#metodo" style="display:block;text-align:left;margin-bottom:8px">🔬 Método, evidências e referências</a>
       <a class="btn big" href="#dados" style="display:block;text-align:left;margin-bottom:8px">💾 Dados, backup e restauração</a>
       <a class="btn big" href="#sync" style="display:block;text-align:left;margin-bottom:8px">🔄 Sincronizar entre aparelhos${syncBadge()}</a>
+      <a class="btn big" href="#problemas" style="display:block;text-align:left;margin-bottom:8px">⚑ Problemas reportados${(() => { const n = Object.values(S.st.reports || {}).filter((r) => !r.deleted && r.status !== 'resolvido').length; return n ? ` <span class="pill warn">${n} em aberto</span>` : ''; })()}</a>
       <a class="btn big" href="#ajustes" style="display:block;text-align:left">⚙️ Ajustes</a></div>
       <div class="card small"><b>O que funciona aqui</b><ul class="list">
         <li>Armazenamento: ${{ db: '✅ banco na nuvem do Claude (privado)', native: '✅ arquivo no seu PC, com cópias automáticas', device: '✅ neste aparelho (exporte backups de vez em quando)', local: '⚠️ banco indisponível — usando o navegador (pode ser perdido)' }[S.mode]}</li>

@@ -131,3 +131,9 @@ body.focus #app{padding-bottom:calc(18px + env(safe-area-inset-bottom))}
 .card.fill{display:flex;flex-direction:column}.card.fill>*{flex:none}
 .card.fill>:last-child:is(.btn.pri,.row:has(> .btn.pri),div:has(> .btn.pri)){margin-top:auto;padding-top:12px}
 #app{overflow-x:clip}
+.rep-btn{font-size:13px;padding:6px 8px;min-height:36px;color:#e6dcc4}
+.rep-fab{position:fixed;top:calc(10px + env(safe-area-inset-top));right:12px;z-index:30;width:44px;height:44px;padding:0;border-radius:50%;background:#ece4cb;color:#b8322a;border:2px solid #1a1712;box-shadow:2px 2px 0 #1a1712;font-size:18px}
+.rep-modal{position:fixed;inset:0;z-index:60;background:rgba(15,13,10,.72);display:flex;align-items:flex-end;justify-content:center;padding:12px;overflow:auto}
+.rep-modal .card{width:100%;max-width:560px;margin:0;animation:slidein .3s cubic-bezier(.2,.8,.25,1) both;max-height:calc(100dvh - 24px);overflow:auto}
+@media (min-width:700px){.rep-modal{align-items:center}}
+.rep-ctx{white-space:pre-wrap;background:rgba(0,0,0,.05);padding:8px;border-radius:2px;max-height:180px;overflow:auto;font-family:var(--type)}

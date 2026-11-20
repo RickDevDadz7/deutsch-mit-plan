@@ -58,3 +58,14 @@ test('Avaliações são unidas por id; erros recorrentes mantêm a maior contage
   sync.mergeRemote(A, { profile: A.profile, cards: [], mistakes: [{ key: 'k', count: 4, lastAt: T0, fixed: 0, msg: 'x', given: [] }], assess: [{ id: 'cp1', at: T0 }, { id: 'cp2', at: T0 + 1 }], days: {} }, { id: 'dB', name: 'PC', at: T0 });
   assert.strictEqual(A.assess.length, 2); assert.strictEqual(A.mistakes.k.count, 4);
 });
+
+test('reportes: união entre aparelhos, a versão mais recente vence', () => {
+  const st = { profile: null, cards: {}, mistakes: {}, assess: [], ext: {}, gen: {}, reports: { r1: { id: 'r1', at: 1, upd: 1, status: 'aberto' } } };
+  const remote = { reports: [{ id: 'r1', at: 1, upd: 5, status: 'resolvido' }, { id: 'r2', at: 3, upd: 3, status: 'aberto' }], cards: [], mistakes: [], assess: [], days: {} };
+  const t = GF.sync.mergeRemote(st, remote, { id: 'dev2', name: 'PC', at: 9 });
+  assert.equal(st.reports.r1.status, 'resolvido');
+  assert.ok(st.reports.r2);
+  assert.deepEqual(t.reports.sort(), ['r1', 'r2']);
+  const again = GF.sync.mergeRemote(st, remote, { id: 'dev2', name: 'PC', at: 9 });
+  assert.equal(again.reports.length, 0);
+});
