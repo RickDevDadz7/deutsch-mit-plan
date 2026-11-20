@@ -14,9 +14,9 @@ fs.writeFileSync('dist/index.html', page('', ''));
 fs.mkdirSync('pwa', { recursive: true });
 fs.writeFileSync('pwa/index.html', page(`
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#1f4fd1">
-<link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes">`,
-`<script>if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js');</script>`));
-fs.writeFileSync('pwa/manifest.webmanifest', JSON.stringify({ name: 'Deutsch mit Plan', short_name: 'Deutsch', description: 'Professor de alemão A0–C2', start_url: './', scope: './', display: 'standalone', background_color: '#121214', theme_color: '#1f4fd1', lang: 'pt-BR', icons: [192, 512].map((n) => ({ src: `icon-${n}.png`, sizes: `${n}x${n}`, type: 'image/png', purpose: 'any maskable' })) }, null, 1));
+<link rel="apple-touch-icon" href="icon-180.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Deutsch"><script>window.GF_PWA = true;</script>`,
+`<script>if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWorker.register('sw.js');</script>`));
+fs.writeFileSync('pwa/manifest.webmanifest', JSON.stringify({ name: 'Deutsch mit Plan', short_name: 'Deutsch', description: 'Professor de alemão A0–C2', start_url: './', scope: './', display: 'standalone', background_color: '#121214', theme_color: '#1f4fd1', lang: 'pt-BR', id: './', icons: [192, 512].flatMap((n) => [{ src: `icon-${n}.png`, sizes: `${n}x${n}`, type: 'image/png', purpose: 'any' }, { src: `icon-${n}.png`, sizes: `${n}x${n}`, type: 'image/png', purpose: 'maskable' }]) }, null, 1));
 fs.writeFileSync('pwa/sw.js', fs.readFileSync('pwa-sw.js', 'utf8').replace('__VERSION__', content + '-' + Date.now()));
 for (const n of [180, 192, 512]) fs.copyFileSync(`assets/icon-${n}.png`, `pwa/icon-${n}.png`);
 // 3) PC (Electron)

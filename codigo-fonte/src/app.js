@@ -13,7 +13,24 @@
   window.addEventListener('error', (e) => log('error', e.message));
   window.addEventListener('unhandledrejection', (e) => log('error', (e.reason && (e.reason.message || e.reason.code)) || 'promessa rejeitada'));
 
-  const S = { store: null, st: null, caps: {}, mode: 'loading', session: null, uid: null };
+  const S = { store: null, st: null, caps: {}, mode: 'loading', session: null, uid: null, installEvt: null };
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); S.installEvt = e; const c = document.getElementById('install-card'); if (c) c.outerHTML = installCardHtml(); bindInstall(); });
+  window.addEventListener('appinstalled', () => { S.installEvt = null; const c = document.getElementById('install-card'); if (c) c.remove(); toast('App instalado! Procure o ícone “Deutsch” na tela inicial.'); });
+  const isStandalone = () => { try { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } };
+  function installCardHtml() {
+    if (window.claude || (GF.local && GF.local.isElectron) || isStandalone() || !window.GF_PWA) return '';
+    const ua = navigator.userAgent, ios = /iPhone|iPad/i.test(ua), inApp = /; wv\)|FBAN|FBAV|Instagram|Line\/|Claude/i.test(ua);
+    let how;
+    if (S.installEvt) how = '<button class="btn pri big" id="inst-go">📲 Instalar o app</button>';
+    else if (ios) how = '<p class="small">No iPhone: abra este endereço no <b>Safari</b> → toque em <b>Compartilhar</b> (□↑) → <b>Adicionar à Tela de Início</b>.</p>';
+    else how = `<p class="small">${inApp ? 'Você está num navegador interno (de outro app), que não instala apps. ' : ''}Abra este endereço no <b>Google Chrome</b>: toque em ⋮ (canto superior) → <b>Abrir no Chrome</b> e depois ⋮ → <b>Instalar app</b> (ou “Adicionar à tela inicial”).</p>
+      <div class="row"><input type="text" readonly value="${esc(location.href.split('#')[0])}" id="inst-url" class="grow" style="flex:1;width:auto;font-size:14px"><button class="btn" id="inst-copy">Copiar</button></div>`;
+    return `<div class="card" id="install-card"><div class="step-k">Instalar no aparelho</div>${how}</div>`;
+  }
+  function bindInstall() {
+    const b = document.getElementById('inst-go'); if (b) b.onclick = async () => { const e = S.installEvt; if (!e) return; e.prompt(); try { await e.userChoice; } catch (er) { /* */ } S.installEvt = null; };
+    const c = document.getElementById('inst-copy'); if (c) c.onclick = async () => { try { await navigator.clipboard.writeText(document.getElementById('inst-url').value); toast('Endereço copiado. Cole no Chrome.'); } catch (er) { document.getElementById('inst-url').select(); } };
+  }
   const app = () => $('#app');
 
   function toast(msg, ms) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), ms || 2600); }
@@ -301,7 +318,7 @@
     if (stats.forgetting.length) obs.push(`${stats.forgetting.length} itens estão sendo esquecidos (probabilidade de lembrar < 70%): eles vêm primeiro.`);
     if (stats.topMistakes.length) obs.push(`Erro mais recorrente: ${esc(stats.topMistakes[0].msg)} (${stats.topMistakes[0].count}×).`);
     const lastAd = (p.adapt || []).slice(-1)[0]; if (lastAd && t - lastAd.t < 3 * 86400000 && lastAd.from != null) obs.push(`Ajuste recente: itens novos/dia ${lastAd.from} → ${lastAd.to} (${esc(lastAd.why)}).`);
-    shell('hoje', `
+    shell('hoje', `${installCardHtml()}
     <div class="card">
       <div class="row sp"><div><div class="step-k">${plannedToday ? 'Aula de hoje' : 'Hoje não é dia planejado — sessão opcional'}</div><h2 style="margin-top:2px">${unit ? esc(unit.title) : 'Revisões'}</h2><div class="mut small">${unit ? esc(unit.subtitle) + ' · ' + uid : ''}</div></div></div>
       <div class="chips" id="h-min" style="margin:12px 0">${[5, 15, 30, 45].map((m) => `<button class="chip ${m === minutes ? 'on' : ''}" data-m="${m}">${m} min</button>`).join('')}</div>
@@ -317,6 +334,7 @@
       <div class="kpi"><b>${(stats.minutes / 60).toFixed(1)} h</b><span>de estudo no total</span></div>
     </div></div>
     ${us ? `<div class="card"><div class="step-k">Para concluir ${uid}</div>${unitChecklist(us)}</div>` : ''}`);
+    bindInstall();
     $('#h-min').onclick = (e) => { const b = e.target.closest('[data-m]'); if (!b) return; S.homeMinutes = +b.dataset.m; renderHome(); };
     $('#h-start').onclick = () => startSession(plan);
   }
