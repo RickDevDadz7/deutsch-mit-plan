@@ -141,3 +141,22 @@ input[type=password]{width:100%;border:none;border-bottom:2px solid var(--ink);b
 input[type=password]:focus{background:rgba(255,255,255,.7);box-shadow:inset 0 -2px 0 var(--red)}
 .btn.google-btn{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#1f1f1f;border:1.5px solid #8a7e62;text-transform:none;letter-spacing:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-weight:600;font-size:16px}
 .or-sep{display:flex;align-items:center;gap:10px;margin:14px 0 8px;color:var(--mut);font-size:12.5px}.or-sep::before,.or-sep::after{content:'';flex:1;border-top:1px dashed var(--line)}
+.auth{max-width:440px;margin:7vh auto 0}
+.auth-logo{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 22px;color:#ece4cb}
+.auth-logo img{width:64px;height:64px;border-radius:50%;box-shadow:0 0 0 3px #4a453a,0 10px 24px rgba(0,0,0,.45)}
+.auth-logo b{display:block;font-family:var(--head);font-weight:700;font-size:40px;letter-spacing:.08em;text-transform:uppercase;line-height:1}
+.auth-logo small{display:block;font-family:var(--type);color:#a89c80;font-size:13px;margin-top:4px}
+.auth-card{padding:18px 16px;border-left:4px solid var(--red)}
+.auth-card>*+*{margin-top:12px}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid #8a7e62;border-radius:3px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:12px 6px;font-family:var(--head);font-weight:700;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:#5f5645;cursor:pointer;min-height:46px}
+.seg button.on{background:var(--navy);color:#ece4cb}
+.auth-card input{border:1.5px solid #8a7e62!important;border-radius:3px;background:rgba(255,255,255,.5)!important;padding:14px!important;font-size:17px!important}
+.auth-card input:focus{border-color:var(--navy)!important}
+.pw-wrap{position:relative}.pw-wrap input{padding-right:52px!important}
+.pw-wrap button{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;background:none;color:#5f5645;cursor:pointer}
+.auth-card .or-sep{margin:14px 0 2px}
+.auth-msg{min-height:0!important;padding-right:14px!important;margin:12px 0 0}.auth-msg::after{display:none}
+.auth-links{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+.link-btn{background:none;border:0;padding:8px;min-height:40px;color:var(--mut);font:inherit;font-size:15px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.auth-skip{display:block;margin:14px auto 0;color:#d9cfb6;font-size:15.5px}

@@ -76,7 +76,7 @@ try:
     res['linhas no servidor'] = len(DB['rows']); res['dados comprimidos'] = list(DB['rows'].values())[0]['data'][:2]
     sessions_A = A.evaluate("Object.keys(JSON.parse(localStorage.getItem('gfs-local-v1'))).filter(k=>k.startsWith('srs/')).length + ' cartas, diag=' + !!JSON.parse(localStorage.getItem('gfs-local-v1')).profile.diag")
     # Aparelho B: novo, entra pela tela inicial
-    B = device(); B.goto('http://localhost:8776/'); B.wait_for_selector('#ac-go'); res['boas-vindas abre em Criar conta'] = B.inner_text('.card h2 >> nth=1'); B.click('[data-ac-tab=in]')
+    B = device(); B.goto('http://localhost:8776/'); B.wait_for_selector('#ac-go'); res['boas-vindas abre em Entrar'] = B.inner_text('.seg .on')
     B.fill('#ac-email', 'rick@example.com'); B.fill('#ac-pass', 'senha-segura-1'); B.click('#ac-go'); B.wait_for_selector('#h-start', timeout=8000)
     res['B recebeu o progresso (sessões A/B)'] = [sessions_A, B.evaluate("Object.keys(JSON.parse(localStorage.getItem('gfs-local-v1'))).filter(k=>k.startsWith('srs/')).length + ' cartas, diag=' + !!JSON.parse(localStorage.getItem('gfs-local-v1')).profile.diag")]
     res['B foi para'] = where(B); res['linhas após B'] = len(DB['rows'])
@@ -104,7 +104,7 @@ try:
     res['sair: aparelho limpo'] = G.evaluate("(() => { const d = JSON.parse(localStorage.getItem('gfs-local-v1') || '{}'); return Object.keys(d).length; })()")
     res['sair: sem sessão e na tela inicial'] = [G.evaluate("localStorage.getItem('gfs-cloud')"), G.locator('#sy-back').count(), G.locator('.toast').all_inner_texts()]
     # Conta nova pela tela de boas-vindas: o nome digitado vai para o diagnóstico
-    J = device(); J.goto('http://localhost:8776/'); J.wait_for_selector('#ac-name2'); J.fill('#ac-name2', 'Joana'); J.fill('#ac-email', 'joana@example.com'); J.fill('#ac-pass', 'senha-joana-1'); J.click('#ac-go'); J.wait_for_timeout(600)
+    J = device(); J.goto('http://localhost:8776/'); J.click('[data-ac-tab=up]'); J.wait_for_selector('#ac-name2'); J.fill('#ac-name2', 'Joana'); J.fill('#ac-email', 'joana@example.com'); J.fill('#ac-pass', 'senha-joana-1'); J.click('#ac-go'); J.wait_for_timeout(600)
     DB['users']['joana@example.com']['ok'] = True
     J.fill('#ac-pass', 'senha-joana-1'); J.click('#ac-go'); J.wait_for_selector('#o-name', timeout=8000)
     res['Joana: nome da conta no diagnóstico'] = J.input_value('#o-name'); J.click('#o-go'); J.click('#f-go'); J.wait_for_selector('#h-start')

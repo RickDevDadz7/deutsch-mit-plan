@@ -476,37 +476,29 @@
           <button class="btn" id="ac-wipe">Apagar meus dados da nuvem</button><p class="tiny mut">Apaga o que está no servidor. O progresso deste aparelho continua aqui; se você sincronizar de novo, ele volta a ser enviado.</p></details></div>`;
       if (gistOn) html += `<div class="card"><h2>GitHub (modo antigo)</h2><p class="small">Agora que você está na conta, ela substitui a sincronização pelo GitHub. O que estava no GitHub já foi juntado ao entrar. Pode desligar com segurança.</p><button class="btn" id="sy-off">Desligar GitHub neste aparelho</button></div>`;
     } else {
-      const tab = S.acTab || (fresh ? 'up' : 'in');
-      html += `<div class="card"><div class="step-k">Formular K-1 · Kontoeröffnung</div><h2>${tab === 'up' ? 'Criar conta' : tab === 'rec' ? 'Recuperar senha' : 'Entrar na conta'}</h2>
-        <p class="small">Com uma conta gratuita seu progresso fica salvo na nuvem e aparece no celular e no PC ao mesmo tempo.</p>
-        <div class="chips" style="margin:6px 0 12px"><button class="chip ${tab === 'in' ? 'on' : ''}" data-ac-tab="in">Entrar</button><button class="chip ${tab === 'up' ? 'on' : ''}" data-ac-tab="up">Criar conta</button></div>
-        ${tab !== 'rec' && GF.cloud.googleAvailable() ? `<button class="btn big google-btn" id="ac-google" type="button"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C.9 16.6 0 20.2 0 24s.9 7.4 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg> Entrar com Google</button>
-        <div class="or-sep"><span>ou com e-mail</span></div>` : ''}
-        <label class="small" for="ac-email">E-mail</label><input type="text" id="ac-email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" value="${esc(S.acEmail || '')}" placeholder="voce@email.com">
-        ${tab === 'up' ? `<label class="small" for="ac-name2" style="display:block;margin-top:10px">Como quer ser chamado?</label><input type="text" id="ac-name2" autocomplete="given-name" value="${esc(S.acName || '')}" placeholder="Seu nome">` : ''}
-        ${tab === 'rec' ? '' : `<label class="small" for="ac-pass" style="display:block;margin-top:10px">Senha${tab === 'up' ? ' (mínimo 8 caracteres)' : ''}</label>${pw('ac-pass', 'senha', tab === 'up' ? 'new-password' : 'current-password')}`}
-        ${S.acMsg ? `<div class="fb ${S.acMsg.ok ? 'ok' : 'warn'}" style="min-height:0;padding-right:14px">${S.acMsg.html}</div>` : ''}
-        <div style="height:12px"></div><button class="btn pri big" id="ac-go">${tab === 'up' ? 'Criar conta' : tab === 'rec' ? 'Enviar link de nova senha' : 'Entrar'}</button>
-        <div class="row" style="margin-top:8px">${tab === 'rec' ? '<button class="btn ghost" data-ac-tab="in">← Voltar</button>' : '<button class="btn ghost" data-ac-tab="rec">Esqueci minha senha</button>'}${S.acConfirm ? '<button class="btn ghost" id="ac-resend">Reenviar e-mail de confirmação</button>' : ''}</div>
-        <p class="tiny mut">${GF.cloud.googleAvailable() ? 'Com o Google não precisa confirmar e-mail. ' : 'No programa de PC o login com Google não funciona (o Google bloqueia): use e-mail e senha. Se criou a conta pelo Google, defina uma senha no celular em Conta → Definir senha. '}Ao criar a conta com e-mail chega uma confirmação (veja também o spam); depois de confirmar, volte aqui e toque em Entrar.</p></div>`;
-      if (gistOn) html += `<div class="card"><h2>GitHub (modo antigo) ativo</h2><p class="small">Este aparelho ainda sincroniza pelo GitHub. Última vez: <b>${when(c.lastSync)}</b>. Ao entrar na conta, o que está no GitHub é juntado automaticamente e a conta passa a ser usada.</p>
+      const tab = S.acTab || 'in';
+      const G = GF.cloud.googleAvailable();
+      html += `<div class="card auth-card">
+        ${tab === 'rec' ? `<div class="step-k">Recuperar senha</div><p class="small" style="margin:4px 0 12px">Digite seu e-mail. Chega um link para criar uma senha nova.</p>` : `<div class="seg" role="tablist"><button role="tab" class="${tab === 'in' ? 'on' : ''}" data-ac-tab="in">Entrar</button><button role="tab" class="${tab === 'up' ? 'on' : ''}" data-ac-tab="up">Criar conta</button></div>
+        ${G ? `<button class="btn big google-btn" id="ac-google" type="button"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C.9 16.6 0 20.2 0 24s.9 7.4 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg>Continuar com Google</button>
+        <div class="or-sep"><span>ou</span></div>` : ''}`}
+        ${tab === 'up' ? `<input type="text" id="ac-name2" autocomplete="given-name" value="${esc(S.acName || '')}" placeholder="Como quer ser chamado?" aria-label="Seu nome">` : ''}
+        <input type="text" id="ac-email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" value="${esc(S.acEmail || '')}" placeholder="E-mail" aria-label="E-mail">
+        ${tab === 'rec' ? '' : `<div class="pw-wrap"><input type="password" id="ac-pass" placeholder="${tab === 'up' ? 'Senha (mínimo 8)' : 'Senha'}" aria-label="Senha" autocomplete="${tab === 'up' ? 'new-password' : 'current-password'}"><button type="button" data-show="ac-pass" aria-label="Mostrar senha"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>`}
+        ${S.acMsg ? `<div class="fb ${S.acMsg.ok ? 'ok' : 'warn'} auth-msg">${S.acMsg.html}</div>` : ''}
+        <button class="btn pri big" id="ac-go">${tab === 'up' ? 'Criar conta' : tab === 'rec' ? 'Enviar link' : 'Entrar'}</button>
+        <div class="auth-links">${tab === 'rec' ? '<button class="link-btn" data-ac-tab="in">← Voltar</button>' : '<button class="link-btn" data-ac-tab="rec">Esqueci minha senha</button>'}${S.acConfirm ? '<button class="link-btn" id="ac-resend">Reenviar confirmação</button>' : ''}</div>
+        ${G ? '' : '<p class="tiny mut center" style="margin:8px 0 0">No programa de PC, entre com e-mail e senha.</p>'}</div>`;
+      if (gistOn) html += `<div class="card"><h2>GitHub (modo antigo) ativo</h2><p class="small">Este aparelho ainda sincroniza pelo GitHub. Ao entrar na conta, o que está lá é juntado e a conta passa a ser usada.</p>
         ${c.lastError ? `<div class="fb bad">${esc(c.lastError)}</div>` : ''}${devTable}<div class="row"><button class="btn" id="sy-now">Sincronizar pelo GitHub agora</button><button class="btn ghost" id="sy-off">Desligar GitHub</button></div></div>`;
-      else html += `<details class="card"><summary class="small">Usar o GitHub em vez de conta (modo antigo)</summary>
-        <p class="small">Seu progresso fica num <b>Gist secreto</b> da sua conta do GitHub, <b>criptografado</b> com uma senha sua.</p>
-        <p class="small">Crie um token em <a href="https://github.com/settings/tokens/new?scopes=gist&description=Deutsch%20mit%20Plan%20sync" target="_blank" rel="noopener">este link do GitHub</a> (marque <b>gist</b>) e cole abaixo.</p>
-        <input type="text" id="sy-token" placeholder="ghp_..." autocomplete="off" spellcheck="false" autocapitalize="off">
-        <p class="small mut">Senha de sincronização (mínimo 8; a mesma em todos os aparelhos):</p><input type="text" id="sy-pass" placeholder="senha" autocomplete="off" spellcheck="false" autocapitalize="off" style="-webkit-text-security:disc">
-        <p class="small mut">Nome deste aparelho:</p><input type="text" id="sy-name" value="${esc(c.name || GF.sync.defaultName())}">
-        <div style="height:12px"></div><button class="btn big" id="sy-go">Ativar GitHub e sincronizar</button></details>`;
     }
+    const logo = `<div class="auth-logo">${window.GF_FRITZ ? `<img src="${window.GF_FRITZ.logo}" alt="">` : ''}<div><b>Stempel</b><small>alemão do zero ao visto</small></div></div>`;
     if (fresh) {
       if (nav) nav.classList.add('hide');
-      app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">${window.GF_FRITZ ? `<img class="logo" src="${window.GF_FRITZ.logo}" alt="">` : ''}<div>Stempel<small>alemão do zero ao visto</small></div></div></header>
-        ${u ? '' : `<div class="card"><div class="home-head"><div><div class="step-k">Amt für deutsche Sprache</div><h2>Willkommen!</h2><p class="small">Eu sou o <b>Reineke</b>, o fiscal desta repartição. Primeiro, sua identificação: crie sua conta para o seu progresso ficar salvo no celular e no PC.</p></div>${fritz('wartet', 130)}</div></div>`}
-        ${html}<button class="btn ghost big" id="sy-back">${u ? 'Continuar para o diagnóstico →' : 'Continuar sem conta (fica só neste aparelho)'}</button>${installCardHtml()}`;
+      app().innerHTML = `${desktopModeWarn()}<div class="auth">${u ? '' : logo}${html}<button class="link-btn auth-skip" id="sy-back">${u ? 'Continuar para o diagnóstico →' : 'Continuar sem conta'}</button></div>`;
       $('#sy-back').onclick = () => { if (!u) { try { localStorage.setItem('gfs-nologin', '1'); } catch (e) { /* */ } } renderOnboarding(); };
     }
-    else shell('mais', html);
+    else shell('mais', u ? html : `<div class="auth" style="margin-top:0">${html}</div>`);
 
     $$('[data-show]').forEach((b) => b.onclick = () => { const i = $('#' + b.dataset.show); i.type = i.type === 'password' ? 'text' : 'password'; });
     $$('[data-ac-tab]').forEach((b) => b.onclick = () => { S.acEmail = ($('#ac-email') || {}).value || S.acEmail; S.acName = ($('#ac-name2') || {}).value || S.acName; S.acTab = b.dataset.acTab; S.acMsg = null; renderSync(); });
@@ -524,7 +516,7 @@
       renderSync();
     };
     const go = $('#ac-go'); if (go) go.onclick = async () => {
-      const email = $('#ac-email').value; const pass = $('#ac-pass') ? $('#ac-pass').value : ''; S.acEmail = email; const tab = S.acTab || (fresh ? 'up' : 'in');
+      const email = $('#ac-email').value; const pass = $('#ac-pass') ? $('#ac-pass').value : ''; S.acEmail = email; const tab = S.acTab || 'in';
       busy(go, 'Aguarde…');
       try {
         if (tab === 'rec') { await GF.cloud.recover(email); S.acMsg = { ok: true, html: 'Se existir uma conta com esse e-mail, chegou um link para criar uma nova senha. Abra o link <b>neste aparelho</b>.' }; return renderSync(); }
@@ -550,10 +542,6 @@
       busy(wipe, 'Apagando…'); try { await GF.sync.wipeCloud(); toast('Dados da nuvem apagados.'); renderSync(); } catch (e) { toast(e.message, 5000); free(wipe); }
     };
     const now_ = $('#sy-now'); if (now_) now_.onclick = async () => { busy(now_, 'Sincronizando…'); try { afterSync(await pullAll(false)); } catch (e) { toast(e.message, 6000); renderSync(); } };
-    const gg = $('#sy-go'); if (gg) gg.onclick = async () => {
-      try { await GF.sync.setup({ token: $('#sy-token').value, pass: $('#sy-pass').value, name: $('#sy-name').value }); } catch (e) { return toast(e.message, 4000); }
-      busy(gg, 'Sincronizando…'); try { afterSync(await pullAll(false)); } catch (e) { toast(e.message, 6000); renderSync(); }
-    };
     const off = $('#sy-off'); if (off) off.onclick = () => { GF.sync.disable(); toast('GitHub desligado neste aparelho. Seus dados continuam aqui.'); renderSync(); };
   }
 
