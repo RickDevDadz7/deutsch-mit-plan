@@ -2966,7 +2966,10 @@ input[type=password]:focus{background:rgba(255,255,255,.7);box-shadow:inset 0 -2
     if (!set.has(dayKey(t))) t -= DAY; // hoje ainda pode ser feito
     while (set.has(dayKey(t))) { n++; t -= DAY; }
     const last7 = []; for (let i = 6; i >= 0; i--) last7.push(set.has(dayKey(now - i * DAY)));
-    return { current: n, last7, week: last7.filter(Boolean).length };
+    // semana do calendário (domingo a sábado, no fuso do aparelho): zera só quando o sábado termina
+    const dow = new Date(now).getDay(); let week = 0;
+    for (let i = 0; i <= dow; i++) if (set.has(dayKey(now - i * DAY))) week++;
+    return { current: n, last7, week };
   }
 
   function stats(state, now) {
@@ -3623,6 +3626,16 @@ input[type=password]:focus{background:rgba(255,255,255,.7);box-shadow:inset 0 -2
     return { v: base, changed: !same(base, L) };
   }
   /** Mescla o pacote de outro aparelho no estado local. Retorna o que mudou. */
+  /** Junta dois mapas de dias (data → contadores): união, maior valor de cada contador. Nunca apaga um dia. */
+  function mergeDays(a, b) {
+    const out = clone(a || {}); let changed = false;
+    for (const [k, d] of Object.entries(b || {})) {
+      if (!d || !d.date) continue;
+      if (!out[k]) { out[k] = clone(d); changed = true; continue; }
+      for (const [f, v] of Object.entries(d)) if (typeof v === 'number' && !(out[k][f] >= v)) { out[k][f] = v; changed = true; }
+    }
+    return { v: out, changed };
+  }
   function mergeRemote(state, remote, remoteDevice) {
     const t = { profile: false, cards: [], mistakes: [], assess: [], ext: false, gen: [], reports: [] };
     state.gen = state.gen || {};
@@ -3637,9 +3650,20 @@ input[type=password]:focus{background:rgba(255,255,255,.7);box-shadow:inset 0 -2
     state.assess.sort((a, b) => a.at - b.at);
     // dias de estudo ficam separados por aparelho (somados nas estatísticas, nunca duplicados)
     state.ext = state.ext || {};
-    const prev = state.ext[remoteDevice.id];
-    const nx = { id: remoteDevice.id, name: remoteDevice.name, at: remoteDevice.at, days: clone(remote.days || {}) };
-    if (!prev || !same(prev, nx)) { state.ext[remoteDevice.id] = nx; t.ext = true; }
+    const addExt = (id, name, at, days) => {
+      const prev = state.ext[id]; const md = mergeDays(prev && prev.days, days);
+      const nx = { id, name: name || (prev && prev.name) || 'Aparelho', at: Math.max(at || 0, (prev && prev.at) || 0), days: md.v };
+      if (!prev || !same(prev, nx)) { state.ext[id] = nx; t.extIds.push(id); }
+    };
+    t.extIds = []; t.days = [];
+    addExt(remoteDevice.id, remoteDevice.name, remoteDevice.at, remote.days);
+    // o que o outro aparelho sabe dos demais (inclusive dias DESTE aparelho, se aqui tiverem sido apagados)
+    for (const e of remote.ext || []) {
+      if (!e || !e.id || e.id === remoteDevice.id) continue;
+      if (e.id === state._me) { const md = mergeDays(state.days, e.days); if (md.changed) { for (const k of Object.keys(md.v)) if (!same(md.v[k], (state.days || {})[k])) t.days.push(k); state.days = md.v; } }
+      else addExt(e.id, e.name, e.at, e.days);
+    }
+    t.ext = t.extIds.length > 0;
     return t;
   }
 
@@ -3730,31 +3754,43 @@ input[type=password]:focus{background:rgba(255,255,255,.7);box-shadow:inset 0 -2
       const tr = m === 'cloud' ? cloudTransport() : await gistTransport(c);
       const st = store.state; const devices = [];
       const touched = { profile: false, cards: [], mistakes: [], assess: [], ext: [], gen: [], reports: [] };
+      st._me = me; touched.days = [];
       for (const d of await tr.list()) {
         devices.push({ id: d.id, name: d.name, at: d.at, me: d.id === me });
-        if (d.id === me) continue;
         const data = await d.load();
+        if (d.id === me) {
+          // a própria linha também é juntada: se os dados deste aparelho foram apagados (sair da conta, reinstalar), eles voltam
+          const own = Object.assign({}, data, { days: {}, ext: [] });
+          const t = mergeRemote(st, own, { id: me, name: d.name, at: d.at }); delete st.ext[me];
+          const md = mergeDays(st.days, data.days); if (md.changed) { for (const k of Object.keys(md.v)) if (!same(md.v[k], (st.days || {})[k])) touched.days.push(k); st.days = md.v; }
+          for (const e of data.ext || []) if (e && e.id && e.id !== me) { const before = st.ext[e.id]; const md2 = mergeDays(before && before.days, e.days); if (!before || md2.changed) { st.ext[e.id] = { id: e.id, name: e.name || (before && before.name) || 'Aparelho', at: Math.max(e.at || 0, (before && before.at) || 0), days: md2.v }; touched.ext.push(e.id); } }
+          if (t.profile) touched.profile = true;
+          touched.gen.push(...t.gen); touched.reports.push(...t.reports); touched.cards.push(...t.cards); touched.mistakes.push(...t.mistakes); touched.assess.push(...t.assess);
+          continue;
+        }
         const t = mergeRemote(st, data, { id: d.id, name: d.name, at: d.at });
         if (t.profile) touched.profile = true;
-        touched.gen.push(...t.gen); touched.reports.push(...t.reports); touched.cards.push(...t.cards); touched.mistakes.push(...t.mistakes); touched.assess.push(...t.assess); if (t.ext) touched.ext.push(d.id);
+        touched.gen.push(...t.gen); touched.reports.push(...t.reports); touched.cards.push(...t.cards); touched.mistakes.push(...t.mistakes); touched.assess.push(...t.assess); touched.ext.push(...t.extIds); touched.days.push(...t.days);
       }
+      delete st._me;
       // grava localmente o que veio dos outros
       const ps = [];
       if (touched.profile) ps.push(store.saveProfile({ keepStamp: true }));
       for (const id of new Set(touched.cards)) ps.push(store.saveCard(id));
       for (const k of new Set(touched.mistakes)) ps.push(store.saveMistake(k));
       for (const a of touched.assess) ps.push(store.saveAssess(a));
-      for (const d of touched.ext) ps.push(store.saveExt(d));
+      for (const d of new Set(touched.ext)) ps.push(store.saveExt(d));
+      for (const k of new Set(touched.days)) ps.push(store.saveDay(k));
       for (const id of new Set(touched.reports)) ps.push(store.saveReport(id));
       for (const g of new Set(touched.gen)) { ps.push(store.saveGen(g)); if (GF.content && GF.content.addUnit) GF.content.addUnit(clone(st.gen[g])); }
       await Promise.allSettled(ps);
       // envia o meu pacote (já mesclado; dias só os meus)
-      const mine = { profile: st.profile, cards: Object.values(st.cards), mistakes: Object.values(st.mistakes), assess: st.assess, days: st.days, gen: Object.values(st.gen || {}), reports: Object.values(st.reports || {}) };
+      const mine = { profile: st.profile, cards: Object.values(st.cards), mistakes: Object.values(st.mistakes), assess: st.assess, days: st.days, ext: Object.values(st.ext || {}), gen: Object.values(st.gen || {}), reports: Object.values(st.reports || {}) };
       const name = c.name || defaultName();
       await tr.put(me, name, now, mine);
       if (!devices.some((d) => d.me)) devices.push({ id: me, name, at: now, me: true }); else devices.find((d) => d.me).at = now;
       const c2 = cfg(); c2.lastSync = now; c2.lastError = null; c2.devices = devices; c2.via = m; saveCfg(c2);
-      return { merged: touched.cards.length + touched.mistakes.length + (touched.profile ? 1 : 0) + touched.ext.length + touched.gen.length + touched.reports.length, devices, via: m };
+      return { merged: touched.cards.length + touched.mistakes.length + (touched.profile ? 1 : 0) + new Set(touched.ext).size + touched.gen.length + touched.reports.length + new Set(touched.days).size, devices, via: m };
     })();
     try { return await running; }
     catch (e) { const c2 = cfg(); c2.lastError = e.message; saveCfg(c2); throw e; }
@@ -3773,7 +3809,7 @@ input[type=password]:focus{background:rgba(255,255,255,.7);box-shadow:inset 0 -2
   function disable() { const c = cfg(); saveCfg({ deviceId: c.deviceId, name: c.name }); keyCache = null; }
   const available = () => typeof fetch !== 'undefined' && typeof crypto !== 'undefined' && !!crypto.subtle && !globalThis.claude;
 
-  GF.sync = { cfg, saveCfg, deviceId, setup, disable, run, available, mode, setName, defaultName, wipeCloud, packText, unpackText, mergeCard, mergeMistake, mergeProfile, mergeUnit, mergeRemote, encrypt, decrypt, deriveKey, DESC };
+  GF.sync = { mergeDays, cfg, saveCfg, deviceId, setup, disable, run, available, mode, setName, defaultName, wipeCloud, packText, unpackText, mergeCard, mergeMistake, mergeProfile, mergeUnit, mergeRemote, encrypt, decrypt, deriveKey, DESC };
 })(globalThis.GF = globalThis.GF || {});
 
 ;

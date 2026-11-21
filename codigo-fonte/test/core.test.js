@@ -179,3 +179,12 @@ test('Store: backup automático semanal, mantém no máximo 4', async () => {
   assert.strictEqual((await s.autoBackup(T0 + 5 * 7 * DAY)).skipped, true);
   assert.strictEqual(store.validateBackup(JSON.parse(l[0].json)), null);
 });
+
+test('semana do calendário: conta de domingo a sábado e zera só no domingo', () => {
+  const M = GF.model; const DAY = 86400000;
+  const sat = new Date(2026, 10, 21, 12).getTime(); // sábado 21/11/2026, meio-dia local
+  const st = { days: {}, ext: {} };
+  for (const t of [sat - 1 * DAY, sat - 5 * DAY, sat - 6 * DAY, sat - 7 * DAY]) { const k = M.dayKey(t); st.days[k] = { date: k, minutes: 20 }; }
+  assert.strictEqual(M.streak(st, sat).week, 3, 'sábado: sexta, segunda e domingo contam; o sábado anterior não');
+  assert.strictEqual(M.streak(st, sat + DAY).week, 0, 'domingo: semana nova');
+});

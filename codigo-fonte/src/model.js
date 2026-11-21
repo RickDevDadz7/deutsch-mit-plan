@@ -318,7 +318,10 @@
     if (!set.has(dayKey(t))) t -= DAY; // hoje ainda pode ser feito
     while (set.has(dayKey(t))) { n++; t -= DAY; }
     const last7 = []; for (let i = 6; i >= 0; i--) last7.push(set.has(dayKey(now - i * DAY)));
-    return { current: n, last7, week: last7.filter(Boolean).length };
+    // semana do calendário (domingo a sábado, no fuso do aparelho): zera só quando o sábado termina
+    const dow = new Date(now).getDay(); let week = 0;
+    for (let i = 0; i <= dow; i++) if (set.has(dayKey(now - i * DAY))) week++;
+    return { current: n, last7, week };
   }
 
   function stats(state, now) {
