@@ -160,3 +160,9 @@ input[type=password]:focus{background:rgba(255,255,255,.7);box-shadow:inset 0 -2
 .auth-links{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
 .link-btn{background:none;border:0;padding:8px;min-height:40px;color:var(--mut);font:inherit;font-size:15px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .auth-skip{display:block;margin:14px auto 0;color:#d9cfb6;font-size:15.5px}
+.wstrip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:12px}
+.wday{border:1.5px dashed #a89c80;border-radius:3px;padding:6px 2px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:64px;background:rgba(255,255,255,.3)}
+.wday span{font-family:var(--head);font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.wday b{font-size:18px;line-height:1.1;color:var(--mut)}.wday small{font-size:11px;color:var(--mut)}
+.wday.on{border:2px solid var(--ok);background:var(--okb)}.wday.on b{color:var(--ok)}
+.wday.today{outline:2px solid var(--red);outline-offset:1px}.wday.fut{opacity:.45}

@@ -312,6 +312,19 @@
     return out;
   }
 
+  /** Semana do calendário (domingo a sábado, fuso do aparelho). back = 0 é a semana atual, 1 a anterior… */
+  function week(state, now, back) {
+    const AD = allDays(state); const dow = new Date(now).getDay();
+    const sun = now - (dow + 7 * (back || 0)) * DAY;
+    const days = []; let count = 0, minutes = 0;
+    for (let i = 0; i < 7; i++) {
+      const t = sun + i * DAY; const k = dayKey(t); const d = AD[k];
+      const studied = !!(d && (d.minutes > 0 || d.reviews > 0 || d.newItems > 0));
+      const m = d ? d.minutes || 0 : 0; if (studied) count++; minutes += m;
+      days.push({ date: k, studied, minutes: m, future: !back && i > dow, today: !back && i === dow });
+    }
+    return { start: days[0].date, end: days[6].date, days, count, minutes };
+  }
   function streak(state, now) {
     const set = new Set(Object.values(allDays(state)).filter((d) => d.minutes > 0 || d.reviews > 0 || d.newItems > 0).map((d) => d.date));
     let n = 0; let t = now;
@@ -361,5 +374,5 @@
     return hits;
   }
 
-  GF.model = { nextToGenerate, allDays, STAGES, STAGE_PT, SKILLS, SKILL_PT, MASTERY_PT, dayKey, newProfile, newCard, stagesFor, stageUnlocked, mastery, forgetting, recordAnswer, unitStatus, checkpointPass, currentUnit, estimateLevel, adapt, dueList, buildSession, forecast, streak, stats, recentRate, spontaneousHits, EST };
+  GF.model = { nextToGenerate, allDays, STAGES, STAGE_PT, SKILLS, SKILL_PT, MASTERY_PT, dayKey, week, newProfile, newCard, stagesFor, stageUnlocked, mastery, forgetting, recordAnswer, unitStatus, checkpointPass, currentUnit, estimateLevel, adapt, dueList, buildSession, forecast, streak, stats, recentRate, spontaneousHits, EST };
 })(globalThis.GF = globalThis.GF || {});

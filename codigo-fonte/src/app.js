@@ -295,6 +295,8 @@
     else { const L = { db: ['pill ok', 'salvo na nuvem'], native: ['pill ok', 'salvo no PC'], device: ['pill ok', 'salvo no aparelho'], local: ['pill warn', 'modo local'] }[S.mode] || ['pill', '']; el.className = L[0]; el.textContent = L[1]; }
   }
   function today() { const k = M.dayKey(now()); const d = S.st.days[k] || (S.st.days[k] = { date: k, minutes: 0, reviews: 0, correct: 0, newItems: 0, sessions: 0, shortN: 0, shortOk: 0, longN: 0, longOk: 0 }); return d; }
+  /** Treinos avulsos (aba Praticar) também contam tempo: até 60 min por treino. */
+  function soloTime() { if (!S.solo || !S.solo.t0) return; const ms = Math.min(now() - S.solo.t0, 60 * 60000); S.solo.t0 = 0; const m = ms / 60000; if (m < 0.05) return; const d = today(); d.minutes = +(d.minutes + m).toFixed(2); S.st.profile.minutes = +((S.st.profile.minutes || 0) + m).toFixed(2); commit({ profile: true, day: true }); }
   function addMinutes(ms) {
     const m = Math.min(ms, 5 * 60000) / 60000; // no máx. 5 min por etapa (evita contar tempo ocioso)
     today().minutes = +(today().minutes + m).toFixed(2); S.st.profile.minutes = +((S.st.profile.minutes || 0) + m).toFixed(2);
@@ -595,7 +597,7 @@
   function onPop() {
     if (navPending) { const id = navPending; navPending = null; H('replaceState', { depth: 1 }, '#' + id); return route(); }
     if (S.session) return endSession(true, true);
-    if (S.solo) { S.solo = null; toast('Treino encerrado. O que você fez foi salvo.'); }
+    if (S.solo) { soloTime(); S.solo = null; toast('Treino encerrado. O que você fez foi salvo.'); }
     route();
   }
   function route() {
@@ -712,7 +714,7 @@
     const minutes = S.homeMinutes || p.diag.minutes;
     const plan = M.buildSession(st, minutes, t);
     const uid = plan.unit; const unit = uid ? C.units[uid] : null;
-    const sk = M.streak(st, t); const stats = M.stats(st, t);
+    const sk = M.streak(st, t); const stats = M.stats(st, t); const wk = M.week(st, t, 0);
     const us = uid ? M.unitStatus(st, uid, t) : null;
     const dayIdx = new Date(t).getDay(); const plannedToday = p.diag.days.includes(dayIdx);
     const gap = p.lastSessionAt ? Math.floor((t - p.lastSessionAt) / 86400000) : 0;
@@ -735,9 +737,9 @@
     <div class="card"><div class="kpis">
       <div class="kpi"><b>${stats.due}</b><span>revisões pendentes</span></div>
       <div class="kpi"><b>${stats.recalledPlus}</b><span>itens que você lembra sem ajuda</span></div>
-      <div class="kpi"><b>${sk.week}/7</b><span>dias estudados na semana</span></div>
-      <div class="kpi"><b>${(stats.minutes / 60).toFixed(1)} h</b><span>de estudo no total</span></div>
-    </div></div>
+      <div class="kpi"><b>${wk.count}/7</b><span>dias estudados nesta semana</span></div>
+      <div class="kpi"><b>${hm(wk.minutes)}</b><span>de estudo nesta semana · total ${hm(stats.minutes)}</span></div>
+    </div>${weekStrip(wk)}<a class="link-btn" href="#calendario" style="display:block;text-align:center">Ver histórico completo</a></div>
     ${us ? `<div class="card"><div class="step-k">Para concluir ${uid}</div>${unitChecklist(us)}</div>` : ''}`);
     bindInstall(); const gg = $('#gen-go'); if (gg) gg.onclick = () => ensureNextUnit(true);
     $('#h-min').onclick = (e) => { const b = e.target.closest('[data-m]'); if (!b) return; S.homeMinutes = +b.dataset.m; renderHome(); };
@@ -1388,7 +1390,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
       <div class="card"><h2>Escuta e escrita</h2><div class="row"><button class="btn" id="p-dict">Ditado (${esc(u.title)})</button><button class="btn" id="p-dlg">Ouvir diálogo</button><button class="btn" id="p-wr">Texto curto</button></div></div>
       ${readingCardHtml(unlocked)}
       <div class="card"><h2>Vocabulário</h2><a class="btn" href="#vocabulario">Ver todos os itens e seu domínio</a></div>`);
-    const solo = (fn) => { $('nav.tabs').classList.add('hide'); const tok = S.solo = {}; openOverlay(); fn(() => { if (S.solo !== tok) return; S.solo = null; closeOverlay(); }); };
+    const solo = (fn) => { $('nav.tabs').classList.add('hide'); const tok = S.solo = { t0: now() }; openOverlay(); fn(() => { if (S.solo !== tok) return; soloTime(); S.solo = null; closeOverlay(); }); };
     $$('[data-cv]').forEach((b) => b.onclick = () => solo((d) => stepConvo({ unit: b.dataset.cv }, d)));
     $$('[data-g]').forEach((b) => b.onclick = () => solo((d) => { const g = C.grammar[b.dataset.g]; app().innerHTML = grammarIntroHtml(g) + '<button class="btn pri big" id="g-go">Praticar</button>'; $('#g-go').onclick = () => g.order ? runOrder(b.dataset.g, shuffle(g.order).slice(0, 5), d) : runDrills(b.dataset.g, shuffle(g.drills).slice(0, 6), d); }));
     $$('[data-pr]').forEach((b) => b.onclick = () => solo((d) => stepPron({ pron: b.dataset.pr }, d)));
@@ -1411,7 +1413,9 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
   /* ---------------- Progresso ---------------- */
   function renderProgress() {
     const t = now(), st = S.st, s = M.stats(st, t), lvl = M.estimateLevel(st), sk = M.streak(st, t);
+    const wk = M.week(st, t, 0);
     shell('progresso', `
+      <div class="card"><div class="row sp"><h2>Esta semana</h2><a class="link-btn" href="#calendario">Histórico</a></div><div class="kpis"><div class="kpi"><b>${wk.count}/7</b><span>dias estudados</span></div><div class="kpi"><b>${hm(wk.minutes)}</b><span>de estudo · total ${hm(s.minutes)}</span></div></div>${weekStrip(wk)}</div>
       <div class="card"><div class="step-k">Nível estimado</div><h2>${esc(lvl.label)}</h2><p class="small mut">${esc(lvl.detail)} O nível só sobe com checkpoints aprovados em todas as habilidades — nunca por tempo de uso.</p></div>
       <div class="card"><h2>Vocabulário</h2><div class="kpis">
         <div class="kpi"><b>${s.introduced}</b><span>introduzidos</span></div><div class="kpi"><b>${s.recalledPlus}</b><span>lembra sem ajuda (domínio ≥ 2)</span></div>
@@ -1458,19 +1462,32 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
     const mf = $('#m-folder'); if (mf) mf.onclick = () => window.gfsNative.openDataFolder();
     $('#app').insertAdjacentHTML('beforeend', voiceCardHtml()); bindVoiceCard();
   }
+  /** Minutos → "1 h 20 min" / "35 min". */
+  function hm(min) { const m = Math.round(min || 0); return m >= 60 ? Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '') : m + ' min'; }
+  const WD = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  function weekStrip(w) {
+    return `<div class="wstrip" role="list" aria-label="Dias desta semana">${w.days.map((d, i) => `<div role="listitem" class="wday ${d.studied ? 'on' : ''} ${d.today ? 'today' : ''} ${d.future ? 'fut' : ''}" title="${d.date}: ${Math.round(d.minutes)} min"><span>${WD[i]}</span><b>${d.studied ? '✓' : d.future ? '' : '·'}</b><small>${d.studied ? Math.round(d.minutes) + "'" : ''}</small></div>`).join('')}</div>`;
+  }
   function renderCalendar() {
     const t = now(), st = S.st, p = st.profile;
     const fc = M.forecast(st, t, 14); const mx = Math.max(1, ...fc.map((d) => d.n));
     const wd = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
     const AD = M.allDays(st);
-    const cells = []; for (let i = 27; i >= 0; i--) { const k = M.dayKey(t - i * 86400000); const d = AD[k]; const m = d ? d.minutes : 0; cells.push(`<div class="cell ${m >= 20 ? 'l3' : m >= 10 ? 'l2' : m > 0 ? 'l1' : ''}" title="${k}: ${m.toFixed ? m.toFixed(0) : m} min">${new Date(t - i * 86400000).getDate()}</div>`); }
-    const weekMin = Object.values(AD).filter((d) => t - new Date(d.date + 'T12:00:00').getTime() < 7 * 86400000).reduce((a, d) => a + d.minutes, 0);
+    const cells = []; const dow0 = new Date(t).getDay(); for (let i = 27 + dow0; i >= dow0 - 6; i--) { if (i < 0) { cells.push('<div class="cell" style="opacity:.25"></div>'); continue; } const k = M.dayKey(t - i * 86400000); const d = AD[k]; const m = d ? d.minutes : 0; cells.push(`<div class="cell ${m >= 20 ? 'l3' : m >= 10 ? 'l2' : m > 0 ? 'l1' : ''}" title="${k}: ${m.toFixed ? m.toFixed(0) : m} min">${new Date(t - i * 86400000).getDate()}</div>`); }
+    const w0 = M.week(st, t, 0); const weekMin = w0.minutes;
     const goal = p.diag.minutes * p.diag.days.length;
-    shell('mais', `<div class="card"><h2>Esta semana</h2><p>${Math.round(weekMin)} de ${goal} min planejados</p><div class="prog"><i style="width:${Math.min(100, 100 * weekMin / goal)}%"></i></div>
+    const fmt = (k) => new Date(k + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+    const past = []; for (let b = 1; b <= 8; b++) past.push(M.week(st, t, b));
+    const tot = M.stats(st, t);
+    shell('mais', `<div class="card"><div class="step-k">Histórico · semana de ${fmt(w0.start)} a ${fmt(w0.end)}</div><h2>Esta semana</h2>
+      <div class="kpis"><div class="kpi"><b>${w0.count}/7</b><span>dias estudados</span></div><div class="kpi"><b>${hm(weekMin)}</b><span>de ${goal} min planejados</span></div></div>
+      ${weekStrip(w0)}<div class="prog" style="margin-top:10px"><i style="width:${Math.min(100, 100 * weekMin / goal)}%"></i></div>
+      <p class="tiny mut">A semana vai de domingo a sábado e zera quando o sábado termina (horário deste aparelho). Total desde o início: <b>${hm(tot.minutes)}</b> em ${Object.values(AD).filter((d) => d.minutes > 0 || d.reviews > 0 || d.newItems > 0).length} dias.</p>
       <p class="small mut">Dias planejados: ${p.diag.days.map((d) => wd[d]).join(', ')}. Perdeu um dia? Nada é cobrado em dobro: o FSRS só reprioriza.</p></div>
       <div class="card"><h2>Revisões previstas (14 dias)</h2><div class="forecast">${fc.map((d) => `<div style="height:${100 * d.n / mx}%" title="${d.date}: ${d.n}"></div>`).join('')}</div>
       <div class="forecast-l">${fc.map((d, i) => `<span>${i === 0 ? 'hoje' : new Date(d.date + 'T12:00:00').getDate()}</span>`).join('')}</div><p class="tiny mut">Contagem de estágios de item com revisão vencendo em cada dia, calculada pelo FSRS. Hoje inclui atrasadas.</p></div>
-      <div class="card"><h2>Últimas 4 semanas</h2><div class="grid7">${cells.join('')}</div><p class="tiny mut">Cor = minutos estudados no dia (claro &lt; 10, médio 10–20, escuro ≥ 20).</p></div>`);
+      <div class="card"><h2>Semanas anteriores</h2><table class="t"><tr><th>Semana</th><th>Dias</th><th>Tempo</th></tr>${past.map((w) => `<tr><td>${fmt(w.start)} – ${fmt(w.end)}</td><td>${w.count}/7</td><td>${hm(w.minutes)}</td></tr>`).join('')}</table></div>
+      <div class="card"><h2>Últimas 4 semanas</h2><div class="grid7">${WD.map((d) => `<div class="tiny mut center">${d}</div>`).join('')}${cells.join('')}</div><p class="tiny mut">Cor = minutos estudados no dia (claro &lt; 10, médio 10–20, escuro ≥ 20).</p></div>`);
   }
   function renderMethod() {
     const Mt = GF.method;
