@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 // O app mudou de nome (Deutsch mit Plan → Stempel): a pasta de dados continua a antiga, para não perder o progresso.
-app.setPath('userData', path.join(app.getPath('appData'), 'Deutsch mit Plan'));
+if (!app.commandLine.hasSwitch('user-data-dir')) app.setPath('userData', path.join(app.getPath('appData'), 'Deutsch mit Plan'));
 if (!app.requestSingleInstanceLock()) { app.quit(); }
 
 const DATA_DIR = path.join(app.getPath('userData'), 'dados');
