@@ -97,14 +97,19 @@
     const s = session(); saveSession(null);
     if (s) { try { await call('/auth/v1/logout', { method: 'POST', auth: s.access_token, timeout: 6000 }); } catch (e) { /* já saiu localmente */ } }
   }
-  /** Links do e-mail (confirmação, nova senha) voltam com os tokens no endereço (#access_token=…). */
+  /** Login com Google: só no navegador/PWA (o Google bloqueia login dentro de programas embutidos, como o de PC). */
+  const googleAvailable = () => { try { return /^https?:$/.test(location.protocol) && !/Electron/i.test(navigator.userAgent); } catch (e) { return false; } };
+  function googleUrl() { return URL_ + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo()); }
+  function signInWithGoogle() { location.assign(googleUrl()); }
+  /** Links do e-mail (confirmação, nova senha) e o retorno do Google voltam com os tokens no endereço (#access_token=…). */
   function handleRedirect() {
-    let h = ''; try { h = location.hash || ''; } catch (e) { return null; }
+    let h = ''; try { h = location.hash || ''; if (!/error_description=|error_code=/.test(h) && /error_description=|error_code=/.test(location.search || '')) h = '#' + location.search.slice(1); } catch (e) { return null; }
     if (!/access_token=|error_description=|error_code=/.test(h)) return null;
     const p = new URLSearchParams(h.replace(/^#/, ''));
     if (p.get('error_description') || p.get('error_code')) {
       const code = p.get('error_code') || '';
-      return { error: code === 'otp_expired' ? 'Esse link expirou ou já foi usado. Peça outro.' : (p.get('error_description') || 'Link inválido.').replace(/\+/g, ' ') };
+      const desc = (p.get('error_description') || '').replace(/\+/g, ' ');
+      return { error: code === 'otp_expired' ? 'Esse link expirou ou já foi usado. Peça outro.' : /provider/i.test(desc) ? 'O login com Google ainda não está ativado no servidor. Use e-mail e senha por enquanto.' : /access_denied|cancel/i.test(p.get('error') + desc) ? 'Login com Google cancelado.' : desc || 'Link inválido.' };
     }
     const s = { access_token: p.get('access_token'), refresh_token: p.get('refresh_token'), expires_at: p.get('expires_at') ? +p.get('expires_at') * 1000 : Date.now() + (+p.get('expires_in') || 3600) * 1000, user: null };
     try { const payload = JSON.parse(atob(s.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); s.user = { id: payload.sub, email: payload.email }; } catch (e) { /* */ }
@@ -116,5 +121,5 @@
   const user = () => { const s = session(); return s && s.user; };
   const available = () => typeof fetch !== 'undefined' && !globalThis.claude;
 
-  GF.cloud = { URL: URL_, session, user, token, signUp, signIn, resend, recover, updatePassword, signOut, handleRedirect, rest, available, _call: call };
+  GF.cloud = { URL: URL_, session, user, token, signUp, signIn, signInWithGoogle, googleAvailable, googleUrl, resend, recover, updatePassword, signOut, handleRedirect, rest, available, _call: call };
 })(globalThis.GF = globalThis.GF || {});

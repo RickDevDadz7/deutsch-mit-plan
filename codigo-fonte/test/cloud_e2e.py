@@ -15,7 +15,7 @@ def uid_from(req):
   except Exception: return None
 def handler(route, req):
   u = urllib.parse.urlparse(req.url); path = u.path; q = urllib.parse.parse_qs(u.query)
-  assert req.headers.get('apikey', '').startswith('sb_publishable_'), 'sem apikey'
+  if path != '/auth/v1/authorize': assert req.headers.get('apikey', '').startswith('sb_publishable_'), 'sem apikey'
   body = json.loads(req.post_data) if req.post_data else None
   def ok(o, st=200): route.fulfill(status=st, content_type='application/json', body=json.dumps(o))
   def tok(uid, email): return {'access_token': jwt(uid, email), 'refresh_token': 'r-' + uid, 'expires_in': 3600, 'user': {'id': uid, 'email': email}}
@@ -30,6 +30,12 @@ def handler(route, req):
       if not x['ok']: return ok({'error_code': 'email_not_confirmed', 'msg': 'Email not confirmed'}, 400)
       return ok(tok(x['id'], body['email']))
     return ok({'error_code': 'refresh_token_not_found'}, 400)
+  if path == '/auth/v1/authorize':
+    rt = q['redirect_to'][0].replace('https://rickdevdadz7.github.io/deutsch-mit-plan/', 'http://localhost:8776/'); assert q['provider'][0] == 'google'
+    go = lambda url: route.fulfill(status=200, content_type='text/html', body='<script>location.replace(%s)</script>' % json.dumps(url))
+    if DB.get('google_off'): return go(rt + '?error=server_error&error_code=unexpected_failure&error_description=Unsupported+provider')
+    x = DB['users'].setdefault('rick@example.com', {'id': 'u1', 'pw': None, 'ok': True})
+    return go(rt + '#access_token=' + jwt(x['id'], 'rick@example.com') + '&refresh_token=r-' + x['id'] + '&expires_in=3600&token_type=bearer')
   if path == '/auth/v1/recover': DB['mails'].append(('recover', body['email'], q.get('redirect_to', [''])[0])); return ok({})
   if path == '/auth/v1/user' and req.method == 'PUT':
     uid = uid_from(req); x = [v for v in DB['users'].values() if v['id'] == uid][0]; x['pw'] = body['password']; return ok({'id': uid})
@@ -75,14 +81,21 @@ try:
     res['B recebeu o progresso (sessões A/B)'] = [sessions_A, B.evaluate("Object.keys(JSON.parse(localStorage.getItem('gfs-local-v1'))).filter(k=>k.startsWith('srs/')).length + ' cartas, diag=' + !!JSON.parse(localStorage.getItem('gfs-local-v1')).profile.diag")]
     res['B foi para'] = where(B); res['linhas após B'] = len(DB['rows'])
     # link de confirmação (tokens no endereço)
-    C = device(); C.goto('http://localhost:8776/#access_token=' + jwt('u1', 'rick@example.com') + '&refresh_token=r-u1&expires_in=3600&type=signup'); C.wait_for_selector('#ac-out', timeout=8000)
-    res['link de confirmação conecta e limpa o endereço'] = [C.inner_text('.card h2'), C.evaluate('location.hash')]
+    C = device(); C.goto('http://localhost:8776/#access_token=' + jwt('u1', 'rick@example.com') + '&refresh_token=r-u1&expires_in=3600&type=signup'); C.wait_for_selector('#h-start', timeout=8000)
+    res['link de confirmação (aparelho novo): conecta, puxa e vai pro Hoje'] = C.evaluate('location.hash')
     # nova senha
     A.click('#ac-out'); A.wait_for_selector('#ac-go'); A.click('[data-ac-tab=rec]'); A.fill('#ac-email', 'rick@example.com'); A.click('#ac-go'); A.wait_for_timeout(300)
     res['recuperação enviada'] = DB['mails'][-1][:2]; res['redirect do e-mail'] = DB['mails'][-1][2]
     R = device(); R.goto('http://localhost:8776/#access_token=' + jwt('u1', 'rick@example.com') + '&refresh_token=r-u1&expires_in=3600&type=recovery'); R.wait_for_selector('#ac-np', timeout=8000)
     R.fill('#ac-np', 'nova-senha-22'); R.click('#ac-np-go'); R.wait_for_timeout(400); res['senha trocada'] = DB['users']['rick@example.com']['pw']
     R2 = device(); R2.goto('http://localhost:8776/#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid'); R2.wait_for_timeout(800); res['link expirado'] = [R2.evaluate('location.hash'), R2.locator('.fb').first.inner_text() if R2.locator('.fb').count() else None]
+    # Google: aparelho novo entra pelo Google e recebe o progresso
+    G = device(); G.goto('http://localhost:8776/'); G.click('#o-sync'); G.wait_for_selector('#ac-google'); G.click('#ac-google', no_wait_after=True); G.wait_for_selector('#h-start', timeout=10000)
+    res['Google: aparelho novo recebe progresso'] = [G.evaluate('location.hash'), G.evaluate("!!JSON.parse(localStorage.getItem('gfs-cloud')).access_token")]
+    G.click('nav.tabs a[href="#mais"]'); G.click('a[href="#sync"]'); G.wait_for_selector('#ac-sp-go', state='attached'); G.evaluate("document.querySelectorAll('details').forEach(d=>d.open=true)"); G.fill('#ac-sp', 'senha-do-pc-1'); G.click('#ac-sp-go'); G.wait_for_timeout(400)
+    res['Google: definiu senha'] = DB['users']['rick@example.com']['pw']
+    DB['google_off'] = True; H = device(); H.goto('http://localhost:8776/'); H.click('#o-sync'); H.click('#ac-google', no_wait_after=True); H.wait_for_timeout(2500)
+    res['Google desligado: mensagem'] = H.locator('.fb').first.inner_text() if H.locator('.fb').count() else None
     # RLS simulado: outro usuário não vê nada
     DB['users']['eva@example.com'] = {'id': 'u9', 'pw': 'outrasenha9', 'ok': True}
     E_ = device(); E_.goto('http://localhost:8776/'); E_.click('#o-sync'); E_.fill('#ac-email', 'eva@example.com'); E_.fill('#ac-pass', 'outrasenha9'); E_.click('#ac-go'); E_.wait_for_timeout(1500)

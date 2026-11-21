@@ -336,12 +336,17 @@
     if (S.st.integrity.dropped) log('warn', S.st.integrity.dropped + ' registros inválidos ignorados na carga');
     initReports(); watchFeedback(); watchLayout(); bindPaperSound(); if (GF.sfx) GF.sfx.bind();
     const red = GF.cloud && GF.cloud.available() ? GF.cloud.handleRedirect() : null;
-    try { history.replaceState({ depth: 0 }, '', red ? location.pathname + location.search + (S.st.profile.diag ? '#sync' : '') : location.href); } catch (e) { /* */ }
+    try { history.replaceState({ depth: 0 }, '', red ? location.pathname + (S.st.profile.diag ? '#sync' : '') : location.href); } catch (e) { /* */ }
     window.addEventListener('popstate', onPop);
     if (red) {
       if (red.error) { S.acMsg = { ok: false, html: esc(red.error) }; }
       else if (red.type === 'recovery') { S.recovery = true; }
-      else { toast('E-mail confirmado. Conta conectada!', 3500); setTimeout(() => autoSync('conta conectada'), 300); }
+      else if (!S.st.profile.diag) {
+        app().innerHTML = '<div class="card"><h2>Conta conectada</h2><p class="small">Buscando seu progresso…</p></div>';
+        try { await GF.sync.run(S.store); S.st = S.store.state; } catch (e) { S.acMsg = { ok: false, html: esc(e.message) }; }
+        if (S.st.profile.diag) { toast('Conta conectada. Progresso recebido!', 3500); history.replaceState({ depth: 0 }, '', '#hoje'); }
+        else { toast('Conta conectada. Ainda não há progresso na nuvem: faça o diagnóstico.', 4500); return renderOnboarding(); }
+      } else { toast(red.type === 'signup' ? 'E-mail confirmado. Conta conectada!' : 'Conta conectada!', 3500); setTimeout(() => autoSync('conta conectada'), 300); }
       if (!S.st.profile.diag) return renderSync();
     }
     document.addEventListener('click', onLinkClick);
@@ -464,6 +469,7 @@
         <label class="small" for="ac-name" style="display:block;margin-top:12px">Nome deste aparelho</label><div class="row" style="flex-wrap:nowrap"><input type="text" id="ac-name" value="${esc(c.name || GF.sync.defaultName())}" style="flex:1;width:auto"><button class="btn" id="ac-name-go">Salvar</button></div>
         <p class="tiny mut">Sincroniza sozinho ao abrir o app, ao terminar uma sessão, ao sair do app e a cada 10 minutos (com internet). Cada aparelho envia o que fez e junta o que os outros fizeram: nada é apagado.</p>
         <div class="row"><button class="btn pri" id="sy-now">Sincronizar agora</button><button class="btn" id="ac-out">Sair da conta</button></div>
+        <details style="margin-top:12px"><summary class="small">Definir ou trocar a senha</summary><p class="tiny mut">Útil se você entrou com o Google e quer entrar também no programa de PC (lá só funciona e-mail e senha).</p>${pw('ac-sp', 'nova senha (mínimo 8)', 'new-password')}<div style="height:8px"></div><button class="btn" id="ac-sp-go">Salvar senha</button></details>
         <details style="margin-top:12px"><summary class="small">Privacidade e exclusão</summary>
           <p class="small">Seu progresso fica num servidor do Supabase, e as regras do banco só deixam a <b>sua</b> conta ler e gravar os seus dados. A sessão fica só neste aparelho e nunca entra nos backups.</p>
           <button class="btn" id="ac-wipe">Apagar meus dados da nuvem</button><p class="tiny mut">Apaga o que está no servidor. O progresso deste aparelho continua aqui; se você sincronizar de novo, ele volta a ser enviado.</p></details></div>`;
@@ -473,12 +479,14 @@
       html += `<div class="card"><div class="step-k">Formular K-1 · Kontoeröffnung</div><h2>${tab === 'up' ? 'Criar conta' : tab === 'rec' ? 'Recuperar senha' : 'Entrar na conta'}</h2>
         <p class="small">Com uma conta gratuita seu progresso fica salvo na nuvem e aparece no celular e no PC ao mesmo tempo.</p>
         <div class="chips" style="margin:6px 0 12px"><button class="chip ${tab === 'in' ? 'on' : ''}" data-ac-tab="in">Entrar</button><button class="chip ${tab === 'up' ? 'on' : ''}" data-ac-tab="up">Criar conta</button></div>
+        ${tab !== 'rec' && GF.cloud.googleAvailable() ? `<button class="btn big google-btn" id="ac-google" type="button"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C.9 16.6 0 20.2 0 24s.9 7.4 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg> Entrar com Google</button>
+        <div class="or-sep"><span>ou com e-mail</span></div>` : ''}
         <label class="small" for="ac-email">E-mail</label><input type="text" id="ac-email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" value="${esc(S.acEmail || '')}" placeholder="voce@email.com">
         ${tab === 'rec' ? '' : `<label class="small" for="ac-pass" style="display:block;margin-top:10px">Senha${tab === 'up' ? ' (mínimo 8 caracteres)' : ''}</label>${pw('ac-pass', 'senha', tab === 'up' ? 'new-password' : 'current-password')}`}
         ${S.acMsg ? `<div class="fb ${S.acMsg.ok ? 'ok' : 'warn'}" style="min-height:0;padding-right:14px">${S.acMsg.html}</div>` : ''}
         <div style="height:12px"></div><button class="btn pri big" id="ac-go">${tab === 'up' ? 'Criar conta' : tab === 'rec' ? 'Enviar link de nova senha' : 'Entrar'}</button>
         <div class="row" style="margin-top:8px">${tab === 'rec' ? '<button class="btn ghost" data-ac-tab="in">← Voltar</button>' : '<button class="btn ghost" data-ac-tab="rec">Esqueci minha senha</button>'}${S.acConfirm ? '<button class="btn ghost" id="ac-resend">Reenviar e-mail de confirmação</button>' : ''}</div>
-        <p class="tiny mut">Ao criar a conta chega um e-mail de confirmação (veja também o spam). Depois de confirmar, volte aqui e toque em Entrar.</p></div>`;
+        <p class="tiny mut">${GF.cloud.googleAvailable() ? 'Com o Google não precisa confirmar e-mail. ' : 'No programa de PC o login com Google não funciona (o Google bloqueia): use e-mail e senha. Se criou a conta pelo Google, defina uma senha no celular em Conta → Definir senha. '}Ao criar a conta com e-mail chega uma confirmação (veja também o spam); depois de confirmar, volte aqui e toque em Entrar.</p></div>`;
       if (gistOn) html += `<div class="card"><h2>GitHub (modo antigo) ativo</h2><p class="small">Este aparelho ainda sincroniza pelo GitHub. Última vez: <b>${when(c.lastSync)}</b>. Ao entrar na conta, o que está no GitHub é juntado automaticamente e a conta passa a ser usada.</p>
         ${c.lastError ? `<div class="fb bad">${esc(c.lastError)}</div>` : ''}${devTable}<div class="row"><button class="btn" id="sy-now">Sincronizar pelo GitHub agora</button><button class="btn ghost" id="sy-off">Desligar GitHub</button></div></div>`;
       else html += `<details class="card"><summary class="small">Usar o GitHub em vez de conta (modo antigo)</summary>
@@ -523,8 +531,10 @@
         S.acMsg = { ok: false, html: esc(e.message) }; free(go); renderSync();
       }
     };
+    const gb = $('#ac-google'); if (gb) gb.onclick = async () => { busy(gb, 'Abrindo o Google…'); await S.store.flush(); GF.cloud.signInWithGoogle(); };
     const rs = $('#ac-resend'); if (rs) rs.onclick = async () => { try { await GF.cloud.resend($('#ac-email').value); toast('E-mail de confirmação reenviado.'); } catch (e) { toast(e.message, 5000); } };
     const np = $('#ac-np-go'); if (np) np.onclick = async () => { busy(np, 'Salvando…'); try { await GF.cloud.updatePassword($('#ac-np').value); S.recovery = false; toast('Senha alterada.'); renderSync(); } catch (e) { toast(e.message, 5000); free(np); } };
+    const sp = $('#ac-sp-go'); if (sp) sp.onclick = async () => { busy(sp, 'Salvando…'); try { await GF.cloud.updatePassword($('#ac-sp').value); toast('Senha salva. Agora dá para entrar com e-mail e senha também.', 4000); free(sp); $('#ac-sp').value = ''; } catch (e) { toast(e.message, 5000); free(sp); } };
     const nm = $('#ac-name-go'); if (nm) nm.onclick = () => { GF.sync.setName($('#ac-name').value); toast('Nome salvo. Vale a partir da próxima sincronização.'); };
     const out = $('#ac-out'); if (out) out.onclick = async () => { if (!confirm('Sair da conta neste aparelho? Seu progresso continua salvo aqui e na nuvem.')) return; await GF.cloud.signOut(); toast('Você saiu da conta. Os dados deste aparelho continuam aqui.'); renderSync(); };
     const wipe = $('#ac-wipe'); if (wipe) wipe.onclick = async () => {
