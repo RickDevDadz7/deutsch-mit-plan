@@ -36,8 +36,8 @@
   function fritz(pose, h) {
     const F = window.GF_FRITZ || {}; const w = Math.round(h * 240 / 390);
     if (!F.dienst) return '';
-    if (pose === 'auto') return `<div class="fritz fz-auto fz-shadow" style="width:${w}px;height:${h}px" aria-hidden="true">${['dienst', 'wartet', 'prueft', 'freut'].map((n, i) => `<img src="${F[n]}" class="fa${i}" alt="">`).join('')}</div>`;
-    return `<div class="fritz fz-${pose} fz-shadow" style="width:${w}px;height:${h}px" aria-hidden="true"><img src="${F[pose] || F.dienst}" alt=""></div>`;
+    if (pose === 'auto') return `<div class="fritz fz-auto fz-shadow" style="width:${w}px;height:${h}px" title="Reineke, a raposa" aria-hidden="true">${['dienst', 'wartet', 'prueft', 'freut'].map((n, i) => `<img src="${F[n]}" class="fa${i}" alt="">`).join('')}</div>`;
+    return `<div class="fritz fz-${pose} fz-shadow" style="width:${w}px;height:${h}px" title="Reineke, a raposa" aria-hidden="true"><img src="${F[pose] || F.dienst}" alt=""></div>`;
   }
   function bindPaperSound() {
     document.addEventListener('click', (e) => {
@@ -137,7 +137,7 @@
     $$('[data-rs]').forEach((b) => b.onclick = async () => { const r = S.st.reports[b.dataset.rs]; r.status = r.status === 'resolvido' ? 'aberto' : 'resolvido'; r.upd = now(); await commit({ reports: [r.id] }); renderReports(); });
     $$('[data-rd]').forEach((b) => b.onclick = async () => { const r = S.st.reports[b.dataset.rd]; if (!confirm('Apagar este reporte?')) return; r.status = 'resolvido'; r.deleted = true; r.upd = now(); await commit({ reports: [r.id] }); renderReports(); });
     const c = $('#rp-copy'); if (c) c.onclick = async () => {
-      const txt = 'Problemas reportados no Deutsch mit Plan (' + open.length + '):\n\n' + open.slice().reverse().map(reportText).join('\n\n==========\n\n');
+      const txt = 'Problemas reportados no Stempel (' + open.length + '):\n\n' + open.slice().reverse().map(reportText).join('\n\n==========\n\n');
       try { await navigator.clipboard.writeText(txt); toast('Copiado. Cole no chat do Claude.'); } catch (e) { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('Copiado.'); } catch (e2) { toast('Não deu para copiar neste aparelho; use Baixar.'); } ta.remove(); }
     };
     const d = $('#rp-dl'); if (d) d.onclick = async () => {
@@ -168,7 +168,7 @@
       ${o.lines ? `<div class="typed-lines" style="margin-top:12px">${o.lines.map(([a, b]) => `<div><span>${esc(a)}</span><span></span><span>${esc(b)}</span></div>`).join('')}</div>` : ''}
       <div class="row" style="align-items:flex-end;flex-wrap:nowrap"><div class="stamps grow">${o.stamps.map((st, i) => `<span class="stamp ${st.cls}" style="left:${st.x}%;top:${st.y}px;--r:${st.r}deg;animation-delay:${0.25 + i * 0.45}s">${st.html}</span>`).join('')}</div>${fritz(o.fritz, 130)}</div>
       ${o.note ? `<p class="small mut">${o.note}</p>` : ''}
-      <div class="sign"><span>Unterschrift des Prüfers</span><svg width="110" height="26" viewBox="0 0 110 28" aria-hidden="true"><path d="M4 20 C14 4 20 26 30 12 S44 6 50 18 S66 10 74 16 S96 8 106 12" fill="none" stroke="#1f2a44" stroke-width="2" stroke-linecap="round"/></svg></div></div>`;
+      <div class="sign"><span>Prüfer: Reineke Fuchs</span><svg width="110" height="26" viewBox="0 0 110 28" aria-hidden="true"><path d="M4 20 C14 4 20 26 30 12 S44 6 50 18 S66 10 74 16 S96 8 106 12" fill="none" stroke="#1f2a44" stroke-width="2" stroke-linecap="round"/></svg></div></div>`;
   }
   function toast(msg, ms) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), ms || 2600); }
 
@@ -497,7 +497,7 @@
         <p class="small mut">Nome deste aparelho:</p><input type="text" id="sy-name" value="${esc(c.name || GF.sync.defaultName())}">
         <div style="height:12px"></div><button class="btn big" id="sy-go">Ativar GitHub e sincronizar</button></details>`;
     }
-    if (fresh) { if (nav) nav.classList.add('hide'); app().innerHTML = `<header class="top"><div class="brand"><div>Deutsch mit Plan<small>Trazer progresso de outro aparelho</small></div></div></header>${html}<button class="btn ghost big" id="sy-back">← Voltar ao diagnóstico</button>`; $('#sy-back').onclick = renderOnboarding; }
+    if (fresh) { if (nav) nav.classList.add('hide'); app().innerHTML = `<header class="top"><div class="brand"><div>Stempel<small>Trazer progresso de outro aparelho</small></div></div></header>${html}<button class="btn ghost big" id="sy-back">← Voltar ao diagnóstico</button>`; $('#sy-back').onclick = renderOnboarding; }
     else shell('mais', html);
 
     $$('[data-show]').forEach((b) => b.onclick = () => { const i = $('#' + b.dataset.show); i.type = i.type === 'password' ? 'text' : 'password'; });
@@ -562,7 +562,7 @@
   }
   function shell(active, inner) {
     const lvl = M.estimateLevel(S.st);
-    app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">${window.GF_FRITZ ? `<img class="logo" src="${window.GF_FRITZ.logo}" alt="">` : ''}<div>Deutsch mit Plan<small>Amt für deutsche Sprache · ${esc(S.st.profile.name || '')} · ${esc(lvl.label)}</small></div></div><span id="savestate" class="pill"></span></header>${inner}`;
+    app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">${window.GF_FRITZ ? `<img class="logo" src="${window.GF_FRITZ.logo}" alt="">` : ''}<div>Stempel<small>Amt für deutsche Sprache · ${esc(S.st.profile.name || '')} · ${esc(lvl.label)}</small></div></div><span id="savestate" class="pill"></span></header>${inner}`;
     let nav = $('nav.tabs'); if (!nav) { nav = document.createElement('nav'); nav.className = 'tabs'; document.body.appendChild(nav); }
     nav.innerHTML = TABS.map(([id, ic, l]) => `<a href="#${id}" class="${active === id ? 'on' : ''}"><b>${ic}</b>${l}</a>`).join('');
     nav.classList.remove('hide');
@@ -614,7 +614,8 @@
     const nav = $('nav.tabs'); if (nav) nav.classList.add('hide');
     const D = { name: 'Rick', prior: 'zero', minutes: 20, days: [1, 2, 3, 4, 5], goals: [], pref: 'equilibrado', focus: 20 };
     const chips = (key, opts, multi) => `<div class="chips" data-k="${key}">${opts.map(([v, l]) => `<button class="chip" data-v="${v}">${l}</button>`).join('')}</div>`;
-    app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">Deutsch mit Plan<small>Diagnóstico inicial · ~2 min</small></div></header>${installCardHtml()}
+    app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">Stempel<small>Diagnóstico inicial · ~2 min</small></div></header>${installCardHtml()}
+    <div class="card"><div class="home-head"><div><div class="step-k">Amt für deutsche Sprache</div><h2>Willkommen!</h2><p class="small">Eu sou o <b>Reineke</b>, o fiscal desta repartição. Vou carimbar cada passo seu, do zero até o visto.</p></div>${fritz('wartet', 140)}</div></div>
     <div class="card"><h2>Vamos configurar seu professor</h2><p class="mut small">Só o necessário para montar o plano. Tudo pode ser mudado depois. Seu progresso fica salvo num banco de dados seu, independente da IA usada.</p>
     <h3>Como quer ser chamado?</h3><input type="text" id="o-name" value="${esc(D.name)}">
     <h3>Seu contato com alemão até hoje</h3>${chips('prior', [['zero', 'Nunca estudei'], ['words', 'Sei algumas palavras'], ['some', 'Já estudei um pouco']])}

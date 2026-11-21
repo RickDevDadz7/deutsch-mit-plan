@@ -1,7 +1,7 @@
 {
- "name": "Deutsch mit Plan",
- "short_name": "Deutsch",
- "description": "Professor de alemão A0–C2",
+ "name": "Stempel — alemão do zero ao visto",
+ "short_name": "Stempel",
+ "description": "Alemão do A0 ao C2 para quem vai morar na Alemanha, com a raposa Reineke",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",

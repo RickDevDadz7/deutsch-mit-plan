@@ -1,8 +1,10 @@
-// Deutsch mit Plan — programa de PC (Electron). Dados ficam num arquivo JSON local.
+// Stempel (antes Deutsch mit Plan) — programa de PC (Electron). Dados ficam num arquivo JSON local.
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
+// O app mudou de nome (Deutsch mit Plan → Stempel): a pasta de dados continua a antiga, para não perder o progresso.
+app.setPath('userData', path.join(app.getPath('appData'), 'Deutsch mit Plan'));
 if (!app.requestSingleInstanceLock()) { app.quit(); }
 
 const DATA_DIR = path.join(app.getPath('userData'), 'dados');
@@ -60,20 +62,22 @@ ipcMain.handle('ai:anthropic', async (_e, key, body) => {
 
 function desktopShortcut() { // cria atalho na Área de Trabalho e no Menu Iniciar na 1ª execução (Windows)
   if (process.platform !== 'win32' || !app.isPackaged) return;
-  const flag = path.join(app.getPath('userData'), 'atalho-criado');
+  const flag = path.join(app.getPath('userData'), 'atalho-stempel');
   if (fs.existsSync(flag)) return;
-  const opts = { target: process.execPath, description: 'Deutsch mit Plan — professor de alemão', icon: process.execPath, iconIndex: 0 };
+  const opts = { target: process.execPath, description: 'Stempel — alemão do zero ao visto', icon: process.execPath, iconIndex: 0 };
   try {
-    shell.writeShortcutLink(path.join(app.getPath('desktop'), 'Deutsch mit Plan.lnk'), 'create', opts);
     const start = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs');
-    shell.writeShortcutLink(path.join(start, 'Deutsch mit Plan.lnk'), 'create', opts);
+    // remove os atalhos com o nome antigo (apontavam para o programa antigo)
+    for (const old of [path.join(app.getPath('desktop'), 'Deutsch mit Plan.lnk'), path.join(start, 'Deutsch mit Plan.lnk')]) { try { if (fs.existsSync(old)) fs.unlinkSync(old); } catch (e) { /* */ } }
+    shell.writeShortcutLink(path.join(app.getPath('desktop'), 'Stempel.lnk'), 'create', opts);
+    shell.writeShortcutLink(path.join(start, 'Stempel.lnk'), 'create', opts);
     fs.writeFileSync(flag, new Date().toISOString());
   } catch (e) { console.error('atalho', e); }
 }
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 1100, height: 820, minWidth: 380, minHeight: 600, title: 'Deutsch mit Plan', backgroundColor: '#26231e',
+    width: 1100, height: 820, minWidth: 380, minHeight: 600, title: 'Stempel', backgroundColor: '#26231e',
     icon: path.join(__dirname, 'icon.png'), autoHideMenuBar: true,
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true }
   });
