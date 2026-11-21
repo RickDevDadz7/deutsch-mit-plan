@@ -1313,6 +1313,44 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
   }
 
   /* ---------------- Praticar (livre) ---------------- */
+  /* ---------- Leitura (B2+): texto mais longo + perguntas de compreensão ---------- */
+  function readingCardHtml(unlocked) {
+    const us = unlocked.filter((id) => C.units[id] && C.units[id].reading);
+    if (!us.length) return '';
+    const done = S.st.profile.readingDone || {};
+    return `<div class="card"><h2>Lesen · leitura</h2><p class="small mut">Textos mais longos, como no Goethe B2 (Lesen). Leia sem traduzir palavra por palavra e responda.</p>
+      <div class="chips">${us.map((id) => `<button class="chip ${done[id] ? 'on' : ''}" data-rd="${id}">${esc(C.units[id].reading.title)}${done[id] ? ' · ' + done[id].best + '/' + C.units[id].reading.questions.length : ''}</button>`).join('')}</div></div>`;
+  }
+  function runReading(uid, done) {
+    const u = C.units[uid]; const R = u.reading; const t0 = now();
+    app().innerHTML = `<header class="top"><div class="brand"><div>Lesen<small>${esc(u.title)} · ${esc(uid)}</small></div></div></header>
+      <div class="card"><div class="step-k">Lesetext</div><h2 style="text-transform:none;letter-spacing:0">${esc(R.title)}</h2>
+      ${R.text.map((p) => `<div class="row" style="align-items:flex-start;flex-wrap:nowrap;margin:10px 0"><p style="margin:0;flex:1;font-family:var(--type);line-height:1.6">${esc(p)}</p>${audioBtn(p)}</div>`).join('')}
+      <p class="tiny mut">Dica: leia uma vez inteira, depois as perguntas, e então volte ao texto procurando só o que precisa.</p></div>
+      <button class="btn pri big" id="rd-q">Responder às perguntas</button>`;
+    $('#rd-q').onclick = () => {
+      let i = 0, ok = 0;
+      const ask = () => {
+        if (i >= R.questions.length) {
+          const p = S.st.profile; p.readingDone = p.readingDone || {}; const prev = p.readingDone[uid];
+          p.readingDone[uid] = { at: now(), best: Math.max(ok, prev ? prev.best : 0), last: ok };
+          addMinutes(now() - t0); commit({ profile: true, day: true });
+          app().innerHTML = `<div class="card"><h2>${ok}/${R.questions.length} certas</h2><p class="small">${ok === R.questions.length ? 'Ótimo: entendeu os pontos principais.' : 'Releia o trecho das perguntas que errou: a resposta está no texto, com outras palavras.'}</p></div><button class="btn pri big" id="rd-end">Concluir</button>`;
+          $('#rd-end').onclick = done; return;
+        }
+        const [q, opts, right] = R.questions[i]; const order = shuffle(opts.map((o, k) => k));
+        app().innerHTML = `<div class="step-k" style="margin-bottom:8px">Frage ${i + 1}/${R.questions.length}</div><div class="card"><p class="de md" style="font-size:20px">${esc(q)}</p>
+          ${order.map((k) => `<button class="btn opt" data-k="${k}">${esc(opts[k])}</button>`).join('')}<details style="margin-top:8px"><summary class="small">Ver o texto de novo</summary>${R.text.map((p) => `<p class="small" style="font-family:var(--type)">${esc(p)}</p>`).join('')}</details></div><div id="rd-after"></div>`;
+        $$('.opt').forEach((b) => b.onclick = () => {
+          const k = +b.dataset.k; const good = k === right; if (good) ok++;
+          $$('.opt').forEach((x) => { x.disabled = true; if (+x.dataset.k === right) x.classList.add('right'); else if (x === b) x.classList.add('wrong'); });
+          $('#rd-after').innerHTML = `<div class="fb ${good ? 'ok' : 'bad'}"><b>${good ? 'Richtig!' : 'Nicht ganz.'}</b><div class="why">${esc(opts[right])}</div></div><button class="btn pri big" id="rd-next">Weiter</button>`;
+          $('#rd-next').onclick = () => { i++; ask(); };
+        });
+      };
+      ask();
+    };
+  }
   function renderPractice() {
     const uid = M.currentUnit(S.st) || 'A1-U1'; const u = C.units[uid];
     const unlocked = C.unitOrder.filter((id) => id !== 'A0-P' && (id === uid || (S.st.profile.unitState[id] || {}).passed));
@@ -1323,6 +1361,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
       <div class="card"><h2>Gramática</h2><div class="chips">${Object.entries(C.grammar).filter(([, g]) => unlocked.includes(g.unit)).map(([id, g]) => `<button class="chip" data-g="${id}">${esc(g.title)}</button>`).join('')}</div></div>
       <div class="card"><h2>Pronúncia</h2><div class="chips">${Object.entries(C.pron).map(([id, l]) => `<button class="chip ${S.st.profile.pronStats.done[id] ? 'on' : ''}" data-pr="${id}">${esc(l.title)}</button>`).join('')}</div><button class="btn" id="p-pairs" style="margin-top:10px">Teste de pares mínimos</button></div>
       <div class="card"><h2>Escuta e escrita</h2><div class="row"><button class="btn" id="p-dict">Ditado (${esc(u.title)})</button><button class="btn" id="p-dlg">Ouvir diálogo</button><button class="btn" id="p-wr">Texto curto</button></div></div>
+      ${readingCardHtml(unlocked)}
       <div class="card"><h2>Vocabulário</h2><a class="btn" href="#vocabulario">Ver todos os itens e seu domínio</a></div>`);
     const solo = (fn) => { $('nav.tabs').classList.add('hide'); const tok = S.solo = {}; openOverlay(); fn(() => { if (S.solo !== tok) return; S.solo = null; closeOverlay(); }); };
     $$('[data-cv]').forEach((b) => b.onclick = () => solo((d) => stepConvo({ unit: b.dataset.cv }, d)));
@@ -1330,6 +1369,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
     $$('[data-pr]').forEach((b) => b.onclick = () => solo((d) => stepPron({ pron: b.dataset.pr }, d)));
     $('#p-pairs').onclick = () => solo((d) => pairsQuiz(shuffle(Object.values(C.pron).flatMap((l) => l.pairs)), 8, d));
     $('#p-dict').onclick = () => solo((d) => stepListen({ unit: uid, n: 5 }, d));
+    $$('[data-rd]').forEach((b) => b.onclick = () => solo((d) => runReading(b.dataset.rd, d)));
     $('#p-dlg').onclick = () => solo((d) => { app().innerHTML = `<div class="card"><h2>${esc(u.title)}</h2>${u.dialog.map(([sp, l]) => `<div class="bubble ${sp === 'A' ? 't' : 'u'}">${esc(l)} ${audioBtn(l)}</div>`).join('')}<button class="btn pri" id="dd-p">▶ Ouvir tudo</button></div><button class="btn big" id="dd-b">Voltar</button>`; $('#dd-p').onclick = () => Audio.sayLines(u.dialog); $('#dd-b').onclick = d; });
     $('#p-wr').onclick = () => solo((d) => stepWrite({ unit: uid }, d));
     $('#p-rev').onclick = () => { const plan = { steps: M.dueList(S.st, now()).slice(0, 40).map((x) => ({ kind: 'review', id: x.id, stage: x.stage })), unit: null, notes: [] }; if (!plan.steps.length) return toast('Nenhuma revisão pendente agora.'); startSession(plan); };
@@ -1370,8 +1410,8 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
       ${L.matrix ? `<details><summary class="small">Matriz de competências</summary><table class="t">${Object.entries(L.matrix).map(([k, v]) => `<tr><td><b>${esc(k)}</b></td><td class="small">${esc(v)}</td></tr>`).join('')}</table></details>` : ''}
       ${L.modules.map((m) => `<h3>${esc(m.title)}</h3>${m.units.map((uid) => { const u = C.units[uid]; const st = M.unitStatus(S.st, uid, t); const cur = M.currentUnit(S.st) === uid; return `<details ${cur ? 'open' : ''}><summary>${st.passed ? '✅' : cur ? '▶️' : uid === 'A0-P' ? '🔈' : '🔒'} ${esc(u.title)} <span class="mut small">${esc(u.subtitle)}</span></summary>
         <p class="small"><b>Objetivos:</b> ${u.goals.map(esc).join(' · ')}</p>${u.grammar.length ? `<p class="small"><b>Gramática:</b> ${u.grammar.map((g) => esc(C.grammar[g].title)).join(' · ')}</p>` : ''}
-        <p class="small"><b>Pré-requisito:</b> ${u.prereq.length ? u.prereq.join(', ') : 'nenhum'} · <b>Critério:</b> ${esc(u.criteria)}</p>${unitChecklist(st)}</details>`; }).join('')}
-        ${m.plan ? C.plan.filter((e) => e.level === L.id && !L.modules.some((mm) => mm.units.includes(e.id))).map((e) => { const u = C.units[e.id]; if (!u) return `<details><summary class="lock">🔒 ${esc(e.title)} <span class="mut small">${esc(e.topic)}</span></summary><p class="small">Foco gramatical: ${esc(e.grammar)}. O professor prepara esta unidade quando você chegar perto dela.</p></details>`; const st = M.unitStatus(S.st, e.id, t); const cur = M.currentUnit(S.st) === e.id; return `<details ${cur ? 'open' : ''}><summary>${st.passed ? '✅' : cur ? '▶️' : '📘'} ${esc(u.title)} <span class="mut small">${esc(u.subtitle)} · ✨ IA</span></summary><p class="small"><b>Objetivos:</b> ${u.goals.map(esc).join(' · ')}</p><p class="small"><b>Gramática:</b> ${u.grammar.map((g) => esc(C.grammar[g].title)).join(' · ')}</p>${u.gen && u.gen.changes && u.gen.changes.length ? `<p class="tiny mut">Revisão automática corrigiu: ${u.gen.changes.slice(0, 5).map(esc).join('; ')}</p>` : ''}${unitChecklist(st)}</details>`; }).join('') : ''}`).join('')}</div>`).join('') +
+        <p class="small"><b>Pré-requisito:</b> ${u.prereq.length ? u.prereq.join(', ') : 'nenhum'} · <b>Critério:</b> ${esc(u.criteria)}</p>${u.authentic ? `<p class="small"><b>Material autêntico:</b></p><ul class="list small">${u.authentic.map((a) => `<li>${esc(a)}</li>`).join('')}</ul>` : ''}${u.reading ? `<p class="small"><b>Leitura:</b> „${esc(u.reading.title)}” (em Praticar → Lesen)</p>` : ''}${unitChecklist(st)}</details>`; }).join('')}
+        ${m.plan ? C.plan.filter((e) => e.level === L.id && !L.modules.some((mm) => mm.units.includes(e.id))).map((e) => { const u = C.units[e.id]; if (!u) return `<details><summary class="lock">🔒 ${esc(e.title)} <span class="mut small">${esc(e.topic)}</span></summary><p class="small">Foco gramatical: ${esc(e.grammar)}. O professor prepara esta unidade quando você chegar perto dela.</p></details>`; const st = M.unitStatus(S.st, e.id, t); const cur = M.currentUnit(S.st) === e.id; return `<details ${cur ? 'open' : ''}><summary>${st.passed ? '✅' : cur ? '▶️' : '📘'} ${esc(u.title)} <span class="mut small">${esc(u.subtitle)}${u.gen ? ' · ✨ IA' : ''}</span></summary><p class="small"><b>Objetivos:</b> ${u.goals.map(esc).join(' · ')}</p><p class="small"><b>Gramática:</b> ${u.grammar.map((g) => esc(C.grammar[g].title)).join(' · ')}</p>${u.criteria ? `<p class="small"><b>Pré-requisito:</b> ${(u.prereq || []).join(', ') || 'nenhum'} · <b>Critério:</b> ${esc(u.criteria)}</p>` : ''}${u.authentic ? `<p class="small"><b>Material autêntico:</b></p><ul class="list small">${u.authentic.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${u.reading ? `<p class="small"><b>Leitura:</b> „${esc(u.reading.title)}” (em Praticar → Lesen)</p>` : ''}${u.gen && u.gen.changes && u.gen.changes.length ? `<p class="tiny mut">Revisão automática corrigiu: ${u.gen.changes.slice(0, 5).map(esc).join('; ')}</p>` : ''}${unitChecklist(st)}</details>`; }).join('') : ''}`).join('')}</div>`).join('') +
       `<div class="card"><p class="small mut">O conteúdo é carregado progressivamente. Versão do conteúdo: ${esc(C.version)}. Seu histórico é guardado por id de item, então correções e ampliações do currículo não apagam o progresso.</p></div>`);
   }
 

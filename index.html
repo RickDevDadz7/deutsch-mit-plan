@@ -2212,6 +2212,419 @@ input[type=password]:focus{background:rgba(255,255,255,.7);box-shadow:inset 0 -2
 })(globalThis.GF = globalThis.GF || {});
 
 ;
+/* Conteúdo fixo B2 — parte 1 (B2-U1 a B2-U3). Explicações metade em alemão simples, metade em português.
+ * Novidades do B2: texto de leitura mais longo por unidade (reading) e indicação de material autêntico (authentic). */
+(function (GF) {
+  'use strict';
+  const K = GF.kit('B2', 'b2');
+  const { unit, N, V, P, G } = K;
+
+  /* ======================= B2-U1 Argumentieren ======================= */
+  unit('B2-U1', {
+    title: 'Argumentieren', subtitle: 'Argumentar, concordar, discordar e chegar a um acordo',
+    goals: ['Defender um ponto de vista com argumentos e exemplos', 'Concordar e discordar com educação, admitindo o lado do outro', 'Ligar ideias com conectores de duas partes e com nominalizações'],
+    dialog: [['A', 'Ich bin der Meinung, dass Homeoffice für alle Mitarbeiter möglich sein sollte.'], ['B', 'Da bin ich anderer Meinung. Zwar spart man Zeit, aber der Kontakt zu den Kollegen fehlt.'], ['A', 'Einerseits stimmt das, andererseits kann man zu Hause konzentrierter arbeiten.'], ['B', 'Das lässt sich nicht bestreiten. Trotzdem gebe ich zu bedenken, dass nicht jeder ein ruhiges Zimmer hat.'], ['A', 'Je flexibler die Regeln sind, desto zufriedener sind die Leute. Das zeigen viele Studien.'], ['B', 'Wie wäre es mit einem Kompromiss: zwei Tage im Büro, drei Tage zu Hause?'], ['A', 'Damit wäre ich einverstanden. Sowohl die Firma als auch die Mitarbeiter hätten etwas davon.']],
+    dialogPt: 'Dois colegas debatem o trabalho remoto e chegam a um meio-termo.',
+    listening: ['Meiner Ansicht nach ist das Argument nicht überzeugend.', 'Einerseits ist es praktisch, andererseits ist es teuer.', 'Je mehr man liest, desto besser schreibt man.', 'Ich kann weder heute noch morgen kommen.', 'Das sehe ich genauso, aber es gibt einen Einwand.'],
+    writing: 'Goethe B2, Schreiben Teil 1: escreva um texto de fórum (≈ 150 palavras) sobre “Homeoffice für alle?”. Dê sua opinião, dois argumentos com exemplo, um contra-argumento e uma conclusão. Use pelo menos 2 conectores de duas partes (zwar … aber, einerseits … andererseits, je … desto).',
+    speaking: { scene: 'Discussão em dupla (como no Goethe B2, Sprechen Teil 2): a empresa quer acabar com o trabalho remoto. Vocês precisam chegar a uma recomendação comum.', persona: 'Frau Albrecht, colega, educada mas firme (Sie), defende o escritório', goals: ['apresentar sua posição com um motivo', 'reagir a um argumento dela concordando em parte', 'trazer um contra-argumento com exemplo', 'propor um compromisso', 'resumir a decisão comum'] },
+    criteria: 'Critérios padrão; conectores ≥ 80%; argumentação clara na conversa.',
+    authentic: ['DW „Top-Thema mit Vokabeln“: textos curtos sobre temas atuais com glossário (B1–B2)', 'Deutschlandfunk „Kontrovers“: debate ao vivo, ótimo para ouvir argumentos', 'ARD „hart aber fair“ (talk show): repare como os convidados interrompem e discordam'],
+    reading: {
+      title: 'Homeoffice: Fluch oder Segen?',
+      text: ['Seit der Pandemie arbeiten Millionen Menschen in Deutschland zumindest teilweise von zu Hause aus. Viele Firmen haben festgestellt, dass ihre Mitarbeiter im Homeoffice nicht weniger leisten. Im Gegenteil: Wer nicht jeden Tag zwei Stunden pendeln muss, ist oft ausgeruhter und motivierter.', 'Zwar bringt das Homeoffice Freiheit, aber es hat auch Nachteile. Einerseits verschwimmt die Grenze zwischen Arbeit und Freizeit, andererseits fühlen sich manche Beschäftigte einsam. Besonders Berufsanfänger lernen weniger, wenn erfahrene Kollegen nicht im Raum sind.', 'Deshalb setzen immer mehr Unternehmen auf ein hybrides Modell. Je klarer die Regeln sind, desto besser funktioniert es: feste Bürotage für Besprechungen, flexible Tage für konzentrierte Arbeit. Ein perfektes Modell für alle gibt es allerdings nicht.'],
+      questions: [['Was haben viele Firmen festgestellt?', ['Im Homeoffice wird nicht weniger gearbeitet.', 'Im Homeoffice wird viel weniger gearbeitet.', 'Die Mitarbeiter wollen zurück ins Büro.'], 0], ['Für wen ist das Homeoffice laut Text besonders schwierig?', ['Für Berufsanfänger', 'Für Chefs', 'Für Pendler'], 0], ['Was empfiehlt der Text?', ['Klare Regeln für ein hybrides Modell', 'Nur noch Homeoffice', 'Nur noch Büroarbeit'], 0]]
+    }
+  });
+  N([
+    ['standpunkt', 'der', 'Standpunkt', 'Standpunkte', 'o ponto de vista', 'ˈʃtantˌpʊŋkt', 'Ich verstehe deinen Standpunkt, teile ihn aber nicht.', 'Entendo seu ponto de vista, mas não compartilho.'],
+    ['behauptung', 'die', 'Behauptung', 'Behauptungen', 'a afirmação (nem sempre provada)', 'bəˈhaʊ̯ptʊŋ', 'Diese Behauptung ist nicht bewiesen.', 'Essa afirmação não está provada.'],
+    ['beweis', 'der', 'Beweis', 'Beweise', 'a prova', 'bəˈvaɪ̯s', 'Gibt es dafür einen Beweis?', 'Existe uma prova disso?'],
+    ['these', 'die', 'These', 'Thesen', 'a tese', 'ˈteːzə', 'Der Autor vertritt eine provokante These.', 'O autor defende uma tese provocadora.'],
+    ['gegenargument', 'das', 'Gegenargument', 'Gegenargumente', 'o contra-argumento', 'ˈɡeːɡn̩ʔaʁɡuˌmɛnt', 'Ein starkes Gegenargument ist der Preis.', 'Um contra-argumento forte é o preço.'],
+    ['einwand', 'der', 'Einwand', 'Einwände', 'a objeção', 'ˈaɪ̯nˌvant', 'Haben Sie noch Einwände?', 'O senhor ainda tem objeções?'],
+    ['begruendung', 'die', 'Begründung', 'Begründungen', 'a justificativa', 'bəˈɡʁʏndʊŋ', 'Ohne Begründung ist eine Meinung schwach.', 'Sem justificativa, uma opinião é fraca.'],
+    ['schlussfolgerung', 'die', 'Schlussfolgerung', 'Schlussfolgerungen', 'a conclusão (lógica)', 'ˈʃlʊsˌfɔlɡəʁʊŋ', 'Welche Schlussfolgerung ziehen Sie daraus?', 'Que conclusão o senhor tira disso?', 'eine Schlussfolgerung ziehen = tirar uma conclusão.'],
+    ['konsens', 'der', 'Konsens', '', 'o consenso', 'kɔnˈzɛns', 'Am Ende haben wir einen Konsens gefunden.', 'No fim chegamos a um consenso.'],
+    ['debatte', 'die', 'Debatte', 'Debatten', 'o debate', 'deˈbatə', 'Die Debatte im Parlament dauerte Stunden.', 'O debate no parlamento durou horas.'],
+    ['auffassung', 'die', 'Auffassung', 'Auffassungen', 'a concepção, a opinião', 'ˈaʊ̯fˌfasʊŋ', 'Ich bin der Auffassung, dass wir warten sollten.', 'Sou da opinião de que deveríamos esperar.', 'Mais formal que Meinung.'],
+    ['widerspruch', 'der', 'Widerspruch', 'Widersprüche', 'a contradição; a objeção formal', 'ˈviːdɐˌʃpʁʊx', 'In seiner Aussage gibt es einen Widerspruch.', 'Há uma contradição no depoimento dele.'],
+    ['ueberzeugung', 'die', 'Überzeugung', 'Überzeugungen', 'a convicção', 'yːbɐˈtsɔɪ̯ɡʊŋ', 'Sie handelt aus Überzeugung.', 'Ela age por convicção.'],
+    ['voraussetzung', 'die', 'Voraussetzung', 'Voraussetzungen', 'o pré-requisito, a condição', 'foˈʁaʊ̯sˌzɛtsʊŋ', 'Deutschkenntnisse sind eine Voraussetzung für die Stelle.', 'Saber alemão é pré-requisito para a vaga.'],
+    ['zugestaendnis', 'das', 'Zugeständnis', 'Zugeständnisse', 'a concessão', 'ˈtsuːɡəˌʃtɛntnɪs', 'Beide Seiten mussten Zugeständnisse machen.', 'Os dois lados tiveram que fazer concessões.'],
+    ['nachteil', 'der', 'Nachteil', 'Nachteile', 'a desvantagem', 'ˈnaːxˌtaɪ̯l', 'Der größte Nachteil ist der lange Weg.', 'A maior desvantagem é o caminho longo.', 'Oposto: der Vorteil.'],
+  ]);
+  V([
+    ['behaupten', 'behaupten', 'afirmar, alegar', 'bəˈhaʊ̯ptn̩', 'behaupte|behauptest|behauptet|behaupten|behauptet|behaupten', 'Er behauptet, er habe nichts gewusst.', 'Ele alega que não sabia de nada.'],
+    ['einraeumen', 'einräumen', 'admitir, conceder (num debate)', 'ˈaɪ̯nˌʁɔɪ̯mən', 'räume ein|räumst ein|räumt ein|räumen ein|räumt ein|räumen ein', 'Ich räume ein, dass das Argument gut ist.', 'Admito que o argumento é bom.', 'Também: arrumar (guardar coisas no armário).'],
+    ['widersprechen', 'widersprechen', 'contradizer, discordar', 'viːdɐˈʃpʁɛçn̩', 'widerspreche|widersprichst|widerspricht|widersprechen|widersprecht|widersprechen', 'Da muss ich Ihnen widersprechen.', 'Nisso preciso discordar do senhor.', 'Pede dativo. Perfekt: hat widersprochen.'],
+    ['begruenden', 'begründen', 'justificar', 'bəˈɡʁʏndn̩', 'begründe|begründest|begründet|begründen|begründet|begründen', 'Können Sie Ihre Meinung begründen?', 'O senhor pode justificar sua opinião?'],
+    ['zustimmen', 'zustimmen', 'concordar', 'ˈtsuːˌʃtɪmən', 'stimme zu|stimmst zu|stimmt zu|stimmen zu|stimmt zu|stimmen zu', 'Ich stimme dir völlig zu.', 'Concordo totalmente com você.', 'Separável; pede dativo.'],
+    ['abwaegen', 'abwägen', 'pesar, ponderar', 'ˈapˌvɛːɡn̩', 'wäge ab|wägst ab|wägt ab|wägen ab|wägt ab|wägen ab', 'Wir müssen Vor- und Nachteile abwägen.', 'Precisamos pesar prós e contras.', 'Perfekt: hat abgewogen.'],
+  ]);
+  P([
+    ['ueberzeugend', 'überzeugend', 'convincente', '', 'word', 'yːbɐˈtsɔɪ̯ɡn̩t'],
+    ['umstritten', 'umstritten', 'controverso, polêmico', '', 'word', 'ʊmˈʃtʁɪtn̩'],
+    ['andermeinung', 'Da bin ich anderer Meinung.', 'Nisso eu tenho outra opinião.', ''],
+    ['genauso', 'Das sehe ich genauso.', 'Eu vejo exatamente assim.', ''],
+    ['zubedenken', 'Ich gebe zu bedenken, dass …', 'Eu gostaria de lembrar que … (ressalva educada)', 'Verbo no fim depois de dass.'],
+    ['ansicht', 'Meiner Ansicht nach …', 'Na minha opinião …', 'Depois dele vem o verbo: Meiner Ansicht nach ist das falsch.'],
+    ['bestreiten', 'Das lässt sich nicht bestreiten.', 'Isso não dá para negar.', ''],
+    ['einverstanden', 'Damit wäre ich einverstanden.', 'Com isso eu concordaria.', ''],
+  ]);
+  G('g_b2_konnektoren', {
+    title: 'Conectores de duas partes (zweiteilige Konnektoren)', explain: 'Zweiteilige Konnektoren verbinden zwei Ideen in einem Satz:<br>• <b>zwar … aber</b> — admite algo e depois contrapõe: Zwar ist es teuer, aber gut.<br>• <b>einerseits … andererseits</b> — dois lados da questão.<br>• <b>sowohl … als auch</b> — tanto … quanto.<br>• <b>weder … noch</b> — nem … nem (já é negativo: sem nicht/kein!).<br>• <b>je + comparativo …, desto/umso + comparativo</b> — quanto mais …, mais …; depois de <b>je</b> o verbo vai para o fim, depois de <b>desto</b> vem o verbo logo em seguida.',
+    compare: '“Quanto mais você treina, melhor você fala” = <b>Je</b> mehr du <b>übst</b>, <b>desto</b> besser <b>sprichst</b> du. Repare na posição dos verbos: fim / logo depois de desto.',
+    examples: [['Zwar spart man Zeit, aber der Kontakt fehlt.', 'É verdade que se economiza tempo, mas falta o contato.'], ['Je mehr man liest, desto besser schreibt man.', 'Quanto mais se lê, melhor se escreve.'], ['Ich habe weder Zeit noch Geld.', 'Não tenho nem tempo nem dinheiro.']],
+    drills: [['Das Auto ist ___ teuer, aber sehr sparsam.', ['zwar']], ['___ mehr man übt, desto besser spricht man.', ['je']], ['Je früher wir anfangen, ___ schneller sind wir fertig.', ['desto', 'umso']], ['Ich trinke ___ Kaffee noch Tee.', ['weder']], ['Sie spricht sowohl Englisch ___ auch Spanisch.', ['als']], ['___ ist das Homeoffice bequem, andererseits fehlt der Kontakt.', ['einerseits']], ['Er hat weder angerufen ___ geschrieben.', ['noch']]]
+  });
+  G('g_b2_nominal', {
+    title: 'Nominalização: de oração para substantivo', explain: 'In formellen Texten (Nachrichten, Berichte, Prüfung) wird oft ein Nebensatz zu einer Nominalgruppe:<br>• weil er krank war → <b>wegen</b> seiner Krankheit<br>• nachdem er angekommen war → <b>nach</b> seiner Ankunft<br>• bevor wir abreisen → <b>vor</b> unserer Abreise<br>• wenn man es benutzt → <b>bei</b> der Benutzung<br>• obwohl es regnete → <b>trotz</b> des Regens<br>• während wir essen → <b>während</b> des Essens<br>O substantivo vem do verbo (ankommen → die Ankunft, benutzen → die Benutzung). wegen, trotz e während pedem genitivo.',
+    compare: 'O português faz o mesmo em textos formais: “porque estava doente” → “por causa da doença”.',
+    examples: [['Wegen des Streiks fallen viele Züge aus.', 'Por causa da greve, muitos trens são cancelados.'], ['Nach seiner Ankunft rief er sofort an.', 'Depois da chegada, ele ligou na hora.']],
+    drills: [['Weil er krank war, blieb er zu Hause. → ___ seiner Krankheit blieb er zu Hause.', ['wegen']], ['Nachdem er angekommen war, … → Nach seiner ___ …', ['Ankunft']], ['Bevor wir abreisen, … → Vor unserer ___ …', ['Abreise']], ['Wenn man das Gerät benutzt, … → Bei der ___ des Geräts …', ['Benutzung']], ['Obwohl es regnete, … → Trotz des ___ …', ['Regens']], ['Während wir essen, … → Während des ___ …', ['Essens']]]
+  });
+
+  /* ======================= B2-U2 Wirtschaft ======================= */
+  unit('B2-U2', {
+    title: 'Wirtschaft', subtitle: 'Economia, empresas e mercado de trabalho',
+    goals: ['Entender notícias simples de economia (lucro, inflação, desemprego)', 'Descrever processos de uma empresa usando a voz passiva', 'Falar de obrigações e possibilidades na passiva com verbos modais'],
+    dialog: [['A', 'Hast du gehört? Unsere Firma wird von einem amerikanischen Konzern übernommen.'], ['B', 'Ja, das wurde heute Morgen in der Versammlung bekanntgegeben.'], ['A', 'Was passiert jetzt mit den Arbeitsplätzen? Werden Leute entlassen?'], ['B', 'Angeblich nicht. Aber die Kosten müssen gesenkt werden, hat der Chef gesagt.'], ['A', 'Der Umsatz ist doch im letzten Jahr gestiegen. Warum wird gespart?'], ['B', 'Der Gewinn ist trotzdem gesunken, wegen der hohen Energiepreise und der Inflation.'], ['A', 'Hoffentlich wird bald mehr erklärt. Ich mache mir Sorgen.']],
+    dialogPt: 'Dois colegas comentam a venda da empresa e o medo de demissões.',
+    listening: ['Die Firma wurde im Jahr neunzehnhundertneunzig gegründet.', 'Die Kosten müssen dringend gesenkt werden.', 'Der Umsatz ist um fünf Prozent gestiegen.', 'In vielen Branchen fehlen Fachkräfte.', 'Die Produkte werden vor allem nach Asien exportiert.'],
+    writing: 'Escreva um e-mail formal (≈ 150 palavras) ao conselho de funcionários (Betriebsrat) perguntando sobre a venda da empresa: o que já foi decidido, o que ainda precisa ser feito e quais são as suas preocupações. Use a passiva em pelo menos 3 tempos verbais e uma passiva com modal.',
+    speaking: { scene: 'Entrevista de emprego: o recrutador pergunta sobre a empresa onde você trabalhou e sobre o mercado da sua área.', persona: 'Herr Krüger, recrutador, objetivo e formal (Sie)', goals: ['apresentar a empresa anterior (o que era produzido, quando foi fundada)', 'explicar uma mudança importante usando a passiva', 'falar da situação da sua área (falta de profissionais, salários)', 'fazer uma pergunta sobre a empresa dele'] },
+    criteria: 'Critérios padrão; passiva em vários tempos ≥ 80%.',
+    authentic: ['tagesschau.de, seção Wirtschaft: notícias curtas com vídeo de 1–2 min', 'DW „Made in Germany“: reportagens de economia', 'Podcast „Wirtschaft – einfach erklärt“ (ARD/BR): temas econômicos em linguagem simples'],
+    reading: {
+      title: 'Fachkräftemangel in Deutschland',
+      text: ['In Deutschland werden Hunderttausende Fachkräfte gesucht. Besonders in der Pflege, im Handwerk und in der IT-Branche bleiben viele Stellen monatelang unbesetzt. Der Grund ist vor allem der demografische Wandel: Mehr Menschen gehen in Rente, als junge Leute nachkommen.', 'Um das Problem zu lösen, wurde 2023 ein neues Fachkräfteeinwanderungsgesetz beschlossen. Seitdem können ausländische Abschlüsse leichter anerkannt werden, und Bewerber mit Berufserfahrung dürfen schneller einreisen.', 'Kritiker sagen allerdings, dass noch viel getan werden muss. Die Verfahren in den Behörden dauern oft zu lange, und viele Zugewanderte finden keine bezahlbare Wohnung. Außerdem müssen Sprachkurse ausgebaut werden, denn ohne gute Deutschkenntnisse ist die Integration in den Arbeitsmarkt schwierig.'],
+      questions: [['Was ist laut Text der wichtigste Grund für den Fachkräftemangel?', ['Der demografische Wandel', 'Die hohen Löhne', 'Die Digitalisierung'], 0], ['Was hat sich durch das neue Gesetz geändert?', ['Ausländische Abschlüsse werden leichter anerkannt.', 'Sprachkurse sind jetzt Pflicht.', 'Wohnungen werden billiger.'], 0], ['Was kritisieren manche Menschen?', ['Die Verfahren in den Behörden dauern zu lange.', 'Es kommen zu viele Fachkräfte.', 'Das Gesetz ist zu streng.'], 0]]
+    }
+  });
+  N([
+    ['umsatz', 'der', 'Umsatz', 'Umsätze', 'o faturamento', 'ˈʊmˌzats', 'Der Umsatz ist um fünf Prozent gestiegen.', 'O faturamento subiu cinco por cento.'],
+    ['gewinn', 'der', 'Gewinn', 'Gewinne', 'o lucro; o prêmio', 'ɡəˈvɪn', 'Die Firma hat einen hohen Gewinn gemacht.', 'A empresa teve um lucro alto.'],
+    ['verlust', 'der', 'Verlust', 'Verluste', 'o prejuízo; a perda', 'fɛɐ̯ˈlʊst', 'Im letzten Quartal gab es Verluste.', 'No último trimestre houve prejuízos.'],
+    ['branche', 'die', 'Branche', 'Branchen', 'o setor, o ramo', 'ˈbʁãːʃə', 'In welcher Branche arbeiten Sie?', 'Em que setor o senhor trabalha?', 'Pronúncia francesa: “bran-xe”.'],
+    ['konzern', 'der', 'Konzern', 'Konzerne', 'o grupo empresarial, a multinacional', 'kɔnˈtsɛʁn', 'Der Konzern hat Standorte in vielen Ländern.', 'O grupo tem unidades em muitos países.'],
+    ['arbeitsmarkt', 'der', 'Arbeitsmarkt', 'Arbeitsmärkte', 'o mercado de trabalho', 'ˈaʁbaɪ̯tsˌmaʁkt', 'Der Arbeitsmarkt in der IT ist sehr gut.', 'O mercado de trabalho em TI está muito bom.'],
+    ['arbeitslosigkeit', 'die', 'Arbeitslosigkeit', '', 'o desemprego', 'ˈaʁbaɪ̯tsloːzɪçkaɪ̯t', 'Die Arbeitslosigkeit ist leicht gesunken.', 'O desemprego caiu um pouco.'],
+    ['inflation', 'die', 'Inflation', 'Inflationen', 'a inflação', 'ɪnflaˈtsi̯oːn', 'Die Inflation macht das Leben teurer.', 'A inflação encarece a vida.'],
+    ['fachkraft', 'die', 'Fachkraft', 'Fachkräfte', 'o profissional qualificado', 'ˈfaxˌkʁaft', 'In der Pflege fehlen viele Fachkräfte.', 'Faltam muitos profissionais na enfermagem.', 'Fachkräftemangel = falta de mão de obra qualificada.'],
+    ['mangel', 'der', 'Mangel', 'Mängel', 'a falta; o defeito', 'ˈmaŋl̩', 'Es gibt einen Mangel an Wohnungen.', 'Há falta de apartamentos.', 'Mangel an + dativo.'],
+    ['investition', 'die', 'Investition', 'Investitionen', 'o investimento', 'ɪnvɛstiˈtsi̯oːn', 'Die Investition hat sich gelohnt.', 'O investimento valeu a pena.'],
+    ['nachfrage', 'die', 'Nachfrage', 'Nachfragen', 'a demanda, a procura', 'ˈnaːxˌfʁaːɡə', 'Die Nachfrage nach Elektroautos steigt.', 'A procura por carros elétricos aumenta.', 'Angebot und Nachfrage = oferta e demanda.'],
+    ['konkurrent', 'der', 'Konkurrent', 'Konkurrenten', 'o concorrente', 'kɔŋkʊˈʁɛnt', 'Unser größter Konkurrent sitzt in München.', 'Nosso maior concorrente fica em Munique.', 'Declinação fraca: den Konkurrenten.'],
+    ['lieferkette', 'die', 'Lieferkette', 'Lieferketten', 'a cadeia de suprimentos', 'ˈliːfɐˌkɛtə', 'Die Lieferketten wurden durch die Krise gestört.', 'As cadeias de suprimento foram afetadas pela crise.'],
+    ['boerse', 'die', 'Börse', 'Börsen', 'a bolsa de valores', 'ˈbœʁzə', 'Die Aktie wird an der Börse gehandelt.', 'A ação é negociada na bolsa.'],
+    ['aktie', 'die', 'Aktie', 'Aktien', 'a ação (da bolsa)', 'ˈaktsi̯ə', 'Sie hat Aktien von mehreren Firmen.', 'Ela tem ações de várias empresas.'],
+    ['betriebsrat', 'der', 'Betriebsrat', 'Betriebsräte', 'o conselho de funcionários', 'bəˈtʁiːpsˌʁaːt', 'Der Betriebsrat vertritt die Interessen der Mitarbeiter.', 'O conselho representa os interesses dos funcionários.', 'Típico das empresas alemãs.'],
+  ]);
+  V([
+    ['herstellen', 'herstellen', 'fabricar, produzir', 'ˈheːɐ̯ˌʃtɛlən', 'stelle her|stellst her|stellt her|stellen her|stellt her|stellen her', 'Hier werden Autoteile hergestellt.', 'Aqui são fabricadas peças de carro.'],
+    ['investieren', 'investieren', 'investir', 'ɪnvɛsˈtiːʁən', 'investiere|investierst|investiert|investieren|investiert|investieren', 'Die Firma investiert in neue Technik.', 'A empresa investe em tecnologia nova.', 'investieren in + acusativo.'],
+    ['entlassen', 'entlassen', 'demitir; dar alta', 'ɛntˈlasn̩', 'entlasse|entlässt|entlässt|entlassen|entlasst|entlassen', 'Es wurden keine Mitarbeiter entlassen.', 'Nenhum funcionário foi demitido.', 'Perfekt: hat entlassen.'],
+    ['gruenden', 'gründen', 'fundar', 'ˈɡʁʏndn̩', 'gründe|gründest|gründet|gründen|gründet|gründen', 'Sie hat ihr eigenes Start-up gegründet.', 'Ela fundou a própria startup.'],
+    ['exportieren', 'exportieren', 'exportar', 'ɛkspɔʁˈtiːʁən', 'exportiere|exportierst|exportiert|exportieren|exportiert|exportieren', 'Deutschland exportiert viele Maschinen.', 'A Alemanha exporta muitas máquinas.'],
+    ['senken', 'senken', 'reduzir, baixar', 'ˈzɛŋkn̩', 'senke|senkst|senkt|senken|senkt|senken', 'Die Firma will die Kosten senken.', 'A empresa quer reduzir os custos.', 'senken (alguém baixa algo) × sinken (algo cai sozinho).'],
+  ]);
+  P([
+    ['wirtschaftlich', 'wirtschaftlich', 'econômico (da economia)', 'wirtschaftlich = da economia; sparsam = que economiza.', 'word', 'ˈvɪʁtʃaftlɪç'],
+    ['angeblich', 'angeblich', 'supostamente', '', 'word', 'ˈanɡeːplɪç'],
+    ['rentabel', 'rentabel', 'rentável', '', 'word', 'ʁɛnˈtaːbl̩'],
+    ['bekanntgegeben', 'Das wurde heute bekanntgegeben.', 'Isso foi anunciado hoje.', ''],
+    ['kostengesenkt', 'Die Kosten müssen gesenkt werden.', 'Os custos precisam ser reduzidos.', 'Passiva com modal.'],
+    ['sorgen', 'Ich mache mir Sorgen um meinen Job.', 'Estou preocupado com meu emprego.', 'sich Sorgen machen um + acusativo.'],
+    ['umprozent', 'um fünf Prozent gestiegen', 'subiu cinco por cento', 'A diferença vem com “um”.'],
+  ]);
+  G('g_b2_passiv_zeiten', {
+    title: 'Passiva em todos os tempos', explain: 'Passiv = <b>werden</b> + Partizip II. Nos tempos compostos, o particípio de werden vira <b>worden</b> (sem ge-!):<br>• Präsens: Das Werk <b>wird</b> gebaut.<br>• Präteritum: Das Werk <b>wurde</b> gebaut.<br>• Perfekt: Das Werk <b>ist</b> gebaut <b>worden</b>.<br>• Plusquamperfekt: Das Werk <b>war</b> gebaut <b>worden</b>.<br>• Futur: Das Werk <b>wird</b> gebaut <b>werden</b>.<br>Quem faz a ação aparece com <b>von</b> + dativo (pessoa) ou <b>durch</b> + acusativo (meio).',
+    compare: 'Português: “foi construído” — alemão: wurde gebaut (escrito) ou ist gebaut worden (falado). Em notícias predomina o Präteritum: wurde.',
+    examples: [['Die Firma wurde 1990 gegründet.', 'A empresa foi fundada em 1990.'], ['Der Vertrag ist gestern unterschrieben worden.', 'O contrato foi assinado ontem.']],
+    drills: [['Das Werk ___ 1990 gegründet. (Präteritum)', ['wurde']], ['Die Produkte sind ins Ausland exportiert ___. (Perfekt)', ['worden']], ['Die neue Fabrik ___ nächstes Jahr gebaut werden. (Futur)', ['wird']], ['Bevor das Produkt verkauft wurde, ___ es getestet worden. (Plusquamperfekt)', ['war']], ['Die Preise ___ jedes Jahr erhöht. (Präsens, plural)', ['werden']], ['Der Vertrag ist gestern unterschrieben ___.', ['worden']], ['Die Mitarbeiter wurden ___ dem Chef informiert. (por)', ['von']]]
+  });
+  G('g_b2_passiv_modal', {
+    title: 'Passiva com verbos modais', explain: 'Mit Modalverb: Modalverb konjugiert + Partizip II + <b>werden</b> (no fim):<br>• Die Kosten <b>müssen</b> gesenkt <b>werden</b>. (precisam ser reduzidos)<br>• Der Antrag <b>kann</b> online gestellt <b>werden</b>.<br>• Hier <b>darf</b> nicht geraucht <b>werden</b>.<br>No passado: Das Problem <b>konnte</b> gelöst <b>werden</b>.<br>Em oração subordinada, o modal vai para o fim de tudo: …, dass die Kosten gesenkt werden <b>müssen</b>.',
+    compare: '“Isso precisa ser feito” = Das <b>muss</b> gemacht <b>werden</b>. A ordem é quase o inverso do português.',
+    examples: [['Die Rechnung muss bis Freitag bezahlt werden.', 'A conta precisa ser paga até sexta.'], ['Das Problem konnte schnell gelöst werden.', 'O problema pôde ser resolvido rápido.']],
+    drills: [['Die Kosten müssen gesenkt ___.', ['werden']], ['Der Antrag kann online gestellt ___.', ['werden']], ['Die Rechnung ___ bis Freitag bezahlt werden. (precisa)', ['muss']], ['Hier darf nicht geraucht ___.', ['werden']], ['Das Problem ___ schnell gelöst werden. (pôde, Präteritum)', ['konnte']], ['Ich glaube, dass mehr investiert werden ___. (precisa)', ['muss']]]
+  });
+
+  /* ======================= B2-U3 Wissenschaft und Technik ======================= */
+  unit('B2-U3', {
+    title: 'Wissenschaft und Technik', subtitle: 'Pesquisa, invenções e inteligência artificial',
+    goals: ['Entender textos de divulgação científica', 'Explicar como uma tecnologia funciona e quais são seus riscos', 'Usar particípios como adjetivo para descrever de forma compacta'],
+    dialog: [['A', 'Hast du die neue Studie über künstliche Intelligenz gelesen?'], ['B', 'Die gestern veröffentlichte Studie aus Heidelberg? Ja, sehr spannend.'], ['A', 'Die Forscher haben einen lernenden Algorithmus entwickelt, der Krankheiten früher erkennt.'], ['B', 'Das klingt nach einem großen Fortschritt. Aber was passiert mit den gesammelten Daten?'], ['A', 'Gute Frage. Der Datenschutz ist in der Studie leider nur kurz erwähnt.'], ['B', 'Ohne klare Regeln wird die Anwendung in Krankenhäusern schwierig.'], ['A', 'Stimmt. Aber die Ergebnisse sind trotzdem beeindruckend.']],
+    dialogPt: 'Dois amigos comentam um estudo sobre IA na medicina e a proteção de dados.',
+    listening: ['Die Forscher haben eine wichtige Entdeckung gemacht.', 'Die veröffentlichte Studie wurde oft zitiert.', 'Der lernende Algorithmus erkennt Muster in den Daten.', 'Die Daten werden auf einem sicheren Server gespeichert.', 'Diese Erfindung hat unser Leben verändert.'],
+    writing: 'Escreva um texto (≈ 180 palavras) para o blog da sua turma: “Künstliche Intelligenz im Alltag – Chance oder Risiko?”. Descreva duas aplicações, um risco e sua conclusão. Use pelo menos 3 particípios como adjetivo (ex.: die steigenden Kosten, die gespeicherten Daten).',
+    speaking: { scene: 'Você apresenta em uma feira de ciências uma invenção (real ou imaginada) e responde às perguntas do público.', persona: 'Frau Dr. Yilmaz, jurada da feira, curiosa e crítica (Sie)', goals: ['apresentar a invenção e para que serve', 'explicar como funciona em 2 ou 3 passos', 'responder a uma pergunta sobre riscos ou custos', 'dizer o que ainda precisa ser pesquisado'] },
+    criteria: 'Critérios padrão; particípios como adjetivo ≥ 80%.',
+    authentic: ['Quarks (WDR), vídeos no YouTube e podcast: ciência explicada com clareza', 'maiLab (YouTube): química e ciência com linguagem do dia a dia', 'Deutschlandfunk „Forschung aktuell“: notícias de ciência em 5 minutos'],
+    reading: {
+      title: 'Künstliche Intelligenz in der Medizin',
+      text: ['Künstliche Intelligenz kann heute auf Röntgenbildern Veränderungen erkennen, die für das menschliche Auge kaum sichtbar sind. In mehreren Studien haben lernende Systeme Hautkrebs ähnlich zuverlässig erkannt wie erfahrene Ärztinnen und Ärzte.', 'Die Vorteile liegen auf der Hand: Diagnosen könnten schneller gestellt werden, und überlastete Kliniken würden entlastet. Besonders in ländlichen Regionen, in denen Fachärzte fehlen, sehen Experten großes Potenzial.', 'Doch es gibt auch Bedenken. Die Systeme werden mit riesigen Mengen an Patientendaten trainiert, und diese Daten müssen gut geschützt werden. Außerdem ist oft unklar, wie ein Algorithmus zu seiner Entscheidung kommt. Deshalb betonen die meisten Forschenden: Die KI soll Ärzte unterstützen, nicht ersetzen.'],
+      questions: [['Was kann KI laut Text auf Röntgenbildern?', ['Veränderungen erkennen, die man kaum sieht', 'Krankheiten heilen', 'Ärzte vollständig ersetzen'], 0], ['Wo sehen Experten besonders großes Potenzial?', ['In ländlichen Regionen ohne genug Fachärzte', 'In großen Universitätskliniken', 'In der Pharmaindustrie'], 0], ['Welches Problem nennt der Text?', ['Es ist oft unklar, wie der Algorithmus entscheidet.', 'Die Systeme sind zu langsam.', 'Die Röntgenbilder sind zu teuer.'], 0]]
+    }
+  });
+  N([
+    ['forschung', 'die', 'Forschung', 'Forschungen', 'a pesquisa (científica)', 'ˈfɔʁʃʊŋ', 'Die Forschung braucht mehr Geld.', 'A pesquisa precisa de mais dinheiro.'],
+    ['studie', 'die', 'Studie', 'Studien', 'o estudo (científico)', 'ˈʃtuːdi̯ə', 'Laut einer neuen Studie schlafen wir zu wenig.', 'Segundo um novo estudo, dormimos pouco.'],
+    ['erfindung', 'die', 'Erfindung', 'Erfindungen', 'a invenção', 'ɛɐ̯ˈfɪndʊŋ', 'Der Buchdruck war eine wichtige Erfindung.', 'A imprensa foi uma invenção importante.'],
+    ['fortschritt', 'der', 'Fortschritt', 'Fortschritte', 'o progresso', 'ˈfɔʁtˌʃʁɪt', 'Du machst große Fortschritte im Deutschen.', 'Você está progredindo muito no alemão.', 'Fortschritte machen = progredir.'],
+    ['entdeckung', 'die', 'Entdeckung', 'Entdeckungen', 'a descoberta', 'ɛntˈdɛkʊŋ', 'Die Entdeckung des Penicillins rettete Millionen Leben.', 'A descoberta da penicilina salvou milhões de vidas.'],
+    ['erkenntnis', 'die', 'Erkenntnis', 'Erkenntnisse', 'a constatação, o conhecimento obtido', 'ɛɐ̯ˈkɛntnɪs', 'Die Studie liefert neue Erkenntnisse.', 'O estudo traz novas descobertas.'],
+    ['hypothese', 'die', 'Hypothese', 'Hypothesen', 'a hipótese', 'hypoˈteːzə', 'Die Hypothese wurde bestätigt.', 'A hipótese foi confirmada.'],
+    ['labor', 'das', 'Labor', 'Labore', 'o laboratório', 'laˈboːɐ̯', 'Die Proben werden im Labor untersucht.', 'As amostras são analisadas no laboratório.'],
+    ['wissenschaftler', 'der', 'Wissenschaftler', '=', 'o cientista', 'ˈvɪsn̩ʃaftlɐ', 'Die Wissenschaftler warnen vor dem Klimawandel.', 'Os cientistas alertam sobre a mudança climática.', 'Feminino: die Wissenschaftlerin.'],
+    ['algorithmus', 'der', 'Algorithmus', 'Algorithmen', 'o algoritmo', 'alɡoˈʁɪtmʊs', 'Der Algorithmus entscheidet, welche Videos du siehst.', 'O algoritmo decide quais vídeos você vê.'],
+    ['datenschutz', 'der', 'Datenschutz', '', 'a proteção de dados', 'ˈdaːtn̩ˌʃʊts', 'In Deutschland ist der Datenschutz sehr streng.', 'Na Alemanha a proteção de dados é muito rígida.', 'DSGVO = a lei europeia (LGPD de lá).'],
+    ['anwendung', 'die', 'Anwendung', 'Anwendungen', 'a aplicação, o uso; o aplicativo', 'ˈanˌvɛndʊŋ', 'Die Anwendung der Technik ist noch teuer.', 'A aplicação da tecnologia ainda é cara.'],
+    ['technologie', 'die', 'Technologie', 'Technologien', 'a tecnologia', 'tɛçnoloˈɡiː', 'Neue Technologien verändern die Arbeitswelt.', 'Novas tecnologias mudam o mundo do trabalho.'],
+    ['probe', 'die', 'Probe', 'Proben', 'a amostra; o ensaio', 'ˈpʁoːbə', 'Der Arzt nimmt eine Blutprobe.', 'O médico colhe uma amostra de sangue.', 'Também: ensaio de teatro.'],
+    ['ki', 'die', 'KI', 'KIs', 'a IA (künstliche Intelligenz)', 'kaːˈʔiː', 'Die KI schreibt schon ganze Texte.', 'A IA já escreve textos inteiros.', 'Abreviação de künstliche Intelligenz.'],
+    ['bedenken', 'das', 'Bedenken', '=', 'a preocupação, a ressalva', 'bəˈdɛŋkn̩', 'Viele Menschen haben Bedenken wegen des Datenschutzes.', 'Muita gente tem ressalvas por causa da proteção de dados.', 'Quase sempre no plural: Bedenken haben.'],
+  ]);
+  V([
+    ['forschen', 'forschen', 'pesquisar (ciência)', 'ˈfɔʁʃn̩', 'forsche|forschst|forscht|forschen|forscht|forschen', 'Sie forscht seit Jahren über Alzheimer.', 'Ela pesquisa sobre Alzheimer há anos.'],
+    ['erfinden', 'erfinden', 'inventar', 'ɛɐ̯ˈfɪndn̩', 'erfinde|erfindest|erfindet|erfinden|erfindet|erfinden', 'Wer hat das Telefon erfunden?', 'Quem inventou o telefone?', 'Perfekt: hat erfunden.'],
+    ['beweisen', 'beweisen', 'provar, comprovar', 'bəˈvaɪ̯zn̩', 'beweise|beweist|beweist|beweisen|beweist|beweisen', 'Das ist noch nicht bewiesen.', 'Isso ainda não está comprovado.', 'Perfekt: hat bewiesen.'],
+    ['analysieren', 'analysieren', 'analisar', 'analyˈziːʁən', 'analysiere|analysierst|analysiert|analysieren|analysiert|analysieren', 'Die Proben werden genau analysiert.', 'As amostras são analisadas com cuidado.'],
+    ['ermoeglichen', 'ermöglichen', 'possibilitar', 'ɛɐ̯ˈmøːklɪçn̩', 'ermögliche|ermöglichst|ermöglicht|ermöglichen|ermöglicht|ermöglichen', 'Das Internet ermöglicht Fernunterricht.', 'A internet possibilita o ensino a distância.'],
+    ['digitalisieren', 'digitalisieren', 'digitalizar', 'diɡitaliˈziːʁən', 'digitalisiere|digitalisierst|digitalisiert|digitalisieren|digitalisiert|digitalisieren', 'Die Behörden sollen ihre Akten digitalisieren.', 'Os órgãos públicos devem digitalizar seus arquivos.'],
+  ]);
+  P([
+    ['wissenschaftlich', 'wissenschaftlich', 'científico', '', 'word', 'ˈvɪsn̩ʃaftlɪç'],
+    ['zuverlaessig', 'zuverlässig', 'confiável', '', 'word', 'ˈtsuːfɛɐ̯ˌlɛsɪç'],
+    ['bahnbrechend', 'bahnbrechend', 'revolucionário, pioneiro', 'Particípio I usado como adjetivo.', 'word', 'ˈbaːnˌbʁɛçn̩t'],
+    ['laut', 'laut einer Studie', 'segundo um estudo', 'laut + dativo (ou genitivo).', ''],
+    ['aufderhand', 'Die Vorteile liegen auf der Hand.', 'As vantagens são óbvias.', ''],
+    ['ersetzen', 'Die KI soll Menschen nicht ersetzen.', 'A IA não deve substituir as pessoas.', ''],
+    ['kaumsichtbar', 'kaum sichtbar', 'quase invisível', ''],
+  ]);
+  G('g_b2_partizip', {
+    title: 'Particípio I e II como adjetivo', explain: 'Partizipien können wie Adjektive vor dem Nomen stehen und bekommen dann Adjektivendungen:<br>• <b>Partizip I</b> = infinitivo + <b>d</b> → ação <b>em andamento</b>, sentido ativo: das schlafen<b>d</b>e Kind (a criança que está dormindo), die steigend<b>en</b> Preise.<br>• <b>Partizip II</b> → ação <b>concluída</b> ou sentido passivo: die veröffentlicht<b>e</b> Studie (o estudo que foi publicado), mit geschlossen<b>en</b> Augen.<br>Atributo estendido (texto formal): die <b>gestern in Heidelberg veröffentlichte</b> Studie = o estudo publicado ontem em Heidelberg. Os complementos ficam entre o artigo e o particípio.',
+    compare: 'Português põe depois: “o estudo publicado”. Alemão põe antes e declina: die veröffentlicht<b>e</b> Studie, in der veröffentlicht<b>en</b> Studie.',
+    examples: [['Das schlafende Kind darf nicht geweckt werden.', 'A criança que está dormindo não pode ser acordada.'], ['Die gesammelten Daten werden gespeichert.', 'Os dados coletados são armazenados.']],
+    drills: [['das ___ Kind (schlafen, está dormindo)', ['schlafende']], ['die ___ Studie (veröffentlichen, já publicada)', ['veröffentlichte']], ['mit ___ Augen (schließen)', ['geschlossenen']], ['ein ___ Problem (wachsen, que está crescendo)', ['wachsendes']], ['Die ___ Preise ärgern alle. (steigen)', ['steigenden']], ['die im Labor ___ Proben (untersuchen)', ['untersuchten']], ['ein gut ___ Plan (durchdenken)', ['durchdachter']]]
+  });
+  G('g_b2_partizip_order', {
+    title: 'Montar frases com atributo de particípio', explain: 'Monte as frases. No atributo estendido, tudo o que descreve o substantivo fica entre o artigo e o particípio.',
+    compare: 'Leia de trás para frente para traduzir: die [gestern veröffentlichte] Studie = o estudo [publicado ontem].',
+    examples: [['Die gestern veröffentlichte Studie ist spannend.', 'O estudo publicado ontem é interessante.']],
+    order: [['Die gestern veröffentlichte Studie ist sehr spannend.', 'O estudo publicado ontem é muito interessante.'], ['Der lernende Algorithmus erkennt Krankheiten früher.', 'O algoritmo que aprende reconhece doenças mais cedo.'], ['Die gesammelten Daten müssen geschützt werden.', 'Os dados coletados precisam ser protegidos.'], ['Das schlafende Kind darf nicht geweckt werden.', 'A criança que dorme não pode ser acordada.'], ['Die steigenden Kosten sind ein großes Problem.', 'Os custos crescentes são um grande problema.']]
+  });
+
+  GF.kitB2 = K;
+})(globalThis.GF = globalThis.GF || {});
+
+;
+/* Conteúdo fixo B2 — parte 2 (B2-U4 a B2-U6). */
+(function (GF) {
+  'use strict';
+  const K = GF.kitB2;
+  const { unit, N, V, P, G } = K;
+
+  /* ======================= B2-U4 Nachrichten ======================= */
+  unit('B2-U4', {
+    title: 'Nachrichten', subtitle: 'Notícias, fontes confiáveis e discurso indireto',
+    goals: ['Entender os pontos principais de uma notícia de rádio ou TV', 'Contar o que outra pessoa disse sem se comprometer (discurso indireto)', 'Avaliar se uma informação é confiável e de onde ela vem'],
+    dialog: [['A', 'Hast du die Meldung über den Brand im Hafen gesehen?'], ['B', 'Ja, in der Zeitung stand, das Feuer sei in einer Lagerhalle ausgebrochen.'], ['A', 'Laut Polizei gebe es keine Verletzten. Aber die Ursache sei noch unklar.'], ['B', 'In den sozialen Medien behaupten manche, es sei Brandstiftung gewesen.'], ['A', 'Das ist bisher nur ein Gerücht. Die Ermittlungen laufen noch.'], ['B', 'Stimmt. Ich warte lieber auf eine offizielle Stellungnahme, bevor ich etwas teile.'], ['A', 'Gute Idee. Falschmeldungen verbreiten sich leider schneller als die Wahrheit.']],
+    dialogPt: 'Dois amigos comentam um incêndio no porto e separam fatos de boatos.',
+    listening: ['Der Sprecher sagte, die Regierung habe die Pläne geändert.', 'Laut Polizei gebe es keine Verletzten.', 'Die Ursache des Brandes sei noch unklar.', 'Das Ministerium hat die Meldung bestätigt.', 'Die Zeugen berichteten, sie hätten einen lauten Knall gehört.'],
+    writing: 'Resuma por escrito (≈ 120 palavras) uma notícia que você ouviu ou leu esta semana (tagesschau, DW…). Conte o que aconteceu e o que as pessoas envolvidas disseram, usando o discurso indireto (Konjunktiv I) pelo menos 4 vezes. Diga qual foi a fonte.',
+    speaking: { scene: 'Na pausa do café, uma colega conta uma “notícia” que leu no celular. Você pergunta pela fonte e conta o que os jornais sérios disseram.', persona: 'Jana, colega, fala rápido e acredita em tudo (du)', goals: ['perguntar de onde vem a informação', 'contar o que a polícia ou o jornal disse (discurso indireto)', 'apontar uma diferença entre o boato e a notícia', 'sugerir onde verificar'] },
+    criteria: 'Critérios padrão; Konjunktiv I ≥ 80%.',
+    authentic: ['tagesschau in 100 Sekunden (app/YouTube): o resumo do dia em menos de 2 minutos', 'DW „Langsam gesprochene Nachrichten“: notícias de verdade lidas mais devagar, com texto', 'nachrichtenleicht.de: notícias da semana em linguagem simples, boas para checar se você entendeu'],
+    reading: {
+      title: 'Wie erkennt man Falschmeldungen?',
+      text: ['Jeden Tag werden in sozialen Netzwerken Millionen Nachrichten geteilt. Viele davon sind korrekt, doch ein Teil ist irreführend oder komplett erfunden. Experten sagen, Falschmeldungen verbreiteten sich oft schneller als seriöse Berichte, weil sie starke Gefühle wie Wut oder Angst auslösen.', 'Wer eine Meldung prüfen will, sollte zuerst nach der Quelle fragen: Wer hat die Information veröffentlicht, und gibt es ein Impressum? Außerdem lohnt es sich, die Schlagzeile in eine Suchmaschine einzugeben. Wenn kein bekanntes Medium darüber berichtet, ist Vorsicht geboten.', 'Auch Fotos können täuschen. Ein Bild, das angeblich einen aktuellen Vorfall zeigt, stammt manchmal aus einem ganz anderen Jahr. Mit einer umgekehrten Bildersuche lässt sich das schnell herausfinden. Die wichtigste Regel lautet: erst prüfen, dann teilen.'],
+      questions: [['Warum verbreiten sich Falschmeldungen laut Experten so schnell?', ['Weil sie starke Gefühle auslösen', 'Weil sie besser geschrieben sind', 'Weil Journalisten sie teilen'], 0], ['Was sollte man zuerst prüfen?', ['Die Quelle der Information', 'Die Länge des Textes', 'Die Zahl der Likes'], 0], ['Wofür ist die umgekehrte Bildersuche nützlich?', ['Um herauszufinden, woher ein Foto wirklich stammt', 'Um Fotos schöner zu machen', 'Um Fotos zu löschen'], 0]]
+    }
+  });
+  N([
+    ['meldung', 'die', 'Meldung', 'Meldungen', 'a notícia curta, o comunicado', 'ˈmɛldʊŋ', 'Die Meldung kam am Abend im Radio.', 'A notícia saiu à noite no rádio.'],
+    ['schlagzeile', 'die', 'Schlagzeile', 'Schlagzeilen', 'a manchete', 'ˈʃlaːkˌtsaɪ̯lə', 'Der Skandal machte Schlagzeilen.', 'O escândalo virou manchete.'],
+    ['quelle', 'die', 'Quelle', 'Quellen', 'a fonte', 'ˈkvɛlə', 'Aus welcher Quelle stammt die Information?', 'De que fonte vem a informação?', 'Também: fonte de água.'],
+    ['geruecht', 'das', 'Gerücht', 'Gerüchte', 'o boato', 'ɡəˈʁʏçt', 'Das ist nur ein Gerücht.', 'Isso é só um boato.'],
+    ['falschmeldung', 'die', 'Falschmeldung', 'Falschmeldungen', 'a notícia falsa (fake news)', 'ˈfalʃˌmɛldʊŋ', 'Die Falschmeldung wurde tausendfach geteilt.', 'A notícia falsa foi compartilhada milhares de vezes.'],
+    ['stellungnahme', 'die', 'Stellungnahme', 'Stellungnahmen', 'o posicionamento oficial, a nota', 'ˈʃtɛlʊŋˌnaːmə', 'Die Firma hat noch keine Stellungnahme abgegeben.', 'A empresa ainda não se pronunciou.'],
+    ['pressekonferenz', 'die', 'Pressekonferenz', 'Pressekonferenzen', 'a entrevista coletiva', 'ˈpʁɛsəkɔnfeˌʁɛnts', 'Auf der Pressekonferenz wurden viele Fragen gestellt.', 'Na coletiva foram feitas muitas perguntas.'],
+    ['sprecher', 'der', 'Sprecher', '=', 'o porta-voz; o locutor', 'ˈʃpʁɛçɐ', 'Ein Sprecher der Polizei bestätigte den Unfall.', 'Um porta-voz da polícia confirmou o acidente.'],
+    ['aussage', 'die', 'Aussage', 'Aussagen', 'a declaração; o depoimento', 'ˈaʊ̯sˌzaːɡə', 'Nach Aussage des Ministers bleibt alles wie bisher.', 'Segundo a declaração do ministro, tudo fica como está.'],
+    ['augenzeuge', 'der', 'Augenzeuge', 'Augenzeugen', 'a testemunha ocular', 'ˈaʊ̯ɡn̩ˌtsɔɪ̯ɡə', 'Mehrere Augenzeugen haben den Unfall gesehen.', 'Várias testemunhas viram o acidente.', 'Declinação fraca: den/dem/des Augenzeugen.'],
+    ['vorfall', 'der', 'Vorfall', 'Vorfälle', 'o incidente', 'ˈfoːɐ̯ˌfal', 'Die Polizei untersucht den Vorfall.', 'A polícia investiga o incidente.'],
+    ['ermittlung', 'die', 'Ermittlung', 'Ermittlungen', 'a investigação (policial)', 'ɛɐ̯ˈmɪtlʊŋ', 'Die Ermittlungen laufen noch.', 'As investigações ainda estão em andamento.', 'Quase sempre no plural.'],
+    ['ereignis', 'das', 'Ereignis', 'Ereignisse', 'o acontecimento', 'ɛɐ̯ˈʔaɪ̯ɡnɪs', 'Das war das wichtigste Ereignis des Jahres.', 'Esse foi o acontecimento mais importante do ano.'],
+    ['ursache', 'die', 'Ursache', 'Ursachen', 'a causa', 'ˈuːɐ̯ˌzaxə', 'Die Ursache des Brandes ist noch unklar.', 'A causa do incêndio ainda não está clara.'],
+    ['berichterstattung', 'die', 'Berichterstattung', '', 'a cobertura jornalística', 'bəˈʁɪçtʔɛɐ̯ˌʃtatʊŋ', 'Die Berichterstattung war sehr einseitig.', 'A cobertura foi muito parcial.'],
+    ['korrespondent', 'der', 'Korrespondent', 'Korrespondenten', 'o correspondente', 'kɔʁɛspɔnˈdɛnt', 'Unser Korrespondent in Brasília berichtet.', 'Nosso correspondente em Brasília informa.', 'Declinação fraca: den Korrespondenten.'],
+  ]);
+  V([
+    ['mitteilen', 'mitteilen', 'comunicar, informar', 'ˈmɪtˌtaɪ̯lən', 'teile mit|teilst mit|teilt mit|teilen mit|teilt mit|teilen mit', 'Die Firma teilte mit, sie werde Stellen abbauen.', 'A empresa informou que vai cortar vagas.'],
+    ['bestaetigen', 'bestätigen', 'confirmar', 'bəˈʃtɛːtɪɡn̩', 'bestätige|bestätigst|bestätigt|bestätigen|bestätigt|bestätigen', 'Die Polizei hat die Meldung bestätigt.', 'A polícia confirmou a notícia.'],
+    ['dementieren', 'dementieren', 'desmentir', 'demɛnˈtiːʁən', 'dementiere|dementierst|dementiert|dementieren|dementiert|dementieren', 'Der Minister dementierte die Gerüchte.', 'O ministro desmentiu os boatos.'],
+    ['zitieren', 'zitieren', 'citar', 'tsiˈtiːʁən', 'zitiere|zitierst|zitiert|zitieren|zitiert|zitieren', 'Die Zeitung zitiert einen anonymen Mitarbeiter.', 'O jornal cita um funcionário anônimo.'],
+    ['ermitteln', 'ermitteln', 'investigar (polícia, promotoria)', 'ɛɐ̯ˈmɪtl̩n', 'ermittle|ermittelst|ermittelt|ermitteln|ermittelt|ermitteln', 'Die Staatsanwaltschaft ermittelt gegen den Politiker.', 'A promotoria investiga o político.', 'ermitteln gegen + acusativo.'],
+    ['betonen', 'betonen', 'ressaltar, enfatizar', 'bəˈtoːnən', 'betone|betonst|betont|betonen|betont|betonen', 'Sie betonte, dass niemand verletzt wurde.', 'Ela ressaltou que ninguém se feriu.'],
+  ]);
+  P([
+    ['seriös', 'seriös', 'sério, confiável (fonte)', '', 'word', 'zeˈʁi̯øːs'],
+    ['irrefuehrend', 'irreführend', 'enganoso', '', 'word', 'ˈɪʁəˌfyːʁənt'],
+    ['lautpolizei', 'Laut Polizei gibt es keine Verletzten.', 'Segundo a polícia, não há feridos.', 'Na notícia aparece com Konjunktiv I: gebe es.'],
+    ['nochunklar', 'Die Ursache ist noch unklar.', 'A causa ainda não está clara.', ''],
+    ['erstpruefen', 'Erst prüfen, dann teilen.', 'Primeiro verificar, depois compartilhar.', ''],
+    ['woher', 'Woher hast du das?', 'De onde você tirou isso?', ''],
+    ['angaben', 'nach eigenen Angaben', 'segundo informações próprias (da pessoa/empresa)', 'Típico de notícias.'],
+  ]);
+  G('g_b2_konj1', {
+    title: 'Konjunktiv I: o discurso indireto das notícias', explain: 'In Nachrichten wird mit dem <b>Konjunktiv I</b> wiedergegeben, was jemand gesagt hat — ohne zu sagen, ob es stimmt.<br>Forma: radical do infinitivo + <b>-e</b> (3ª pessoa é a mais usada): er komm<b>e</b>, er hab<b>e</b>, er könn<b>e</b>, er werd<b>e</b>.<br><b>sein</b> é irregular: ich sei, du seist, er <b>sei</b>, wir <b>seien</b>, sie <b>seien</b>.<br>Passado: <b>habe/sei</b> + Partizip II: Er sagte, er <b>habe</b> nichts gewusst.<br>Quando o Konjunktiv I é igual ao indicativo (ex.: sie haben), usa-se o <b>Konjunktiv II</b>: Sie sagten, sie <b>hätten</b> nichts gewusst.',
+    compare: 'O português marca a distância com o tempo verbal (“disse que estava doente”). O alemão das notícias usa o Konjunktiv I: Er sagte, er <b>sei</b> krank.',
+    examples: [['Der Minister sagte, er sei nicht informiert worden.', 'O ministro disse que não tinha sido informado.'], ['Die Zeugen berichteten, sie hätten einen Knall gehört.', 'As testemunhas contaram que ouviram um estrondo.']],
+    drills: [['Der Minister sagte, er ___ krank. (sein)', ['sei']], ['Sie behauptet, sie ___ nichts gewusst. (haben)', ['habe']], ['Die Sprecher sagten, sie ___ keine Fehler gemacht. (haben, plural)', ['hätten']], ['Er erklärte, er ___ morgen nach Berlin. (fahren)', ['fahre']], ['Laut Polizei ___ der Täter geflohen. (sein)', ['sei']], ['Sie sagt, sie ___ das Problem lösen. (können)', ['könne']], ['Die Firma teilte mit, die Preise ___ steigen. (werden)', ['würden']]]
+  });
+  G('g_b2_konj1_order', {
+    title: 'Montar frases em discurso indireto', explain: 'Monte as frases. Depois de “sagte”, a oração indireta pode vir sem dass (verbo na 2ª posição) ou com dass (verbo no fim).',
+    compare: 'Er sagte, er sei krank = Er sagte, dass er krank sei. As duas estão certas.',
+    examples: [['Sie sagte, sie habe keine Zeit.', 'Ela disse que não tinha tempo.']],
+    order: [['Der Sprecher sagte, die Firma habe keine Fehler gemacht.', 'O porta-voz disse que a empresa não cometeu erros.'], ['Laut Polizei gebe es keine Verletzten.', 'Segundo a polícia, não há feridos.'], ['Sie betonte, dass niemand verletzt worden sei.', 'Ela ressaltou que ninguém tinha se ferido.'], ['Der Minister erklärte, er werde zurücktreten.', 'O ministro declarou que vai renunciar.'], ['Die Zeugen berichteten, sie hätten einen Knall gehört.', 'As testemunhas contaram que ouviram um estrondo.']]
+  });
+
+  /* ======================= B2-U5 Gesellschaft ======================= */
+  unit('B2-U5', {
+    title: 'Gesellschaft', subtitle: 'Sociedade, política e participação',
+    goals: ['Entender e comentar temas sociais (desigualdade, integração, voluntariado)', 'Explicar como funciona a participação política na Alemanha', 'Usar preposições com genitivo típicas da linguagem formal'],
+    dialog: [['A', 'Hast du schon gehört? Innerhalb der nächsten Monate soll das Jugendzentrum geschlossen werden.'], ['B', 'Aufgrund der Sparmaßnahmen der Stadt, oder? Das ist wirklich schade.'], ['A', 'Ein paar Nachbarn haben eine Bürgerinitiative gegründet. Sie sammeln Unterschriften.'], ['B', 'Gute Idee. Statt nur zu meckern, sollten wir uns auch engagieren.'], ['A', 'Nächste Woche gibt es eine Abstimmung im Stadtrat. Wir können zur Sitzung gehen.'], ['B', 'Angesichts der vielen Kinder im Viertel braucht man das Zentrum dringend.'], ['A', 'Genau. Ich trage mich gleich in die Liste ein.']],
+    dialogPt: 'Dois vizinhos se mobilizam contra o fechamento do centro de jovens do bairro.',
+    listening: ['Aufgrund der hohen Kosten wurde das Projekt gestoppt.', 'Innerhalb einer Woche wurden tausend Unterschriften gesammelt.', 'Viele Menschen engagieren sich ehrenamtlich.', 'Die Gleichberechtigung ist im Grundgesetz verankert.', 'Statt eines neuen Parkplatzes wünschen sich die Bürger einen Park.'],
+    writing: 'Goethe B2, Schreiben Teil 2 (formal): escreva uma carta (≈ 150 palavras) à prefeitura sobre um problema do seu bairro. Descreva o problema, diga a quem ele afeta, faça duas propostas e peça uma resposta. Use pelo menos 3 preposições com genitivo (aufgrund, innerhalb, statt, angesichts…).',
+    speaking: { scene: 'Reunião aberta da associação de bairro: você apresenta a ideia de uma horta comunitária e responde às dúvidas.', persona: 'Herr Wagner, presidente da associação, cético com os custos (Sie)', goals: ['apresentar a ideia e o motivo', 'dizer quem seria beneficiado', 'responder à dúvida sobre custos com uma proposta', 'convidar as pessoas a participar'] },
+    criteria: 'Critérios padrão; preposições com genitivo ≥ 80%.',
+    authentic: ['bpb.de (Bundeszentrale für politische Bildung): explicações sobre política e sociedade, inclusive em linguagem simples', 'logo! (ZDF): notícias para jovens, frases curtas e claras', 'Wahl-O-Mat (bpb): veja as perguntas antes de uma eleição; ótimo vocabulário político'],
+    reading: {
+      title: 'Ehrenamt in Deutschland',
+      text: ['Rund jeder dritte Mensch in Deutschland engagiert sich ehrenamtlich, also ohne Bezahlung. Manche trainieren Kinder im Sportverein, andere helfen bei der Tafel, wo Lebensmittel an bedürftige Menschen verteilt werden. Auch die freiwillige Feuerwehr funktioniert in vielen Dörfern nur dank Ehrenamtlichen.', 'Für viele Zugewanderte ist ein Ehrenamt eine gute Möglichkeit, Kontakte zu knüpfen und die Sprache im Alltag zu üben. Gleichzeitig zeigt es, dass man Teil der Gesellschaft sein möchte.', 'Allerdings klagen viele Vereine über Nachwuchsprobleme. Aufgrund von Zeitmangel und flexiblen Arbeitszeiten wollen sich besonders junge Menschen nicht langfristig verpflichten. Deshalb bieten immer mehr Organisationen kurze Projekte an, bei denen man innerhalb weniger Wochen helfen kann.'],
+      questions: [['Was bedeutet „ehrenamtlich“?', ['Ohne Bezahlung', 'Mit gutem Gehalt', 'Nur am Wochenende'], 0], ['Warum ist ein Ehrenamt laut Text gut für Zugewanderte?', ['Man knüpft Kontakte und übt die Sprache.', 'Man bekommt schneller ein Visum.', 'Man verdient zusätzliches Geld.'], 0], ['Wie reagieren viele Organisationen auf das Nachwuchsproblem?', ['Sie bieten kurze Projekte an.', 'Sie zahlen ein Gehalt.', 'Sie schließen ihre Vereine.'], 0]]
+    }
+  });
+  N([
+    ['gleichberechtigung', 'die', 'Gleichberechtigung', '', 'a igualdade de direitos', 'ˈɡlaɪ̯çbəˌʁɛçtɪɡʊŋ', 'Die Gleichberechtigung von Frauen und Männern steht im Grundgesetz.', 'A igualdade entre mulheres e homens está na Constituição.'],
+    ['grundgesetz', 'das', 'Grundgesetz', '', 'a Constituição alemã', 'ˈɡʁʊntɡəˌzɛts', 'Das Grundgesetz trat 1949 in Kraft.', 'A Constituição entrou em vigor em 1949.'],
+    ['demokratie', 'die', 'Demokratie', 'Demokratien', 'a democracia', 'demokʁaˈtiː', 'In einer Demokratie entscheidet das Volk.', 'Numa democracia, o povo decide.'],
+    ['buergerinitiative', 'die', 'Bürgerinitiative', 'Bürgerinitiativen', 'a iniciativa de cidadãos, o movimento local', 'ˈbʏʁɡɐʔinitsi̯aˌtiːvə', 'Die Bürgerinitiative kämpft gegen den Lärm.', 'O movimento dos moradores luta contra o barulho.'],
+    ['abstimmung', 'die', 'Abstimmung', 'Abstimmungen', 'a votação', 'ˈapˌʃtɪmʊŋ', 'Die Abstimmung findet am Montag statt.', 'A votação acontece na segunda.'],
+    ['ehrenamt', 'das', 'Ehrenamt', 'Ehrenämter', 'o trabalho voluntário', 'ˈeːʁənˌʔamt', 'Sie hat ein Ehrenamt im Sportverein.', 'Ela faz trabalho voluntário no clube.'],
+    ['armut', 'die', 'Armut', '', 'a pobreza', 'ˈaʁmuːt', 'Die Armut im Land ist gestiegen.', 'A pobreza no país aumentou.'],
+    ['ungleichheit', 'die', 'Ungleichheit', 'Ungleichheiten', 'a desigualdade', 'ˈʊnɡlaɪ̯çhaɪ̯t', 'Die soziale Ungleichheit ist ein großes Thema.', 'A desigualdade social é um grande tema.'],
+    ['minderheit', 'die', 'Minderheit', 'Minderheiten', 'a minoria', 'ˈmɪndɐhaɪ̯t', 'Die Rechte von Minderheiten müssen geschützt werden.', 'Os direitos das minorias precisam ser protegidos.'],
+    ['vielfalt', 'die', 'Vielfalt', '', 'a diversidade', 'ˈfiːlˌfalt', 'Die kulturelle Vielfalt macht die Stadt interessant.', 'A diversidade cultural deixa a cidade interessante.'],
+    ['wohlstand', 'der', 'Wohlstand', '', 'a prosperidade, o bem-estar econômico', 'ˈvoːlˌʃtant', 'Der Wohlstand ist ungleich verteilt.', 'A prosperidade está distribuída de forma desigual.'],
+    ['partei', 'die', 'Partei', 'Parteien', 'o partido (político)', 'paʁˈtaɪ̯', 'Welche Partei hat die Wahl gewonnen?', 'Que partido venceu a eleição?'],
+    ['stadtrat', 'der', 'Stadtrat', 'Stadträte', 'a câmara municipal; o vereador', 'ˈʃtatˌʁaːt', 'Der Stadtrat hat das Projekt beschlossen.', 'A câmara municipal aprovou o projeto.'],
+    ['unterschrift', 'die', 'Unterschrift', 'Unterschriften', 'a assinatura', 'ˈʊntɐˌʃʁɪft', 'Wir haben über tausend Unterschriften gesammelt.', 'Juntamos mais de mil assinaturas.'],
+    ['massnahme', 'die', 'Maßnahme', 'Maßnahmen', 'a medida (providência)', 'ˈmaːsˌnaːmə', 'Die Regierung plant neue Maßnahmen gegen die Armut.', 'O governo planeja novas medidas contra a pobreza.'],
+    ['teilhabe', 'die', 'Teilhabe', '', 'a participação, a inclusão', 'ˈtaɪ̯lˌhaːbə', 'Bildung ermöglicht gesellschaftliche Teilhabe.', 'A educação possibilita a participação na sociedade.'],
+  ]);
+  V([
+    ['abstimmen', 'abstimmen', 'votar (sobre algo)', 'ˈapˌʃtɪmən', 'stimme ab|stimmst ab|stimmt ab|stimmen ab|stimmt ab|stimmen ab', 'Morgen stimmt der Rat über den Plan ab.', 'Amanhã o conselho vota o plano.', 'abstimmen über + acusativo.'],
+    ['sichengagieren', 'sich engagieren', 'engajar-se', 'zɪç ãɡaˈʒiːʁən', 'engagiere mich|engagierst dich|engagiert sich|engagieren uns|engagiert euch|engagieren sich', 'Er engagiert sich für den Umweltschutz.', 'Ele se engaja pela proteção ambiental.', 'sich engagieren für + acusativo.'],
+    ['fordern', 'fordern', 'exigir, reivindicar', 'ˈfɔʁdɐn', 'fordere|forderst|fordert|fordern|fordert|fordern', 'Die Gewerkschaft fordert höhere Löhne.', 'O sindicato reivindica salários maiores.'],
+    ['beschliessen', 'beschließen', 'decidir, aprovar (formalmente)', 'bəˈʃliːsn̩', 'beschließe|beschließt|beschließt|beschließen|beschließt|beschließen', 'Das Parlament hat ein neues Gesetz beschlossen.', 'O parlamento aprovou uma nova lei.', 'Perfekt: hat beschlossen.'],
+    ['demonstrieren', 'demonstrieren', 'protestar, manifestar-se', 'demɔnˈstʁiːʁən', 'demonstriere|demonstrierst|demonstriert|demonstrieren|demonstriert|demonstrieren', 'Tausende demonstrierten für mehr Klimaschutz.', 'Milhares protestaram por mais proteção ao clima.'],
+    ['benachteiligen', 'benachteiligen', 'prejudicar, discriminar', 'bəˈnaːxˌtaɪ̯lɪɡn̩', 'benachteilige|benachteiligst|benachteiligt|benachteiligen|benachteiligt|benachteiligen', 'Niemand darf wegen seiner Herkunft benachteiligt werden.', 'Ninguém pode ser prejudicado por causa da origem.'],
+  ]);
+  P([
+    ['ehrenamtlich', 'ehrenamtlich', 'voluntário (sem pagamento)', '', 'word', 'ˈeːʁənˌʔamtlɪç'],
+    ['beduerftig', 'bedürftig', 'necessitado, carente', '', 'word', 'bəˈdʏʁftɪç'],
+    ['gesellschaftlich', 'gesellschaftlich', 'social (da sociedade)', '', 'word', 'ɡəˈzɛlʃaftlɪç'],
+    ['eintragen', 'Ich trage mich in die Liste ein.', 'Vou colocar meu nome na lista.', 'sich eintragen (separável).'],
+    ['meckern', 'Statt zu meckern, sollten wir etwas tun.', 'Em vez de reclamar, deveríamos fazer algo.', 'meckern = reclamar (coloquial).'],
+    ['inkraft', 'in Kraft treten', 'entrar em vigor', ''],
+    ['kontakte', 'Kontakte knüpfen', 'fazer contatos', ''],
+  ]);
+  G('g_b2_genitivpraep', {
+    title: 'Preposições com genitivo (linguagem formal)', explain: 'Diese Präpositionen stehen mit dem <b>Genitiv</b> und sind typisch für Nachrichten, Briefe und Prüfungen:<br>• <b>aufgrund</b> (por causa de, devido a) · <b>infolge</b> (em consequência de)<br>• <b>innerhalb</b> (dentro de, em até) · <b>außerhalb</b> (fora de)<br>• <b>statt / anstatt</b> (em vez de)<br>• <b>trotz</b> (apesar de) · <b>während</b> (durante) · <b>wegen</b> (por causa de)<br>• <b>angesichts</b> (diante de, considerando)<br>Genitivo: des/eines (masc./neutro, + -s/-es no substantivo), der/einer (fem. e plural).',
+    compare: 'Na fala do dia a dia muitos alemães usam dativo com wegen/trotz (wegen dem Wetter). Na escrita e na prova, use genitivo: wegen <b>des</b> Wetter<b>s</b>.',
+    examples: [['Aufgrund des Streiks fallen alle Züge aus.', 'Devido à greve, todos os trens são cancelados.'], ['Bitte antworten Sie innerhalb einer Woche.', 'Por favor, responda em até uma semana.']],
+    drills: [['___ des schlechten Wetters wurde das Fest abgesagt. (devido a)', ['aufgrund', 'wegen', 'infolge']], ['Bitte antworten Sie ___ einer Woche. (em até)', ['innerhalb']], ['___ eines Autos kaufte er ein Fahrrad. (em vez de)', ['statt', 'anstatt']], ['___ der Stadt gibt es viele Felder. (fora de)', ['außerhalb']], ['Innerhalb ___ Woche müssen Sie zahlen. (uma)', ['einer']], ['Aufgrund ___ Streiks fahren keine Busse. (o)', ['des']], ['Trotz ___ Regens gingen wir spazieren. (a chuva)', ['des']]]
+  });
+  G('g_b2_genitivpraep_order', {
+    title: 'Montar frases formais com genitivo', explain: 'Monte as frases. A preposição com genitivo costuma abrir a frase; aí o verbo vem logo depois.',
+    compare: 'Aufgrund der Kosten <b>wurde</b> das Projekt gestoppt: o verbo continua na 2ª posição.',
+    examples: [['Aufgrund der hohen Kosten wurde das Projekt gestoppt.', 'Devido aos custos altos, o projeto foi interrompido.']],
+    order: [['Aufgrund der hohen Kosten wurde das Projekt gestoppt.', 'Devido aos custos altos, o projeto foi interrompido.'], ['Innerhalb einer Woche wurden tausend Unterschriften gesammelt.', 'Em uma semana foram coletadas mil assinaturas.'], ['Statt eines Parkplatzes wünschen sich die Bürger einen Park.', 'Em vez de um estacionamento, os moradores querem um parque.'], ['Angesichts der vielen Kinder braucht man das Zentrum.', 'Considerando as muitas crianças, o centro é necessário.'], ['Außerhalb der Stadt ist die Miete günstiger.', 'Fora da cidade o aluguel é mais barato.']]
+  });
+
+  /* ======================= B2-U6 Kunst und Kultur ======================= */
+  unit('B2-U6', {
+    title: 'Kunst und Kultur', subtitle: 'Teatro, museus, música e crítica cultural',
+    goals: ['Descrever e avaliar uma obra, uma peça ou um show', 'Ler e escrever uma crítica curta', 'Usar verbos com preposição e as palavras da-/wo- (darauf, worüber…)'],
+    dialog: [['A', 'Wie fandest du die Inszenierung gestern im Theater?'], ['B', 'Ehrlich gesagt hatte ich mich mehr darauf gefreut. Die Bühne war beeindruckend, aber das Stück war zu lang.'], ['A', 'Worüber hast du dich am meisten geärgert?'], ['B', 'Darüber, dass man die Schauspieler hinten kaum verstehen konnte.'], ['A', 'Ich habe mich eher für die Musik begeistert. Der Komponist ist ja noch sehr jung.'], ['B', 'Stimmt, darüber stand gestern auch eine Kritik im Feuilleton.'], ['A', 'Nächsten Monat gibt es eine Ausstellung über die Epoche des Stücks. Hast du Lust?'], ['B', 'Daran hätte ich wirklich Interesse. Lass uns zusammen hingehen!']],
+    dialogPt: 'Dois amigos comentam uma peça de teatro e combinam de ir a uma exposição.',
+    listening: ['Worauf wartest du noch?', 'Ich interessiere mich sehr für moderne Kunst.', 'Die Kritik im Feuilleton war ziemlich negativ.', 'Das Publikum hat lange applaudiert.', 'Daran habe ich gar nicht gedacht.'],
+    writing: 'Escreva uma crítica (≈ 150 palavras) de um filme, série, show ou exposição que você viu. Descreva a obra, diga o que achou da atuação/música/imagens, o que o incomodou e para quem você recomenda. Use pelo menos 4 palavras da-/wo- ou verbos com preposição.',
+    speaking: { scene: 'Vocês querem escolher um programa cultural para o fim de semana em Berlim. Cada um defende uma opção.', persona: 'Lukas, amigo, prefere shows e acha museu chato (du)', goals: ['propor um programa e dizer por que você se interessa por ele', 'perguntar pelo que ele se interessa (wofür, worauf)', 'reagir a uma objeção dele', 'chegar a uma decisão juntos'] },
+    criteria: 'Critérios padrão; da-/wo-Wörter ≥ 80%.',
+    authentic: ['ARD Mediathek „ttt – titel, thesen, temperamente“: magazine cultural com reportagens curtas', 'Deutschlandfunk Kultur „Fazit“: críticas de teatro, livros e música', 'Museumsinsel Berlin e Städel (Frankfurt): sites e áudio-guias em alemão'],
+    reading: {
+      title: 'Kritik: „Der Besuch der alten Dame“ am Stadttheater',
+      text: ['Mit großer Spannung hatte das Publikum auf die neue Inszenierung von Friedrich Dürrenmatts Klassiker gewartet. Und die junge Regisseurin enttäuscht nicht: Sie verlegt die Handlung in eine heutige Kleinstadt, in der alle von einer reichen Investorin abhängig sind.', 'Besonders beeindruckend ist das Bühnenbild. Eine riesige, sich langsam drehende Leinwand zeigt Videos aus den sozialen Medien, die das Geschehen kommentieren. Auch die Hauptdarstellerin überzeugt: Sie spielt die alte Dame kühl, fast ohne Gefühle, und gerade dadurch wirkt sie bedrohlich.', 'Schwächen hat der Abend dennoch. Die Musik ist an manchen Stellen so laut, dass man die Dialoge kaum versteht, und nach der Pause verliert das Stück an Tempo. Trotzdem lohnt sich der Besuch für alle, die sich für modernes Theater interessieren. Das Publikum dankte mit langem Applaus.'],
+      questions: [['Wo spielt die neue Inszenierung?', ['In einer heutigen Kleinstadt', 'Im 19. Jahrhundert', 'In einer Großstadt in Amerika'], 0], ['Was lobt die Kritik besonders?', ['Das Bühnenbild mit der drehenden Leinwand', 'Die kurze Dauer des Stücks', 'Die leise Musik'], 0], ['Was ist eine Schwäche des Abends?', ['Wegen der lauten Musik versteht man die Dialoge schlecht.', 'Die Hauptdarstellerin ist schwach.', 'Das Publikum ist früh gegangen.'], 0]]
+    }
+  });
+  N([
+    ['gemaelde', 'das', 'Gemälde', '=', 'a pintura, o quadro', 'ɡəˈmɛːldə', 'Das Gemälde hängt im Städel Museum.', 'O quadro está no Museu Städel.'],
+    ['skulptur', 'die', 'Skulptur', 'Skulpturen', 'a escultura', 'skʊlpˈtuːɐ̯', 'Im Park stehen moderne Skulpturen.', 'No parque há esculturas modernas.'],
+    ['vorhang', 'der', 'Vorhang', 'Vorhänge', 'a cortina', 'ˈfoːɐ̯ˌhaŋ', 'Der Vorhang fällt, und alle applaudieren.', 'A cortina desce, e todos aplaudem.'],
+    ['auffuehrung', 'die', 'Aufführung', 'Aufführungen', 'a apresentação (de uma peça, concerto)', 'ˈaʊ̯fˌfyːʁʊŋ', 'Die Aufführung beginnt um 19:30 Uhr.', 'A apresentação começa às 19h30.'],
+    ['inszenierung', 'die', 'Inszenierung', 'Inszenierungen', 'a encenação, a montagem', 'ɪnstseˈniːʁʊŋ', 'Die neue Inszenierung ist sehr modern.', 'A nova montagem é muito moderna.'],
+    ['applaus', 'der', 'Applaus', '', 'o aplauso', 'aˈplaʊ̯s', 'Am Ende gab es langen Applaus.', 'No fim houve um longo aplauso.'],
+    ['kritiker', 'der', 'Kritiker', '=', 'o crítico', 'ˈkʁiːtikɐ', 'Die Kritiker loben das neue Album.', 'Os críticos elogiam o novo álbum.', 'Feminino: die Kritikerin.'],
+    ['feuilleton', 'das', 'Feuilleton', 'Feuilletons', 'o caderno de cultura (do jornal)', 'fœjəˈtɔ̃ː', 'Im Feuilleton stand eine lange Kritik.', 'No caderno de cultura saiu uma crítica longa.', 'Palavra francesa: “fêi-e-tõ”.'],
+    ['werk', 'das', 'Werk', 'Werke', 'a obra; a fábrica', 'vɛʁk', 'Das ist das bekannteste Werk von Brecht.', 'Essa é a obra mais conhecida de Brecht.'],
+    ['komponist', 'der', 'Komponist', 'Komponisten', 'o compositor', 'kɔmpoˈnɪst', 'Beethoven ist der berühmteste Komponist aus Bonn.', 'Beethoven é o compositor mais famoso de Bonn.', 'Declinação fraca: den Komponisten.'],
+    ['epoche', 'die', 'Epoche', 'Epochen', 'a época, o período', 'eˈpɔxə', 'Die Romantik war eine wichtige Epoche.', 'O Romantismo foi um período importante.'],
+    ['denkmal', 'das', 'Denkmal', 'Denkmäler', 'o monumento', 'ˈdɛŋkˌmaːl', 'Das Denkmal erinnert an die Opfer des Krieges.', 'O monumento lembra as vítimas da guerra.'],
+    ['buehnenbild', 'das', 'Bühnenbild', 'Bühnenbilder', 'o cenário (de teatro)', 'ˈbyːnənˌbɪlt', 'Das Bühnenbild war sehr kreativ.', 'O cenário foi muito criativo.'],
+    ['leinwand', 'die', 'Leinwand', 'Leinwände', 'a tela (de pintura ou cinema)', 'ˈlaɪ̯nˌvant', 'Der Film läuft auf einer riesigen Leinwand.', 'O filme passa numa tela enorme.'],
+    ['darsteller', 'der', 'Darsteller', '=', 'o ator, o intérprete', 'ˈdaːɐ̯ˌʃtɛlɐ', 'Der Hauptdarsteller hat einen Preis gewonnen.', 'O ator principal ganhou um prêmio.', 'Feminino: die Darstellerin.'],
+    ['stipendium', 'das', 'Stipendium', 'Stipendien', 'a bolsa (de estudos)', 'ʃtiˈpɛndi̯ʊm', 'Sie hat ein Stipendium für Berlin bekommen.', 'Ela ganhou uma bolsa para Berlim.'],
+  ]);
+  V([
+    ['sichbegeistern', 'sich begeistern', 'entusiasmar-se', 'zɪç bəˈɡaɪ̯stɐn', 'begeistere mich|begeisterst dich|begeistert sich|begeistern uns|begeistert euch|begeistern sich', 'Er begeistert sich für Jazz.', 'Ele é apaixonado por jazz.', 'sich begeistern für + acusativo.'],
+    ['inszenieren', 'inszenieren', 'encenar, montar (peça)', 'ɪnstseˈniːʁən', 'inszeniere|inszenierst|inszeniert|inszenieren|inszeniert|inszenieren', 'Sie hat das Stück völlig neu inszeniert.', 'Ela montou a peça de um jeito totalmente novo.'],
+    ['ausstellen', 'ausstellen', 'expor; emitir (documento)', 'ˈaʊ̯sˌʃtɛlən', 'stelle aus|stellst aus|stellt aus|stellen aus|stellt aus|stellen aus', 'Das Museum stellt Werke von Kandinsky aus.', 'O museu expõe obras de Kandinsky.', 'Também: einen Pass ausstellen = emitir um passaporte.'],
+    ['bewundern', 'bewundern', 'admirar', 'bəˈvʊndɐn', 'bewundere|bewunderst|bewundert|bewundern|bewundert|bewundern', 'Ich bewundere ihren Mut.', 'Admiro a coragem dela.'],
+    ['darstellen', 'darstellen', 'representar, retratar', 'ˈdaːɐ̯ˌʃtɛlən', 'stelle dar|stellst dar|stellt dar|stellen dar|stellt dar|stellen dar', 'Das Bild stellt eine Szene aus Berlin dar.', 'O quadro retrata uma cena de Berlim.'],
+    ['auseinandersetzen', 'sich auseinandersetzen', 'debruçar-se sobre, confrontar-se com', 'zɪç aʊ̯sʔaɪ̯ˈnandɐˌzɛtsn̩', 'setze mich auseinander|setzt dich auseinander|setzt sich auseinander|setzen uns auseinander|setzt euch auseinander|setzen sich auseinander', 'Der Film setzt sich mit der Vergangenheit auseinander.', 'O filme trata do passado.', 'sich auseinandersetzen mit + dativo.'],
+  ]);
+  P([
+    ['ehrlichgesagt', 'ehrlich gesagt', 'para ser sincero', ''],
+    ['enttaeuschend', 'enttäuschend', 'decepcionante', '', 'word', 'ɛntˈtɔɪ̯ʃn̩t'],
+    ['sehenswert', 'sehenswert', 'que vale a pena ver', '', 'word', 'ˈzeːənsˌveːɐ̯t'],
+    ['worauf', 'Worauf wartest du noch?', 'Está esperando o quê?', 'wo- + preposição para coisas.'],
+    ['darangedacht', 'Daran habe ich gar nicht gedacht.', 'Nem pensei nisso.', 'denken an → daran.'],
+    ['lohntsich', 'Der Besuch lohnt sich.', 'A visita vale a pena.', ''],
+    ['gefuehl', 'Das Stück hat mich sehr berührt.', 'A peça me emocionou muito.', ''],
+  ]);
+  G('g_b2_dawo', {
+    title: 'Palavras da- e wo- (darauf, worüber…)', explain: 'Bei Verben mit Präposition (sich freuen <b>auf</b>, denken <b>an</b>, sich ärgern <b>über</b>…):<br>• Für <b>Sachen</b> → <b>da</b> + Präposition: Ich freue mich <b>darauf</b>. Pergunta: <b>wo</b> + Präposition: <b>Worauf</b> freust du dich?<br>• Se a preposição começa com vogal, entra um <b>r</b>: da<b>r</b>an, da<b>r</b>über, wo<b>r</b>an, wo<b>r</b>über.<br>• Für <b>Personen</b> → Präposition + Pronomen: Ich denke <b>an dich</b>. Pergunta: <b>An wen</b> denkst du?<br>• da- também antecipa uma oração: Ich freue mich <b>darauf</b>, <b>dass</b> du kommst.',
+    compare: 'Português: “Estou ansioso por isso” — alemão: Ich freue mich <b>darauf</b>. Nunca diga “auf es”.',
+    examples: [['Woran denkst du? – An meinen Urlaub.', 'Em que você está pensando? – Nas minhas férias.'], ['Ich ärgere mich darüber, dass der Zug zu spät ist.', 'Fico irritado com o fato de o trem atrasar.']],
+    drills: [['___ denkst du? – An meinen Urlaub.', ['woran']], ['Ich freue mich ___, dass du kommst. (auf)', ['darauf']], ['___ interessierst du dich? – Für Theater.', ['wofür']], ['Er ärgert sich ___, dass der Zug zu spät ist. (über)', ['darüber']], ['Hast du ___ gedacht, die Karten zu kaufen? (an)', ['daran']], ['___ sprecht ihr? – Über den Film.', ['worüber']], ['Auf ___ wartest du? – Auf meine Schwester. (pessoa)', ['wen']]]
+  });
+  G('g_b2_dawo_order', {
+    title: 'Montar frases com da- e wo-', explain: 'Monte as frases. A pergunta com wo- abre a frase; o da- pode antecipar uma oração com dass ou zu.',
+    compare: 'Worüber hast du dich geärgert? – <b>Darüber</b>, dass … : a resposta retoma a pergunta.',
+    examples: [['Worüber hast du dich am meisten geärgert?', 'Com o que você ficou mais irritado?']],
+    order: [['Worüber hast du dich am meisten geärgert?', 'Com o que você ficou mais irritado?'], ['Ich habe mich sehr darauf gefreut.', 'Eu estava muito ansioso por isso.'], ['Daran habe ich gar nicht gedacht.', 'Nem pensei nisso.'], ['Wofür interessierst du dich besonders?', 'Pelo que você se interessa especialmente?'], ['Er begeistert sich dafür, alte Filme zu sammeln.', 'Ele adora colecionar filmes antigos.']]
+  });
+
+  K.finish('2026.11.21-1');
+})(globalThis.GF = globalThis.GF || {});
+
+;
 /* Modelo do aluno: registro de respostas, domínio por item, critérios de unidade,
  * adaptação e planejamento de sessões. Puro (recebe o estado, devolve mudanças). */
 (function (GF) {
@@ -4847,6 +5260,44 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
   }
 
   /* ---------------- Praticar (livre) ---------------- */
+  /* ---------- Leitura (B2+): texto mais longo + perguntas de compreensão ---------- */
+  function readingCardHtml(unlocked) {
+    const us = unlocked.filter((id) => C.units[id] && C.units[id].reading);
+    if (!us.length) return '';
+    const done = S.st.profile.readingDone || {};
+    return `<div class="card"><h2>Lesen · leitura</h2><p class="small mut">Textos mais longos, como no Goethe B2 (Lesen). Leia sem traduzir palavra por palavra e responda.</p>
+      <div class="chips">${us.map((id) => `<button class="chip ${done[id] ? 'on' : ''}" data-rd="${id}">${esc(C.units[id].reading.title)}${done[id] ? ' · ' + done[id].best + '/' + C.units[id].reading.questions.length : ''}</button>`).join('')}</div></div>`;
+  }
+  function runReading(uid, done) {
+    const u = C.units[uid]; const R = u.reading; const t0 = now();
+    app().innerHTML = `<header class="top"><div class="brand"><div>Lesen<small>${esc(u.title)} · ${esc(uid)}</small></div></div></header>
+      <div class="card"><div class="step-k">Lesetext</div><h2 style="text-transform:none;letter-spacing:0">${esc(R.title)}</h2>
+      ${R.text.map((p) => `<div class="row" style="align-items:flex-start;flex-wrap:nowrap;margin:10px 0"><p style="margin:0;flex:1;font-family:var(--type);line-height:1.6">${esc(p)}</p>${audioBtn(p)}</div>`).join('')}
+      <p class="tiny mut">Dica: leia uma vez inteira, depois as perguntas, e então volte ao texto procurando só o que precisa.</p></div>
+      <button class="btn pri big" id="rd-q">Responder às perguntas</button>`;
+    $('#rd-q').onclick = () => {
+      let i = 0, ok = 0;
+      const ask = () => {
+        if (i >= R.questions.length) {
+          const p = S.st.profile; p.readingDone = p.readingDone || {}; const prev = p.readingDone[uid];
+          p.readingDone[uid] = { at: now(), best: Math.max(ok, prev ? prev.best : 0), last: ok };
+          addMinutes(now() - t0); commit({ profile: true, day: true });
+          app().innerHTML = `<div class="card"><h2>${ok}/${R.questions.length} certas</h2><p class="small">${ok === R.questions.length ? 'Ótimo: entendeu os pontos principais.' : 'Releia o trecho das perguntas que errou: a resposta está no texto, com outras palavras.'}</p></div><button class="btn pri big" id="rd-end">Concluir</button>`;
+          $('#rd-end').onclick = done; return;
+        }
+        const [q, opts, right] = R.questions[i]; const order = shuffle(opts.map((o, k) => k));
+        app().innerHTML = `<div class="step-k" style="margin-bottom:8px">Frage ${i + 1}/${R.questions.length}</div><div class="card"><p class="de md" style="font-size:20px">${esc(q)}</p>
+          ${order.map((k) => `<button class="btn opt" data-k="${k}">${esc(opts[k])}</button>`).join('')}<details style="margin-top:8px"><summary class="small">Ver o texto de novo</summary>${R.text.map((p) => `<p class="small" style="font-family:var(--type)">${esc(p)}</p>`).join('')}</details></div><div id="rd-after"></div>`;
+        $$('.opt').forEach((b) => b.onclick = () => {
+          const k = +b.dataset.k; const good = k === right; if (good) ok++;
+          $$('.opt').forEach((x) => { x.disabled = true; if (+x.dataset.k === right) x.classList.add('right'); else if (x === b) x.classList.add('wrong'); });
+          $('#rd-after').innerHTML = `<div class="fb ${good ? 'ok' : 'bad'}"><b>${good ? 'Richtig!' : 'Nicht ganz.'}</b><div class="why">${esc(opts[right])}</div></div><button class="btn pri big" id="rd-next">Weiter</button>`;
+          $('#rd-next').onclick = () => { i++; ask(); };
+        });
+      };
+      ask();
+    };
+  }
   function renderPractice() {
     const uid = M.currentUnit(S.st) || 'A1-U1'; const u = C.units[uid];
     const unlocked = C.unitOrder.filter((id) => id !== 'A0-P' && (id === uid || (S.st.profile.unitState[id] || {}).passed));
@@ -4857,6 +5308,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
       <div class="card"><h2>Gramática</h2><div class="chips">${Object.entries(C.grammar).filter(([, g]) => unlocked.includes(g.unit)).map(([id, g]) => `<button class="chip" data-g="${id}">${esc(g.title)}</button>`).join('')}</div></div>
       <div class="card"><h2>Pronúncia</h2><div class="chips">${Object.entries(C.pron).map(([id, l]) => `<button class="chip ${S.st.profile.pronStats.done[id] ? 'on' : ''}" data-pr="${id}">${esc(l.title)}</button>`).join('')}</div><button class="btn" id="p-pairs" style="margin-top:10px">Teste de pares mínimos</button></div>
       <div class="card"><h2>Escuta e escrita</h2><div class="row"><button class="btn" id="p-dict">Ditado (${esc(u.title)})</button><button class="btn" id="p-dlg">Ouvir diálogo</button><button class="btn" id="p-wr">Texto curto</button></div></div>
+      ${readingCardHtml(unlocked)}
       <div class="card"><h2>Vocabulário</h2><a class="btn" href="#vocabulario">Ver todos os itens e seu domínio</a></div>`);
     const solo = (fn) => { $('nav.tabs').classList.add('hide'); const tok = S.solo = {}; openOverlay(); fn(() => { if (S.solo !== tok) return; S.solo = null; closeOverlay(); }); };
     $$('[data-cv]').forEach((b) => b.onclick = () => solo((d) => stepConvo({ unit: b.dataset.cv }, d)));
@@ -4864,6 +5316,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
     $$('[data-pr]').forEach((b) => b.onclick = () => solo((d) => stepPron({ pron: b.dataset.pr }, d)));
     $('#p-pairs').onclick = () => solo((d) => pairsQuiz(shuffle(Object.values(C.pron).flatMap((l) => l.pairs)), 8, d));
     $('#p-dict').onclick = () => solo((d) => stepListen({ unit: uid, n: 5 }, d));
+    $$('[data-rd]').forEach((b) => b.onclick = () => solo((d) => runReading(b.dataset.rd, d)));
     $('#p-dlg').onclick = () => solo((d) => { app().innerHTML = `<div class="card"><h2>${esc(u.title)}</h2>${u.dialog.map(([sp, l]) => `<div class="bubble ${sp === 'A' ? 't' : 'u'}">${esc(l)} ${audioBtn(l)}</div>`).join('')}<button class="btn pri" id="dd-p">▶ Ouvir tudo</button></div><button class="btn big" id="dd-b">Voltar</button>`; $('#dd-p').onclick = () => Audio.sayLines(u.dialog); $('#dd-b').onclick = d; });
     $('#p-wr').onclick = () => solo((d) => stepWrite({ unit: uid }, d));
     $('#p-rev').onclick = () => { const plan = { steps: M.dueList(S.st, now()).slice(0, 40).map((x) => ({ kind: 'review', id: x.id, stage: x.stage })), unit: null, notes: [] }; if (!plan.steps.length) return toast('Nenhuma revisão pendente agora.'); startSession(plan); };
@@ -4904,8 +5357,8 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
       ${L.matrix ? `<details><summary class="small">Matriz de competências</summary><table class="t">${Object.entries(L.matrix).map(([k, v]) => `<tr><td><b>${esc(k)}</b></td><td class="small">${esc(v)}</td></tr>`).join('')}</table></details>` : ''}
       ${L.modules.map((m) => `<h3>${esc(m.title)}</h3>${m.units.map((uid) => { const u = C.units[uid]; const st = M.unitStatus(S.st, uid, t); const cur = M.currentUnit(S.st) === uid; return `<details ${cur ? 'open' : ''}><summary>${st.passed ? '✅' : cur ? '▶️' : uid === 'A0-P' ? '🔈' : '🔒'} ${esc(u.title)} <span class="mut small">${esc(u.subtitle)}</span></summary>
         <p class="small"><b>Objetivos:</b> ${u.goals.map(esc).join(' · ')}</p>${u.grammar.length ? `<p class="small"><b>Gramática:</b> ${u.grammar.map((g) => esc(C.grammar[g].title)).join(' · ')}</p>` : ''}
-        <p class="small"><b>Pré-requisito:</b> ${u.prereq.length ? u.prereq.join(', ') : 'nenhum'} · <b>Critério:</b> ${esc(u.criteria)}</p>${unitChecklist(st)}</details>`; }).join('')}
-        ${m.plan ? C.plan.filter((e) => e.level === L.id && !L.modules.some((mm) => mm.units.includes(e.id))).map((e) => { const u = C.units[e.id]; if (!u) return `<details><summary class="lock">🔒 ${esc(e.title)} <span class="mut small">${esc(e.topic)}</span></summary><p class="small">Foco gramatical: ${esc(e.grammar)}. O professor prepara esta unidade quando você chegar perto dela.</p></details>`; const st = M.unitStatus(S.st, e.id, t); const cur = M.currentUnit(S.st) === e.id; return `<details ${cur ? 'open' : ''}><summary>${st.passed ? '✅' : cur ? '▶️' : '📘'} ${esc(u.title)} <span class="mut small">${esc(u.subtitle)} · ✨ IA</span></summary><p class="small"><b>Objetivos:</b> ${u.goals.map(esc).join(' · ')}</p><p class="small"><b>Gramática:</b> ${u.grammar.map((g) => esc(C.grammar[g].title)).join(' · ')}</p>${u.gen && u.gen.changes && u.gen.changes.length ? `<p class="tiny mut">Revisão automática corrigiu: ${u.gen.changes.slice(0, 5).map(esc).join('; ')}</p>` : ''}${unitChecklist(st)}</details>`; }).join('') : ''}`).join('')}</div>`).join('') +
+        <p class="small"><b>Pré-requisito:</b> ${u.prereq.length ? u.prereq.join(', ') : 'nenhum'} · <b>Critério:</b> ${esc(u.criteria)}</p>${u.authentic ? `<p class="small"><b>Material autêntico:</b></p><ul class="list small">${u.authentic.map((a) => `<li>${esc(a)}</li>`).join('')}</ul>` : ''}${u.reading ? `<p class="small"><b>Leitura:</b> „${esc(u.reading.title)}” (em Praticar → Lesen)</p>` : ''}${unitChecklist(st)}</details>`; }).join('')}
+        ${m.plan ? C.plan.filter((e) => e.level === L.id && !L.modules.some((mm) => mm.units.includes(e.id))).map((e) => { const u = C.units[e.id]; if (!u) return `<details><summary class="lock">🔒 ${esc(e.title)} <span class="mut small">${esc(e.topic)}</span></summary><p class="small">Foco gramatical: ${esc(e.grammar)}. O professor prepara esta unidade quando você chegar perto dela.</p></details>`; const st = M.unitStatus(S.st, e.id, t); const cur = M.currentUnit(S.st) === e.id; return `<details ${cur ? 'open' : ''}><summary>${st.passed ? '✅' : cur ? '▶️' : '📘'} ${esc(u.title)} <span class="mut small">${esc(u.subtitle)}${u.gen ? ' · ✨ IA' : ''}</span></summary><p class="small"><b>Objetivos:</b> ${u.goals.map(esc).join(' · ')}</p><p class="small"><b>Gramática:</b> ${u.grammar.map((g) => esc(C.grammar[g].title)).join(' · ')}</p>${u.criteria ? `<p class="small"><b>Pré-requisito:</b> ${(u.prereq || []).join(', ') || 'nenhum'} · <b>Critério:</b> ${esc(u.criteria)}</p>` : ''}${u.authentic ? `<p class="small"><b>Material autêntico:</b></p><ul class="list small">${u.authentic.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${u.reading ? `<p class="small"><b>Leitura:</b> „${esc(u.reading.title)}” (em Praticar → Lesen)</p>` : ''}${u.gen && u.gen.changes && u.gen.changes.length ? `<p class="tiny mut">Revisão automática corrigiu: ${u.gen.changes.slice(0, 5).map(esc).join('; ')}</p>` : ''}${unitChecklist(st)}</details>`; }).join('') : ''}`).join('')}</div>`).join('') +
       `<div class="card"><p class="small mut">O conteúdo é carregado progressivamente. Versão do conteúdo: ${esc(C.version)}. Seu histórico é guardado por id de item, então correções e ampliações do currículo não apagam o progresso.</p></div>`);
   }
 

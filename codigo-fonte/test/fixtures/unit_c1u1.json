@@ -1,0 +1,251 @@
+{
+ "title": "Wissenschaftliches Schreiben",
+ "subtitle": "Textos acadêmicos",
+ "goals": [
+  "Estruturar um texto acadêmico",
+  "Citar fontes corretamente",
+  "Escrever em estilo nominal"
+ ],
+ "items": [
+  {
+   "type": "noun",
+   "art": "die",
+   "de": "Abhandlung",
+   "pl": "Abhandlungen",
+   "pt": "o tratado, a dissertação",
+   "ipa": "",
+   "ex": [
+    "Die Abhandlung ist sehr ausführlich.",
+    "O tratado é muito detalhado."
+   ]
+  },
+  {
+   "type": "noun",
+   "art": "das",
+   "de": "Zitat",
+   "pl": "Zitate",
+   "pt": "a citação",
+   "ipa": "",
+   "ex": [
+    "Das Zitat stammt von Kant.",
+    "A citação é de Kant."
+   ]
+  },
+  {
+   "type": "noun",
+   "art": "die",
+   "de": "Fußnote",
+   "pl": "Fußnoten",
+   "pt": "a nota de rodapé",
+   "ipa": "",
+   "ex": [
+    "Die Quelle steht in der Fußnote.",
+    "A fonte está na nota de rodapé."
+   ]
+  },
+  {
+   "type": "noun",
+   "art": "das",
+   "de": "Literaturverzeichnis",
+   "pl": "Literaturverzeichnisse",
+   "pt": "a bibliografia",
+   "ipa": "",
+   "ex": [
+    "Das Literaturverzeichnis fehlt noch.",
+    "Ainda falta a bibliografia."
+   ]
+  },
+  {
+   "type": "noun",
+   "art": "die",
+   "de": "Fragestellung",
+   "pl": "Fragestellungen",
+   "pt": "a pergunta de pesquisa",
+   "ipa": "",
+   "ex": [
+    "Die Fragestellung ist zu breit.",
+    "A pergunta de pesquisa é ampla demais."
+   ]
+  },
+  {
+   "type": "noun",
+   "art": "der",
+   "de": "Befund",
+   "pl": "Befunde",
+   "pt": "o resultado (de pesquisa/exame)",
+   "ipa": "",
+   "ex": [
+    "Die Befunde sind eindeutig.",
+    "Os resultados são claros."
+   ]
+  },
+  {
+   "type": "noun",
+   "art": "die",
+   "de": "Methodik",
+   "pl": "Methodiken",
+   "pt": "a metodologia",
+   "ipa": "",
+   "ex": [
+    "Die Methodik wird im zweiten Kapitel erklärt.",
+    "A metodologia é explicada no segundo capítulo."
+   ]
+  },
+  {
+   "type": "noun",
+   "art": "die",
+   "de": "Gliederung",
+   "pl": "Gliederungen",
+   "pt": "a estrutura, o sumário",
+   "ipa": "",
+   "ex": [
+    "Die Gliederung ist logisch.",
+    "A estrutura é lógica."
+   ]
+  },
+  {
+   "type": "verb",
+   "de": "erörtern",
+   "pt": "discutir (por escrito)",
+   "conj": {
+    "ich": "erörtere",
+    "du": "erörterst",
+    "er": "erörtert",
+    "wir": "erörtern",
+    "ihr": "erörtert",
+    "sie": "erörtern"
+   },
+   "ex": [
+    "Im Folgenden wird die Frage erörtert.",
+    "A seguir a questão é discutida."
+   ]
+  },
+  {
+   "type": "verb",
+   "de": "belegen",
+   "pt": "comprovar (com dados)",
+   "conj": {
+    "ich": "belege",
+    "du": "belegst",
+    "er": "belegt",
+    "wir": "belegen",
+    "ihr": "belegt",
+    "sie": "belegen"
+   },
+   "ex": [
+    "Die Zahlen belegen die These.",
+    "Os números comprovam a tese."
+   ]
+  },
+  {
+   "type": "phrase",
+   "de": "Im Folgenden wird … dargestellt.",
+   "pt": "A seguir é apresentado …"
+  },
+  {
+   "type": "phrase",
+   "de": "Es lässt sich festhalten, dass …",
+   "pt": "Pode-se constatar que …"
+  },
+  {
+   "type": "word",
+   "de": "diesbezüglich",
+   "pt": "a esse respeito"
+  },
+  {
+   "type": "word",
+   "de": "demzufolge",
+   "pt": "consequentemente"
+  }
+ ],
+ "grammar": [
+  {
+   "title": "Estilo nominal",
+   "explain": "Im <b>Nominalstil</b> werden Verben zu Nomen: untersuchen → die Untersuchung.",
+   "compare": "Como o “estilo burocrático” em português.",
+   "examples": [
+    [
+     "Die Untersuchung der Daten dauerte lange.",
+     "A análise dos dados demorou."
+    ]
+   ],
+   "drills": [
+    {
+     "q": "untersuchen → die ___",
+     "a": [
+      "Untersuchung"
+     ]
+    },
+    {
+     "q": "analysieren → die ___",
+     "a": [
+      "Analyse"
+     ]
+    },
+    {
+     "q": "entwickeln → die ___",
+     "a": [
+      "Entwicklung"
+     ]
+    },
+    {
+     "q": "beschreiben → die ___",
+     "a": [
+      "Beschreibung"
+     ]
+    },
+    {
+     "q": "vergleichen → der ___",
+     "a": [
+      "Vergleich"
+     ]
+    }
+   ]
+  }
+ ],
+ "dialog": [
+  [
+   "A",
+   "Wie weit bist du mit deiner Hausarbeit?"
+  ],
+  [
+   "B",
+   "Die Gliederung steht, aber die Fragestellung ist noch zu breit."
+  ],
+  [
+   "A",
+   "Hast du schon Literatur gefunden?"
+  ],
+  [
+   "B",
+   "Ja, aber ich muss noch das Literaturverzeichnis anlegen."
+  ],
+  [
+   "A",
+   "Vergiss die Fußnoten nicht."
+  ],
+  [
+   "B",
+   "Keine Sorge, jedes Zitat wird belegt."
+  ]
+ ],
+ "dialogPt": "Dois estudantes falam de um trabalho acadêmico.",
+ "listening": [
+  "Im Folgenden wird die Methodik dargestellt.",
+  "Die Befunde sind eindeutig.",
+  "Jedes Zitat braucht eine Quelle.",
+  "Die Fragestellung ist zu breit.",
+  "Es lässt sich festhalten, dass die These stimmt."
+ ],
+ "writing": "Escreva a introdução de um trabalho acadêmico.",
+ "speaking": {
+  "scene": "Orientação com a professora.",
+  "persona": "Prof. Weber",
+  "goals": [
+   "apresentar o tema",
+   "explicar a pergunta",
+   "descrever a metodologia",
+   "pedir um conselho"
+  ]
+ }
+}
