@@ -71,7 +71,9 @@ try:
     res['cadastro pede confirmação'] = 'e-mail de confirmação' in A.inner_text('.fb')
     A.fill('#ac-pass', 'senha-segura-1'); A.click('#ac-go'); A.wait_for_timeout(400); res['entrar sem confirmar'] = A.inner_text('.fb')[:60]
     DB['users']['rick@example.com']['ok'] = True
-    A.fill('#ac-pass', 'senha-segura-1'); A.click('#ac-go'); A.wait_for_selector('#ac-out', timeout=8000)
+    A.fill('#ac-pass', 'senha-segura-1'); A.click('#ac-go'); A.wait_for_selector('#h-start', timeout=8000)
+    res['A: depois de entrar vai direto pro Hoje'] = [A.evaluate('location.hash'), A.locator('.toast').all_inner_texts()]
+    A.click('nav.tabs a[href="#mais"]'); A.click('a[href="#sync"]'); A.wait_for_selector('#ac-out')
     res['A conectado'] = A.inner_text('.card h2')
     res['linhas no servidor'] = len(DB['rows']); res['dados comprimidos'] = list(DB['rows'].values())[0]['data'][:2]
     sessions_A = A.evaluate("Object.keys(JSON.parse(localStorage.getItem('gfs-local-v1'))).filter(k=>k.startsWith('srs/')).length + ' cartas, diag=' + !!JSON.parse(localStorage.getItem('gfs-local-v1')).profile.diag")

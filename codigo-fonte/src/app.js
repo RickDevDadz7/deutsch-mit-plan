@@ -128,7 +128,6 @@
     const open = all.filter((r) => r.status !== 'resolvido');
     shell('mais', `<div class="card"><h2>Problemas reportados</h2>
       <p class="small">Durante a aula, toque em <b>⚑ Reportar</b> no topo (nos treinos avulsos, no botão ⚑ do canto). O que estava na tela vai junto.</p>
-      <p class="small mut">Para eu corrigir, toque em <b>Copiar em aberto</b> e cole aqui no chat do Claude. Ou abra como issue no GitHub.</p>
       <div class="row"><button class="btn pri" data-rep="geral">⚑ Novo reporte</button><button class="btn" id="rp-copy" ${open.length ? '' : 'disabled'}>Copiar em aberto (${open.length})</button><button class="btn" id="rp-dl" ${all.length ? '' : 'disabled'}>Baixar (.json)</button></div></div>
       ${all.length ? all.map((r) => `<div class="card rep-item ${r.status === 'resolvido' ? 'lock' : ''}"><div class="row sp"><span class="pill ${r.status === 'resolvido' ? 'ok' : 'warn'}">${r.status === 'resolvido' ? 'erledigt' : 'offen'}</span><span class="tiny mut">${new Date(r.at).toLocaleString('pt-BR')}</span></div>
         <h3 style="margin-top:8px">${esc(repCat(r.cat))}</h3><p class="small" style="white-space:pre-wrap">${esc(r.text || '(sem descrição)')}</p>
@@ -336,17 +335,17 @@
     if (S.st.integrity.dropped) log('warn', S.st.integrity.dropped + ' registros inválidos ignorados na carga');
     initReports(); watchFeedback(); watchLayout(); bindPaperSound(); if (GF.sfx) GF.sfx.bind();
     const red = GF.cloud && GF.cloud.available() ? GF.cloud.handleRedirect() : null;
-    try { history.replaceState({ depth: 0 }, '', red ? location.pathname + (S.st.profile.diag ? '#sync' : '') : location.href); } catch (e) { /* */ }
+    try { history.replaceState({ depth: 0 }, '', red ? location.pathname + (S.st.profile.diag ? (red.type === 'recovery' || red.error ? '#sync' : '#hoje') : '') : location.href); } catch (e) { /* */ }
     window.addEventListener('popstate', onPop);
     if (red) {
       if (red.error) { S.acMsg = { ok: false, html: esc(red.error) }; }
       else if (red.type === 'recovery') { S.recovery = true; }
       else if (!S.st.profile.diag) {
-        app().innerHTML = '<div class="card"><h2>Conta conectada</h2><p class="small">Buscando seu progresso…</p></div>';
+        app().innerHTML = '';
         try { await GF.sync.run(S.store); S.st = S.store.state; } catch (e) { S.acMsg = { ok: false, html: esc(e.message) }; }
-        if (S.st.profile.diag) { toast('Conta conectada. Progresso recebido!', 3500); history.replaceState({ depth: 0 }, '', '#hoje'); }
-        else { toast('Conta conectada. Ainda não há progresso na nuvem: faça o diagnóstico.', 4500); return renderOnboarding(); }
-      } else { toast(red.type === 'signup' ? 'E-mail confirmado. Conta conectada!' : 'Conta conectada!', 3500); setTimeout(() => autoSync('conta conectada'), 300); }
+        if (S.st.profile.diag) { toast(accountName() ? 'Bem-vindo, ' + accountName() + '!' : 'Conta conectada!', 3000); history.replaceState({ depth: 0 }, '', '#hoje'); }
+        else return renderOnboarding();
+      } else { toast(red.type === 'signup' ? 'E-mail confirmado!' : (accountName() ? 'Bem-vindo, ' + accountName() + '!' : 'Conta conectada!'), 3000); setTimeout(() => autoSync('conta conectada'), 300); }
       if (!S.st.profile.diag) return renderSync();
     }
     document.addEventListener('click', onLinkClick);
@@ -509,9 +508,10 @@
       if (first && GF.sync.cfg().token) { try { await GF.sync.run(S.store, { via: 'gist' }); } catch (e) { log('warn', 'GitHub antes da conta: ' + e.message); } }
       const r = await GF.sync.run(S.store); S.st = S.store.state; return r;
     };
-    const afterSync = (r) => {
+    const afterSync = (r, login) => {
+      if (!S.st.profile.diag) return renderOnboarding();
+      if (login) { const n = accountName(); toast(n ? 'Bem-vindo, ' + n + '!' : 'Conta conectada!'); history.replaceState({ depth: 0 }, '', '#hoje'); return route(); }
       toast(r.merged ? 'Sincronizado: ' + r.merged + ' atualizações recebidas.' : 'Sincronizado. Tudo em dia.');
-      if (!S.st.profile.diag) { toast('Nenhum progresso encontrado na nuvem ainda. Faça o diagnóstico.', 4000); return renderOnboarding(); }
       if (fresh) { history.replaceState({ depth: 0 }, '', '#hoje'); return route(); }
       renderSync();
     };
@@ -524,8 +524,8 @@
           S.acName = ($('#ac-name2') || {}).value || ''; const r = await GF.cloud.signUp(email, pass, S.acName);
           if (r.confirm) { S.acTab = 'in'; S.acConfirm = true; S.acMsg = { ok: true, html: 'Conta criada! Enviamos um e-mail de confirmação para <b>' + esc(email) + '</b>. Abra o link (veja o spam) e depois toque em <b>Entrar</b>.' }; return renderSync(); }
         } else await GF.cloud.signIn(email, pass);
-        S.acMsg = null; S.acConfirm = false; go.textContent = 'Sincronizando…';
-        afterSync(await pullAll(true));
+        S.acMsg = null; S.acConfirm = false; go.textContent = 'Entrando…';
+        afterSync(await pullAll(true), true);
       } catch (e) {
         if (e.code === 'email_not_confirmed') S.acConfirm = true;
         S.acMsg = { ok: false, html: esc(e.message) }; free(go); renderSync();
