@@ -51,6 +51,7 @@ try:
                     elif pg.locator('#r-a').count(): pg.fill('#r-a', 'Hallo!'); pg.click('#r-ok')
             pg.click('#s-quit'); pg.wait_for_selector('#e-home'); pg.click('#e-home'); pg.wait_for_selector('#h-start')
         def enable(pg, pw, name):
+            pg.wait_for_selector('#ac-go'); pg.evaluate("document.querySelectorAll('details').forEach(d => d.open = true)")
             pg.fill('#sy-token', TOKEN); pg.fill('#sy-pass', pw); pg.fill('#sy-name', name); pg.click('#sy-go')
 
         # Celular: diagnóstico, estuda, ativa sincronização
@@ -58,7 +59,7 @@ try:
         A.wait_for_selector('#o-go'); A.click('#o-go'); A.click('#f-go'); A.wait_for_selector('#h-start')
         study(A, 14)
         cardsA = A.evaluate('Object.keys(GF.app.S.st.cards).length')
-        A.evaluate("location.hash='#sync'"); A.wait_for_selector('#sy-go'); enable(A, 'minha-senha-123', 'Celular')
+        A.evaluate("location.hash='#sync'"); enable(A, 'minha-senha-123', 'Celular')
         A.wait_for_selector('#sy-now', timeout=20000)
         out['gist_files'] = sorted(GISTS[list(GISTS)[0]]['files'].keys())
         enc = [c for n, c in GISTS[list(GISTS)[0]]['files'].items() if n.endswith('.enc')][0]
@@ -67,10 +68,10 @@ try:
         # PC: aparelho novo, traz o progresso pela sincronização
         B, eb = device('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130 Safari/537.36')
         B.wait_for_selector('#o-sync'); B.click('#o-sync'); enable(B, 'minha-senha-123', 'PC')
-        B.wait_for_selector('#sy-now', timeout=20000)
+        B.wait_for_selector('#h-start', timeout=20000)
         out['pc_cards_after_first_sync'] = B.evaluate('Object.keys(GF.app.S.st.cards).length'); out['phone_cards'] = cardsA
         out['pc_has_profile'] = B.evaluate('!!GF.app.S.st.profile.diag')
-        B.evaluate("location.hash='#hoje'"); B.wait_for_selector('#h-start')
+        B.wait_for_selector('#h-start')
         study(B, 10)  # estuda no PC (fim da sessão sincroniza sozinho)
         B.wait_for_timeout(2500)
         cardsB = B.evaluate('Object.keys(GF.app.S.st.cards).length')

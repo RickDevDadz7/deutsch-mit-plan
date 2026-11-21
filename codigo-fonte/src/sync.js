@@ -1,4 +1,4 @@
-/* Sincronização entre aparelhos via Gist SECRETO do GitHub do próprio usuário.
+/* Sincronização entre aparelhos — pela CONTA (Supabase, preferencial) ou, no modo antigo, via Gist SECRETO do GitHub.
  * - Cada aparelho grava só o PRÓPRIO arquivo (device-<id>.enc): não há escrita concorrente.
  * - Conteúdo comprimido e criptografado (AES-GCM 256, chave PBKDF2 da senha de sincronização).
  * - Ao sincronizar, cada aparelho MESCLA o dos outros: nada é sobrescrito às cegas.
@@ -166,28 +166,72 @@
     c.gistId = g.id; saveCfg(c); return g;
   }
 
+  /* ---------- transportes: conta (Supabase) ou Gist antigo ---------- */
+  // Conta: tabela sync_devices (uma linha por aparelho; RLS: cada conta só vê as próprias linhas).
+  async function packText(obj) { const { z, bytes } = await gzip(JSON.stringify(obj)); return (z ? 'z:' : 'j:') + (z ? b64(bytes) : new TextDecoder().decode(bytes)); }
+  async function unpackText(t) { if (t.startsWith('z:')) return JSON.parse(await gunzip(unb64(t.slice(2)), 1)); return JSON.parse(t.slice(2)); }
+  function cloudTransport() {
+    const C = GF.cloud;
+    return {
+      kind: 'cloud',
+      async list() {
+        const rows = await C.rest('sync_devices?select=device_id,name,updated_at,data', {});
+        return (rows || []).map((r) => ({ id: r.device_id, name: r.name, at: Date.parse(r.updated_at) || 0, load: () => unpackText(r.data) }));
+      },
+      async put(me, name, at, data) {
+        const u = C.user(); if (!u) throw Object.assign(new Error('Entre na sua conta primeiro.'), { code: 'signed_out' });
+        await C.rest('sync_devices?on_conflict=user_id,device_id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: [{ user_id: u.id, device_id: me, name, updated_at: new Date(at).toISOString(), data: await packText(data) }] });
+      }
+    };
+  }
+  async function gistTransport(c) {
+    const gist = await findOrCreateGist(c.token);
+    const meta = JSON.parse(await fileContent(gist.files['meta.json']));
+    if (!keyCache || keyCache.salt !== meta.salt || keyCache.pass !== c.pass) keyCache = { salt: meta.salt, pass: c.pass, key: await deriveKey(c.pass, meta.salt) };
+    const key = keyCache.key;
+    const out = [];
+    for (const [name, f] of Object.entries(gist.files)) {
+      if (!/^device-(.+)\.enc$/.test(name)) continue;
+      const wrap = JSON.parse(await fileContent(f));
+      out.push({ id: wrap.deviceId, name: wrap.name, at: wrap.at, load: () => decrypt(key, wrap.box) });
+    }
+    return {
+      kind: 'gist',
+      async list() { return out; },
+      async put(me, name, at, data) {
+        const box = await encrypt(key, data);
+        await gh(c.token, '/gists/' + gist.id, { method: 'PATCH', body: JSON.stringify({ files: { ['device-' + me + '.enc']: { content: JSON.stringify({ v: 1, deviceId: me, name, at, box }) } } }) });
+      }
+    };
+  }
+  /** Qual caminho usar: a conta, se houver sessão; senão o Gist antigo. opts.via força um deles. */
+  function mode(opts) {
+    const via = opts && opts.via;
+    if (via === 'gist') return cfg().token ? 'gist' : null;
+    if (via === 'cloud') return GF.cloud && GF.cloud.session() ? 'cloud' : null;
+    if (GF.cloud && GF.cloud.session()) return 'cloud';
+    return cfg().token ? 'gist' : null;
+  }
+
   /* ---------- execução ---------- */
   let running = null, keyCache = null;
   async function run(store, opts) {
     if (running) return running;
     running = (async () => {
-      const c = cfg(); if (!c.token || !c.pass) throw Object.assign(new Error('Sincronização não configurada.'), { code: 'off' });
+      const c = cfg(); const m = mode(opts);
+      if (!m) throw Object.assign(new Error('Sincronização não configurada.'), { code: 'off' });
+      if (m === 'gist' && (!c.token || !c.pass)) throw Object.assign(new Error('Sincronização não configurada.'), { code: 'off' });
       const now = Date.now(), me = deviceId();
-      const gist = await findOrCreateGist(c.token);
-      const meta = JSON.parse(await fileContent(gist.files['meta.json']));
-      if (!keyCache || keyCache.salt !== meta.salt || keyCache.pass !== c.pass) keyCache = { salt: meta.salt, pass: c.pass, key: await deriveKey(c.pass, meta.salt) };
-      const key = keyCache.key;
+      const tr = m === 'cloud' ? cloudTransport() : await gistTransport(c);
       const st = store.state; const devices = [];
       const touched = { profile: false, cards: [], mistakes: [], assess: [], ext: [], gen: [], reports: [] };
-      for (const [name, f] of Object.entries(gist.files)) {
-        const m = /^device-(.+)\.enc$/.exec(name); if (!m) continue;
-        const wrap = JSON.parse(await fileContent(f));
-        devices.push({ id: wrap.deviceId, name: wrap.name, at: wrap.at, me: wrap.deviceId === me });
-        if (wrap.deviceId === me) continue;
-        const data = await decrypt(key, wrap.box);
-        const t = mergeRemote(st, data, { id: wrap.deviceId, name: wrap.name, at: wrap.at });
+      for (const d of await tr.list()) {
+        devices.push({ id: d.id, name: d.name, at: d.at, me: d.id === me });
+        if (d.id === me) continue;
+        const data = await d.load();
+        const t = mergeRemote(st, data, { id: d.id, name: d.name, at: d.at });
         if (t.profile) touched.profile = true;
-        touched.gen.push(...t.gen); touched.reports.push(...t.reports); touched.cards.push(...t.cards); touched.mistakes.push(...t.mistakes); touched.assess.push(...t.assess); if (t.ext) touched.ext.push(wrap.deviceId);
+        touched.gen.push(...t.gen); touched.reports.push(...t.reports); touched.cards.push(...t.cards); touched.mistakes.push(...t.mistakes); touched.assess.push(...t.assess); if (t.ext) touched.ext.push(d.id);
       }
       // grava localmente o que veio dos outros
       const ps = [];
@@ -201,26 +245,28 @@
       await Promise.allSettled(ps);
       // envia o meu pacote (já mesclado; dias só os meus)
       const mine = { profile: st.profile, cards: Object.values(st.cards), mistakes: Object.values(st.mistakes), assess: st.assess, days: st.days, gen: Object.values(st.gen || {}), reports: Object.values(st.reports || {}) };
-      const box = await encrypt(key, mine);
-      const fname = 'device-' + me + '.enc';
-      const name = c.name || 'Aparelho';
-      await gh(c.token, '/gists/' + gist.id, { method: 'PATCH', body: JSON.stringify({ files: { [fname]: { content: JSON.stringify({ v: 1, deviceId: me, name, at: now, box }) } } }) });
+      const name = c.name || defaultName();
+      await tr.put(me, name, now, mine);
       if (!devices.some((d) => d.me)) devices.push({ id: me, name, at: now, me: true }); else devices.find((d) => d.me).at = now;
-      const c2 = cfg(); c2.lastSync = now; c2.lastError = null; c2.devices = devices; saveCfg(c2);
-      return { merged: touched.cards.length + touched.mistakes.length + (touched.profile ? 1 : 0) + touched.ext.length + touched.gen.length + touched.reports.length, devices };
+      const c2 = cfg(); c2.lastSync = now; c2.lastError = null; c2.devices = devices; c2.via = m; saveCfg(c2);
+      return { merged: touched.cards.length + touched.mistakes.length + (touched.profile ? 1 : 0) + touched.ext.length + touched.gen.length + touched.reports.length, devices, via: m };
     })();
     try { return await running; }
     catch (e) { const c2 = cfg(); c2.lastError = e.message; saveCfg(c2); throw e; }
     finally { running = null; }
   }
+  function defaultName() { const ua = (globalThis.navigator && navigator.userAgent) || ''; return /Android|iPhone|iPad/i.test(ua) ? 'Celular' : /Electron/i.test(ua) ? 'PC (programa)' : 'PC'; }
+  function setName(n) { const c = cfg(); c.name = String(n || '').trim().slice(0, 40) || defaultName(); saveCfg(c); }
+  /** Apaga da nuvem os dados desta conta (todas as linhas de aparelhos). Os dados deste aparelho continuam. */
+  async function wipeCloud() { const u = GF.cloud.user(); await GF.cloud.rest('sync_devices?user_id=eq.' + encodeURIComponent(u.id), { method: 'DELETE', headers: { Prefer: 'return=minimal' } }); const c = cfg(); c.devices = []; c.lastSync = null; saveCfg(c); }
   async function setup({ token, pass, name }) {
     if (!token || token.length < 20) throw new Error('Cole o token do GitHub.');
     if (!pass || pass.length < 8) throw new Error('A senha precisa ter pelo menos 8 caracteres.');
     const c = cfg(); c.token = token.trim(); c.pass = pass; c.name = (name || '').trim() || 'Aparelho'; c.gistId = null; saveCfg(c);
     keyCache = null;
   }
-  function disable() { const c = cfg(); saveCfg({ deviceId: c.deviceId }); keyCache = null; }
+  function disable() { const c = cfg(); saveCfg({ deviceId: c.deviceId, name: c.name }); keyCache = null; }
   const available = () => typeof fetch !== 'undefined' && typeof crypto !== 'undefined' && !!crypto.subtle && !globalThis.claude;
 
-  GF.sync = { cfg, saveCfg, deviceId, setup, disable, run, available, mergeCard, mergeMistake, mergeProfile, mergeUnit, mergeRemote, encrypt, decrypt, deriveKey, DESC };
+  GF.sync = { cfg, saveCfg, deviceId, setup, disable, run, available, mode, setName, defaultName, wipeCloud, packText, unpackText, mergeCard, mergeMistake, mergeProfile, mergeUnit, mergeRemote, encrypt, decrypt, deriveKey, DESC };
 })(globalThis.GF = globalThis.GF || {});

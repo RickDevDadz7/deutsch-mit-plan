@@ -78,8 +78,8 @@
   const REP_CATS = [['de', 'Erro no alemão'], ['pt', 'Tradução ou explicação'], ['audio', 'Áudio ou pronúncia'], ['grade', 'Correção injusta'], ['bug', 'Bug ou tela quebrada'], ['idea', 'Sugestão'], ['other', 'Outro']];
   const repCat = (k) => (REP_CATS.find((c) => c[0] === k) || [k, k])[1];
   function initReports() {
-    if (!$('#rep-fab')) { const b = document.createElement('button'); b.id = 'rep-fab'; b.className = 'btn rep-fab hide'; b.setAttribute('data-report', ''); b.setAttribute('aria-label', 'Reportar problema nesta tela'); b.textContent = '⚑'; document.body.appendChild(b); }
-    document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-report]'); if (!b) return; e.preventDefault(); openReport(b.dataset.report ? { general: true } : null); });
+    if (!$('#rep-fab')) { const b = document.createElement('button'); b.id = 'rep-fab'; b.className = 'btn rep-fab hide'; b.setAttribute('data-rep', ''); b.setAttribute('aria-label', 'Reportar problema nesta tela'); b.textContent = '⚑'; document.body.appendChild(b); }
+    document.addEventListener('click', (e) => { const b = e.target.closest && e.target.closest('[data-rep]'); if (!b) return; e.preventDefault(); openReport(b.dataset.rep ? { general: true } : null); });
   }
   function screenContext() {
     const s = S.session; const step = s && s.plan.steps[s.i];
@@ -89,8 +89,8 @@
   function openReport(opt) {
     const old = $('#rep-modal'); if (old) old.remove();
     const general = opt && opt.general; const ctx = general ? null : screenContext();
-    const m = document.createElement('div'); m.id = 'rep-modal'; m.className = 'rep-modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-labelledby', 'rep-t');
-    m.innerHTML = `<div class="card"><div class="step-k">Formular M-1 · Mängelbericht</div><h2 id="rep-t">Reportar problema</h2>
+    const m = document.createElement('div'); m.id = 'rep-modal'; m.className = 'rep-modal'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-labelledby', 'rep-title');
+    m.innerHTML = `<div class="card"><div class="step-k">Formular M-1 · Mängelbericht</div><h2 id="rep-title">Reportar problema</h2>
       <p class="small mut">${general ? 'Descreva o problema ou a sugestão.' : 'O que estava na tela vai junto, para eu achar e corrigir exatamente esse ponto.'}</p>
       <div class="chips" id="rep-cat">${REP_CATS.map(([k, l]) => `<button class="chip" data-c="${k}">${l}</button>`).join('')}</div>
       <label class="small" for="rep-txt" style="display:block;margin:12px 0 4px">O que aconteceu? <span class="mut">(o que esperava, o que apareceu)</span></label>
@@ -129,7 +129,7 @@
     shell('mais', `<div class="card"><h2>Problemas reportados</h2>
       <p class="small">Durante a aula, toque em <b>⚑ Reportar</b> no topo (nos treinos avulsos, no botão ⚑ do canto). O que estava na tela vai junto.</p>
       <p class="small mut">Para eu corrigir, toque em <b>Copiar em aberto</b> e cole aqui no chat do Claude. Ou abra como issue no GitHub.</p>
-      <div class="row"><button class="btn pri" data-report="geral">⚑ Novo reporte</button><button class="btn" id="rp-copy" ${open.length ? '' : 'disabled'}>Copiar em aberto (${open.length})</button><button class="btn" id="rp-dl" ${all.length ? '' : 'disabled'}>Baixar (.json)</button></div></div>
+      <div class="row"><button class="btn pri" data-rep="geral">⚑ Novo reporte</button><button class="btn" id="rp-copy" ${open.length ? '' : 'disabled'}>Copiar em aberto (${open.length})</button><button class="btn" id="rp-dl" ${all.length ? '' : 'disabled'}>Baixar (.json)</button></div></div>
       ${all.length ? all.map((r) => `<div class="card rep-item ${r.status === 'resolvido' ? 'lock' : ''}"><div class="row sp"><span class="pill ${r.status === 'resolvido' ? 'ok' : 'warn'}">${r.status === 'resolvido' ? 'erledigt' : 'offen'}</span><span class="tiny mut">${new Date(r.at).toLocaleString('pt-BR')}</span></div>
         <h3 style="margin-top:8px">${esc(repCat(r.cat))}</h3><p class="small" style="white-space:pre-wrap">${esc(r.text || '(sem descrição)')}</p>
         ${r.ctx ? `<details><summary class="small">Contexto: ${esc(r.ctx.screen)}${r.ctx.unit ? ' · ' + esc(r.ctx.unit) : ''}</summary><pre class="tiny rep-ctx">${esc(r.ctx.text || '')}</pre></details>` : ''}
@@ -335,8 +335,15 @@
     for (const g of Object.values(S.st.gen || {})) C.addUnit(JSON.parse(JSON.stringify(g)));
     if (S.st.integrity.dropped) log('warn', S.st.integrity.dropped + ' registros inválidos ignorados na carga');
     initReports(); watchFeedback(); watchLayout(); bindPaperSound(); if (GF.sfx) GF.sfx.bind();
-    try { history.replaceState({ depth: 0 }, '', location.href); } catch (e) { /* */ }
+    const red = GF.cloud && GF.cloud.available() ? GF.cloud.handleRedirect() : null;
+    try { history.replaceState({ depth: 0 }, '', red ? location.pathname + location.search + (S.st.profile.diag ? '#sync' : '') : location.href); } catch (e) { /* */ }
     window.addEventListener('popstate', onPop);
+    if (red) {
+      if (red.error) { S.acMsg = { ok: false, html: esc(red.error) }; }
+      else if (red.type === 'recovery') { S.recovery = true; }
+      else { toast('E-mail confirmado. Conta conectada!', 3500); setTimeout(() => autoSync('conta conectada'), 300); }
+      if (!S.st.profile.diag) return renderSync();
+    }
     document.addEventListener('click', onLinkClick);
     if (!S.st.profile.diag) return renderOnboarding();
     // adaptação + backup automático ao abrir
@@ -416,7 +423,8 @@
   });
 
   /* ---------------- Sincronização ---------------- */
-  const syncOn = () => !!(GF.sync && GF.sync.available() && GF.sync.cfg().token);
+  const cloudOn = () => !!(GF.cloud && GF.cloud.available() && GF.cloud.session());
+  const syncOn = () => !!(GF.sync && GF.sync.available() && (GF.sync.cfg().token || cloudOn()));
   function syncBadge() { if (!syncOn()) return ''; const c = GF.sync.cfg(); return c.lastError ? ' <span class="pill bad">erro</span>' : c.lastSync ? ' <span class="pill ok">' + new Date(c.lastSync).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + '</span>' : ''; }
   let lastAuto = 0;
   async function autoSync(why) {
@@ -436,44 +444,99 @@
   function renderSync() {
     const nav = $('nav.tabs'); const fresh = !S.st.profile.diag;
     if (!GF.sync || !GF.sync.available()) {
-      shell('mais', `<div class="card"><h2>Sincronização</h2><p class="small">Esta é a versão dentro do Claude.ai, que já guarda seus dados na nuvem do Claude. Ela não conversa com a versão instalada (PC/celular).</p>
-        <p class="small">Para levar o progresso daqui para o app instalado: <b>Mais → Dados → Exportar backup</b> aqui, e <b>Restaurar de arquivo</b> no app instalado. Depois disso, ative a sincronização lá.</p></div>`); return;
+      shell('mais', `<div class="card"><h2>Conta e sincronização</h2><p class="small">Esta é a versão dentro do Claude.ai, que já guarda seus dados na nuvem do Claude. Ela não conversa com a versão instalada (PC/celular).</p>
+        <p class="small">Para levar o progresso daqui para o app instalado: <b>Mais → Dados → Exportar backup</b> aqui, e <b>Restaurar de arquivo</b> no app instalado. Depois disso, entre na sua conta lá.</p></div>`); return;
     }
-    const c = GF.sync.cfg(); const on = !!c.token;
-    const dev = /Android|iPhone|iPad/i.test(navigator.userAgent) ? 'Celular' : (GF.local && GF.local.isElectron ? 'PC (programa)' : 'PC');
-    const html = on ? `<div class="card"><h2>Sincronização ativa ✅</h2>
-        <p class="small">Este aparelho: <b>${esc(c.name)}</b>. Última sincronização: <b>${c.lastSync ? new Date(c.lastSync).toLocaleString('pt-BR') : 'ainda não'}</b>.</p>
-        ${c.lastError ? `<div class="fb bad">${esc(c.lastError)}</div>` : ''}
-        ${(c.devices || []).length ? `<h3>Aparelhos conectados</h3><table class="t">${c.devices.map((d) => `<tr><td>${d.me ? '📍 ' : ''}${esc(d.name)}</td><td class="small mut">${new Date(d.at).toLocaleString('pt-BR')}</td></tr>`).join('')}</table>` : ''}
-        <p class="tiny mut">Sincroniza sozinho ao abrir o app, ao terminar uma sessão, ao sair do app e a cada 10 minutos (com internet).</p>
-        <div class="row"><button class="btn pri" id="sy-now">Sincronizar agora</button><button class="btn" id="sy-off">Desativar neste aparelho</button></div></div>`
-      : `<div class="card"><h2>Sincronizar PC e celular</h2>
-        <p class="small">Seu progresso fica num <b>Gist secreto</b> da sua conta do GitHub, <b>criptografado</b> com uma senha que só você sabe. Cada aparelho envia o que fez e junta o que os outros fizeram — nada é apagado.</p>
-        <h3>1. Crie um token (uma vez só)</h3>
-        <p class="small">Abra <a href="https://github.com/settings/tokens/new?scopes=gist&description=Deutsch%20mit%20Plan%20sync" target="_blank" rel="noopener">este link do GitHub</a> → em <b>Expiration</b> escolha <b>No expiration</b> (ou 1 ano) → confira que <b>gist</b> está marcado → <b>Generate token</b> → copie o código (começa com <code>ghp_</code>). Use o mesmo token em todos os aparelhos.</p>
+    const c = GF.sync.cfg(); const gistOn = !!c.token; const u = cloudOn() ? GF.cloud.user() : null;
+    const when = (t) => t ? new Date(t).toLocaleString('pt-BR') : 'ainda não';
+    const devTable = (c.devices || []).length ? `<h3>Aparelhos nesta conta</h3><table class="t">${c.devices.map((d) => `<tr><td>${d.me ? '📍 ' : ''}${esc(d.name)}</td><td class="small mut">${new Date(d.at).toLocaleString('pt-BR')}</td></tr>`).join('')}</table>` : '';
+    const pw = (id, ph, ac) => `<div class="row" style="flex-wrap:nowrap"><input type="password" id="${id}" placeholder="${ph}" autocomplete="${ac}" style="flex:1;width:auto"><button class="btn" type="button" data-show="${id}" aria-label="Mostrar senha">👁</button></div>`;
+    let html = '';
+    if (S.recovery && u) {
+      html += `<div class="card"><div class="step-k">Formular P-2 · Passwortänderung</div><h2>Crie uma nova senha</h2><p class="small">Conta: <b>${esc(u.email || '')}</b></p>
+        <label class="small" for="ac-np">Nova senha (mínimo 8 caracteres)</label>${pw('ac-np', 'nova senha', 'new-password')}
+        <div style="height:10px"></div><button class="btn pri big" id="ac-np-go">Salvar nova senha</button></div>`;
+    } else if (u) {
+      html += `<div class="card"><div class="step-k">Konto · conta</div><h2>Conta conectada ✅</h2>
+        <p class="small">E-mail: <b>${esc(u.email || '')}</b><br>Última sincronização: <b>${when(c.via === 'cloud' ? c.lastSync : null)}</b></p>
+        ${c.lastError && c.via !== 'gist' ? `<div class="fb warn">${esc(c.lastError)}</div>` : ''}
+        ${devTable}
+        <label class="small" for="ac-name" style="display:block;margin-top:12px">Nome deste aparelho</label><div class="row" style="flex-wrap:nowrap"><input type="text" id="ac-name" value="${esc(c.name || GF.sync.defaultName())}" style="flex:1;width:auto"><button class="btn" id="ac-name-go">Salvar</button></div>
+        <p class="tiny mut">Sincroniza sozinho ao abrir o app, ao terminar uma sessão, ao sair do app e a cada 10 minutos (com internet). Cada aparelho envia o que fez e junta o que os outros fizeram: nada é apagado.</p>
+        <div class="row"><button class="btn pri" id="sy-now">Sincronizar agora</button><button class="btn" id="ac-out">Sair da conta</button></div>
+        <details style="margin-top:12px"><summary class="small">Privacidade e exclusão</summary>
+          <p class="small">Seu progresso fica num servidor do Supabase, e as regras do banco só deixam a <b>sua</b> conta ler e gravar os seus dados. A sessão fica só neste aparelho e nunca entra nos backups.</p>
+          <button class="btn" id="ac-wipe">Apagar meus dados da nuvem</button><p class="tiny mut">Apaga o que está no servidor. O progresso deste aparelho continua aqui; se você sincronizar de novo, ele volta a ser enviado.</p></details></div>`;
+      if (gistOn) html += `<div class="card"><h2>GitHub (modo antigo)</h2><p class="small">Agora que você está na conta, ela substitui a sincronização pelo GitHub. O que estava no GitHub já foi juntado ao entrar. Pode desligar com segurança.</p><button class="btn" id="sy-off">Desligar GitHub neste aparelho</button></div>`;
+    } else {
+      const tab = S.acTab || 'in';
+      html += `<div class="card"><div class="step-k">Formular K-1 · Kontoeröffnung</div><h2>${tab === 'up' ? 'Criar conta' : tab === 'rec' ? 'Recuperar senha' : 'Entrar na conta'}</h2>
+        <p class="small">Com uma conta gratuita seu progresso fica salvo na nuvem e aparece no celular e no PC ao mesmo tempo.</p>
+        <div class="chips" style="margin:6px 0 12px"><button class="chip ${tab === 'in' ? 'on' : ''}" data-ac-tab="in">Entrar</button><button class="chip ${tab === 'up' ? 'on' : ''}" data-ac-tab="up">Criar conta</button></div>
+        <label class="small" for="ac-email">E-mail</label><input type="text" id="ac-email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" value="${esc(S.acEmail || '')}" placeholder="voce@email.com">
+        ${tab === 'rec' ? '' : `<label class="small" for="ac-pass" style="display:block;margin-top:10px">Senha${tab === 'up' ? ' (mínimo 8 caracteres)' : ''}</label>${pw('ac-pass', 'senha', tab === 'up' ? 'new-password' : 'current-password')}`}
+        ${S.acMsg ? `<div class="fb ${S.acMsg.ok ? 'ok' : 'warn'}" style="min-height:0;padding-right:14px">${S.acMsg.html}</div>` : ''}
+        <div style="height:12px"></div><button class="btn pri big" id="ac-go">${tab === 'up' ? 'Criar conta' : tab === 'rec' ? 'Enviar link de nova senha' : 'Entrar'}</button>
+        <div class="row" style="margin-top:8px">${tab === 'rec' ? '<button class="btn ghost" data-ac-tab="in">← Voltar</button>' : '<button class="btn ghost" data-ac-tab="rec">Esqueci minha senha</button>'}${S.acConfirm ? '<button class="btn ghost" id="ac-resend">Reenviar e-mail de confirmação</button>' : ''}</div>
+        <p class="tiny mut">Ao criar a conta chega um e-mail de confirmação (veja também o spam). Depois de confirmar, volte aqui e toque em Entrar.</p></div>`;
+      if (gistOn) html += `<div class="card"><h2>GitHub (modo antigo) ativo</h2><p class="small">Este aparelho ainda sincroniza pelo GitHub. Última vez: <b>${when(c.lastSync)}</b>. Ao entrar na conta, o que está no GitHub é juntado automaticamente e a conta passa a ser usada.</p>
+        ${c.lastError ? `<div class="fb bad">${esc(c.lastError)}</div>` : ''}${devTable}<div class="row"><button class="btn" id="sy-now">Sincronizar pelo GitHub agora</button><button class="btn ghost" id="sy-off">Desligar GitHub</button></div></div>`;
+      else html += `<details class="card"><summary class="small">Usar o GitHub em vez de conta (modo antigo)</summary>
+        <p class="small">Seu progresso fica num <b>Gist secreto</b> da sua conta do GitHub, <b>criptografado</b> com uma senha sua.</p>
+        <p class="small">Crie um token em <a href="https://github.com/settings/tokens/new?scopes=gist&description=Deutsch%20mit%20Plan%20sync" target="_blank" rel="noopener">este link do GitHub</a> (marque <b>gist</b>) e cole abaixo.</p>
         <input type="text" id="sy-token" placeholder="ghp_..." autocomplete="off" spellcheck="false" autocapitalize="off">
-        <h3>2. Senha de sincronização</h3><p class="small mut">Mínimo 8 caracteres. Use <b>a mesma</b> em todos os aparelhos. Se esquecer, os dados deste aparelho continuam aqui, mas não dá para ler os da nuvem.</p>
-        <input type="text" id="sy-pass" placeholder="senha" autocomplete="off" spellcheck="false" autocapitalize="off" style="-webkit-text-security:disc">
-        <h3>3. Nome deste aparelho</h3><input type="text" id="sy-name" value="${esc(dev)}">
-        <div style="height:12px"></div><button class="btn pri big" id="sy-go">Ativar e sincronizar</button>
-        <p class="tiny mut">O token e a senha ficam só neste aparelho e nunca entram nos backups.</p></div>`;
-    if (fresh) { if (nav) nav.classList.add('hide'); app().innerHTML = `<header class="top"><div class="brand">Deutsch mit Plan<small>Trazer progresso de outro aparelho</small></div></header>${html}<button class="btn ghost big" id="sy-back">← Voltar ao diagnóstico</button>`; $('#sy-back').onclick = renderOnboarding; }
+        <p class="small mut">Senha de sincronização (mínimo 8; a mesma em todos os aparelhos):</p><input type="text" id="sy-pass" placeholder="senha" autocomplete="off" spellcheck="false" autocapitalize="off" style="-webkit-text-security:disc">
+        <p class="small mut">Nome deste aparelho:</p><input type="text" id="sy-name" value="${esc(c.name || GF.sync.defaultName())}">
+        <div style="height:12px"></div><button class="btn big" id="sy-go">Ativar GitHub e sincronizar</button></details>`;
+    }
+    if (fresh) { if (nav) nav.classList.add('hide'); app().innerHTML = `<header class="top"><div class="brand"><div>Deutsch mit Plan<small>Trazer progresso de outro aparelho</small></div></div></header>${html}<button class="btn ghost big" id="sy-back">← Voltar ao diagnóstico</button>`; $('#sy-back').onclick = renderOnboarding; }
     else shell('mais', html);
-    const after = async () => {
-      const b = $('#sy-go') || $('#sy-now'); if (b) { b.disabled = true; b.textContent = 'Sincronizando…'; }
+
+    $$('[data-show]').forEach((b) => b.onclick = () => { const i = $('#' + b.dataset.show); i.type = i.type === 'password' ? 'text' : 'password'; });
+    $$('[data-ac-tab]').forEach((b) => b.onclick = () => { S.acEmail = ($('#ac-email') || {}).value || S.acEmail; S.acTab = b.dataset.acTab; S.acMsg = null; renderSync(); });
+    const busy = (b, t) => { if (b) { b.disabled = true; b.dataset.t = b.textContent; b.textContent = t; } };
+    const free = (b) => { if (b && b.isConnected) { b.disabled = false; b.textContent = b.dataset.t || b.textContent; } };
+    const pullAll = async (first) => {
+      await S.store.flush();
+      if (first && GF.sync.cfg().token) { try { await GF.sync.run(S.store, { via: 'gist' }); } catch (e) { log('warn', 'GitHub antes da conta: ' + e.message); } }
+      const r = await GF.sync.run(S.store); S.st = S.store.state; return r;
+    };
+    const afterSync = (r) => {
+      toast(r.merged ? 'Sincronizado: ' + r.merged + ' atualizações recebidas.' : 'Sincronizado. Tudo em dia.');
+      if (!S.st.profile.diag) { toast('Nenhum progresso encontrado na nuvem ainda. Faça o diagnóstico.', 4000); return renderOnboarding(); }
+      if (fresh) { history.replaceState({ depth: 0 }, '', '#hoje'); return route(); }
+      renderSync();
+    };
+    const go = $('#ac-go'); if (go) go.onclick = async () => {
+      const email = $('#ac-email').value; const pass = $('#ac-pass') ? $('#ac-pass').value : ''; S.acEmail = email; const tab = S.acTab || 'in';
+      busy(go, 'Aguarde…');
       try {
-        await S.store.flush(); const r = await GF.sync.run(S.store); S.st = S.store.state;
-        toast(r.merged ? 'Sincronizado: ' + r.merged + ' atualizações recebidas.' : 'Sincronizado. Tudo em dia.');
-        if (!S.st.profile.diag) { toast('Nenhum progresso encontrado na nuvem ainda. Faça o diagnóstico.', 4000); return renderOnboarding(); }
-        if (hashId() !== 'sync') history.replaceState({ depth: depth() }, '', '#sync'); renderSync();
-      } catch (e) { toast(e.message, 6000); renderSync(); }
+        if (tab === 'rec') { await GF.cloud.recover(email); S.acMsg = { ok: true, html: 'Se existir uma conta com esse e-mail, chegou um link para criar uma nova senha. Abra o link <b>neste aparelho</b>.' }; return renderSync(); }
+        if (tab === 'up') {
+          const r = await GF.cloud.signUp(email, pass);
+          if (r.confirm) { S.acTab = 'in'; S.acConfirm = true; S.acMsg = { ok: true, html: 'Conta criada! Enviamos um e-mail de confirmação para <b>' + esc(email) + '</b>. Abra o link (veja o spam) e depois toque em <b>Entrar</b>.' }; return renderSync(); }
+        } else await GF.cloud.signIn(email, pass);
+        S.acMsg = null; S.acConfirm = false; go.textContent = 'Sincronizando…';
+        afterSync(await pullAll(true));
+      } catch (e) {
+        if (e.code === 'email_not_confirmed') S.acConfirm = true;
+        S.acMsg = { ok: false, html: esc(e.message) }; free(go); renderSync();
+      }
     };
-    const go = $('#sy-go'); if (go) go.onclick = async () => {
+    const rs = $('#ac-resend'); if (rs) rs.onclick = async () => { try { await GF.cloud.resend($('#ac-email').value); toast('E-mail de confirmação reenviado.'); } catch (e) { toast(e.message, 5000); } };
+    const np = $('#ac-np-go'); if (np) np.onclick = async () => { busy(np, 'Salvando…'); try { await GF.cloud.updatePassword($('#ac-np').value); S.recovery = false; toast('Senha alterada.'); renderSync(); } catch (e) { toast(e.message, 5000); free(np); } };
+    const nm = $('#ac-name-go'); if (nm) nm.onclick = () => { GF.sync.setName($('#ac-name').value); toast('Nome salvo. Vale a partir da próxima sincronização.'); };
+    const out = $('#ac-out'); if (out) out.onclick = async () => { if (!confirm('Sair da conta neste aparelho? Seu progresso continua salvo aqui e na nuvem.')) return; await GF.cloud.signOut(); toast('Você saiu da conta. Os dados deste aparelho continuam aqui.'); renderSync(); };
+    const wipe = $('#ac-wipe'); if (wipe) wipe.onclick = async () => {
+      if (!confirm('Apagar todos os seus dados do servidor? O progresso deste aparelho continua aqui.')) return;
+      busy(wipe, 'Apagando…'); try { await GF.sync.wipeCloud(); toast('Dados da nuvem apagados.'); renderSync(); } catch (e) { toast(e.message, 5000); free(wipe); }
+    };
+    const now_ = $('#sy-now'); if (now_) now_.onclick = async () => { busy(now_, 'Sincronizando…'); try { afterSync(await pullAll(false)); } catch (e) { toast(e.message, 6000); renderSync(); } };
+    const gg = $('#sy-go'); if (gg) gg.onclick = async () => {
       try { await GF.sync.setup({ token: $('#sy-token').value, pass: $('#sy-pass').value, name: $('#sy-name').value }); } catch (e) { return toast(e.message, 4000); }
-      after();
+      busy(gg, 'Sincronizando…'); try { afterSync(await pullAll(false)); } catch (e) { toast(e.message, 6000); renderSync(); }
     };
-    const now = $('#sy-now'); if (now) now.onclick = after;
-    const off = $('#sy-off'); if (off) off.onclick = () => { GF.sync.disable(); toast('Desativada neste aparelho. Seus dados locais continuam aqui.'); renderSync(); };
+    const off = $('#sy-off'); if (off) off.onclick = () => { GF.sync.disable(); toast('GitHub desligado neste aparelho. Seus dados continuam aqui.'); renderSync(); };
   }
 
   /* ---------------- Layout & rotas ---------------- */
@@ -551,7 +614,7 @@
     <h3>O que você quer priorizar?</h3>${chips('pref', [['fala', 'Falar'], ['escuta', 'Entender ouvindo'], ['escrita', 'Ler e escrever'], ['equilibrado', 'Equilibrado']])}
     <h3>Quanto tempo você mantém a concentração sem pausa?</h3>${chips('focus', [[10, '~10 min'], [20, '~20 min'], [30, '30 min ou mais']])}
     <div style="height:14px"></div><button class="btn pri big" id="o-go">Continuar</button>
-    ${GF.sync && GF.sync.available() ? '<button class="btn ghost big" id="o-sync" style="margin-top:6px">Já estudo em outro aparelho → sincronizar</button>' : ''}</div>`;
+    ${GF.sync && GF.sync.available() ? '<button class="btn ghost big" id="o-sync" style="margin-top:6px">Já tenho conta / estudo em outro aparelho → entrar</button>' : ''}</div>`;
     const sync = () => $$('.chips').forEach((c) => { const k = c.dataset.k; $$('.chip', c).forEach((b) => { const v = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v; b.classList.toggle('on', Array.isArray(D[k]) ? D[k].includes(v) : D[k] === v); }); });
     $$('.chips').forEach((c) => c.addEventListener('click', (e) => {
       const b = e.target.closest('.chip'); if (!b) return; const k = c.dataset.k; const v = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v;
@@ -679,7 +742,7 @@
   }
   function sessionHeader(kind) {
     const s = S.session; const n = s.plan.steps.length;
-    return `<header class="top"><button class="btn ghost" id="s-quit" style="padding-left:0">✕ Sair</button><span class="row" style="gap:6px;flex-wrap:nowrap"><button class="btn ghost rep-btn" data-report aria-label="Reportar problema nesta tela">⚑ Reportar</button><span id="savestate" class="pill"></span></span></header>
+    return `<header class="top"><button class="btn ghost" id="s-quit" style="padding-left:0">✕ Sair</button><span class="row" style="gap:6px;flex-wrap:nowrap"><button class="btn ghost rep-btn" data-rep aria-label="Reportar problema nesta tela">⚑ Reportar</button><span id="savestate" class="pill"></span></span></header>
     <div class="prog" style="margin-bottom:14px"><i style="width:${Math.round(100 * s.i / n)}%"></i></div><div class="step-k" style="margin-bottom:8px">${KIND_PT[kind] || ''} · ${s.i + 1}/${n}</div>`;
   }
   function bindQuit() { const q = $('#s-quit'); if (q) q.onclick = () => endSession(true); renderSaveState(); }
@@ -1317,7 +1380,7 @@ ${history.map((h) => (h.who === 't' ? 'PROFESSOR: ' : 'ALUNO: ') + h.text).join(
     shell('mais', `<div class="card"><a class="btn big" href="#calendario" style="display:block;text-align:left;margin-bottom:8px">📅 Calendário e previsão de revisões</a>
       <a class="btn big" href="#metodo" style="display:block;text-align:left;margin-bottom:8px">🔬 Método, evidências e referências</a>
       <a class="btn big" href="#dados" style="display:block;text-align:left;margin-bottom:8px">💾 Dados, backup e restauração</a>
-      <a class="btn big" href="#sync" style="display:block;text-align:left;margin-bottom:8px">🔄 Sincronizar entre aparelhos${syncBadge()}</a>
+      <a class="btn big" href="#sync" style="display:block;text-align:left;margin-bottom:8px">🔄 Conta e sincronização${syncBadge()}</a>
       <a class="btn big" href="#problemas" style="display:block;text-align:left;margin-bottom:8px">⚑ Problemas reportados${(() => { const n = Object.values(S.st.reports || {}).filter((r) => !r.deleted && r.status !== 'resolvido').length; return n ? ` <span class="pill warn">${n} em aberto</span>` : ''; })()}</a>
       <a class="btn big" href="#ajustes" style="display:block;text-align:left">⚙️ Ajustes</a></div>
       <div class="card small"><b>O que funciona aqui</b><ul class="list">
