@@ -18,10 +18,10 @@ def handler(route, req):
   if path != '/auth/v1/authorize': assert req.headers.get('apikey', '').startswith('sb_publishable_'), 'sem apikey'
   body = json.loads(req.post_data) if req.post_data else None
   def ok(o, st=200): route.fulfill(status=st, content_type='application/json', body=json.dumps(o))
-  def tok(uid, email): return {'access_token': jwt(uid, email), 'refresh_token': 'r-' + uid, 'expires_in': 3600, 'user': {'id': uid, 'email': email}}
+  def tok(uid, email): return {'access_token': jwt(uid, email), 'refresh_token': 'r-' + uid, 'expires_in': 3600, 'user': {'id': uid, 'email': email, 'user_metadata': {'name': (DB['users'].get(email) or {}).get('name')}}}
   if path == '/auth/v1/signup':
     if body['email'] in DB['users']: return ok({'id': 'x', 'identities': []})
-    uid = 'u%d' % (len(DB['users']) + 1); DB['users'][body['email']] = {'id': uid, 'pw': body['password'], 'ok': False}
+    uid = 'u%d' % (len(DB['users']) + 1); DB['users'][body['email']] = {'id': uid, 'pw': body['password'], 'ok': False, 'name': (body.get('data') or {}).get('name')}
     DB['mails'].append(('confirm', body['email'], q.get('redirect_to', [''])[0])); return ok({'id': uid, 'email': body['email'], 'identities': [{}]})
   if path == '/auth/v1/token':
     if q['grant_type'][0] == 'password':
@@ -63,11 +63,11 @@ try:
       ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.route('https://uutyijvitbeiwbivkfgz.supabase.co/**', handler)
       pg = ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e) + ' @ ' + (e.stack or '')[:400])); pg.on('dialog', lambda d: d.accept()); return pg
     # Aparelho A: faz o diagnóstico rápido e estuda um pouco
-    A = device(); A.goto('http://localhost:8776/'); A.click('#o-go'); A.click('#f-go'); A.wait_for_selector('#h-start')
+    A = device(); A.goto('http://localhost:8776/'); A.click('#sy-back'); A.click('#o-go'); A.click('#f-go'); A.wait_for_selector('#h-start')
     A.evaluate("() => { const p = JSON.parse(localStorage.getItem('gfs-local-v1')); }")
     A.click('#h-start'); A.wait_for_timeout(300); A.click('#s-quit'); A.click('#e-home'); A.wait_for_timeout(300)
     A.click('nav.tabs a[href="#mais"]'); A.click('a[href="#sync"]'); A.wait_for_selector('#ac-go')
-    A.click('[data-ac-tab=up]'); A.fill('#ac-email', 'Rick@Example.com'); A.fill('#ac-pass', 'senha-segura-1'); A.click('#ac-go'); A.wait_for_timeout(400)
+    A.click('[data-ac-tab=up]'); A.fill('#ac-name2', 'Rick'); A.fill('#ac-email', 'Rick@Example.com'); A.fill('#ac-pass', 'senha-segura-1'); A.click('#ac-go'); A.wait_for_timeout(400)
     res['cadastro pede confirmação'] = 'e-mail de confirmação' in A.inner_text('.fb')
     A.fill('#ac-pass', 'senha-segura-1'); A.click('#ac-go'); A.wait_for_timeout(400); res['entrar sem confirmar'] = A.inner_text('.fb')[:60]
     DB['users']['rick@example.com']['ok'] = True
@@ -76,7 +76,7 @@ try:
     res['linhas no servidor'] = len(DB['rows']); res['dados comprimidos'] = list(DB['rows'].values())[0]['data'][:2]
     sessions_A = A.evaluate("Object.keys(JSON.parse(localStorage.getItem('gfs-local-v1'))).filter(k=>k.startsWith('srs/')).length + ' cartas, diag=' + !!JSON.parse(localStorage.getItem('gfs-local-v1')).profile.diag")
     # Aparelho B: novo, entra pela tela inicial
-    B = device(); B.goto('http://localhost:8776/'); B.wait_for_selector('#o-sync'); B.click('#o-sync'); B.wait_for_selector('#ac-go')
+    B = device(); B.goto('http://localhost:8776/'); B.wait_for_selector('#ac-go'); res['boas-vindas abre em Criar conta'] = B.inner_text('.card h2 >> nth=1'); B.click('[data-ac-tab=in]')
     B.fill('#ac-email', 'rick@example.com'); B.fill('#ac-pass', 'senha-segura-1'); B.click('#ac-go'); B.wait_for_selector('#h-start', timeout=8000)
     res['B recebeu o progresso (sessões A/B)'] = [sessions_A, B.evaluate("Object.keys(JSON.parse(localStorage.getItem('gfs-local-v1'))).filter(k=>k.startsWith('srs/')).length + ' cartas, diag=' + !!JSON.parse(localStorage.getItem('gfs-local-v1')).profile.diag")]
     res['B foi para'] = where(B); res['linhas após B'] = len(DB['rows'])
@@ -90,15 +90,21 @@ try:
     R.fill('#ac-np', 'nova-senha-22'); R.click('#ac-np-go'); R.wait_for_timeout(400); res['senha trocada'] = DB['users']['rick@example.com']['pw']
     R2 = device(); R2.goto('http://localhost:8776/#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid'); R2.wait_for_timeout(800); res['link expirado'] = [R2.evaluate('location.hash'), R2.locator('.fb').first.inner_text() if R2.locator('.fb').count() else None]
     # Google: aparelho novo entra pelo Google e recebe o progresso
-    G = device(); G.goto('http://localhost:8776/'); G.click('#o-sync'); G.wait_for_selector('#ac-google'); G.click('#ac-google', no_wait_after=True); G.wait_for_selector('#h-start', timeout=10000)
+    G = device(); G.goto('http://localhost:8776/'); G.wait_for_selector('#ac-google'); G.click('#ac-google', no_wait_after=True); G.wait_for_selector('#h-start', timeout=10000)
     res['Google: aparelho novo recebe progresso'] = [G.evaluate('location.hash'), G.evaluate("!!JSON.parse(localStorage.getItem('gfs-cloud')).access_token")]
     G.click('nav.tabs a[href="#mais"]'); G.click('a[href="#sync"]'); G.wait_for_selector('#ac-sp-go', state='attached'); G.evaluate("document.querySelectorAll('details').forEach(d=>d.open=true)"); G.fill('#ac-sp', 'senha-do-pc-1'); G.click('#ac-sp-go'); G.wait_for_timeout(400)
     res['Google: definiu senha'] = DB['users']['rick@example.com']['pw']
-    DB['google_off'] = True; H = device(); H.goto('http://localhost:8776/'); H.click('#o-sync'); H.click('#ac-google', no_wait_after=True); H.wait_for_timeout(2500)
+    DB['google_off'] = True; H = device(); H.goto('http://localhost:8776/'); H.click('#ac-google', no_wait_after=True); H.wait_for_timeout(2500)
     res['Google desligado: mensagem'] = H.locator('.fb').first.inner_text() if H.locator('.fb').count() else None
+    # Conta nova pela tela de boas-vindas: o nome digitado vai para o diagnóstico
+    J = device(); J.goto('http://localhost:8776/'); J.wait_for_selector('#ac-name2'); J.fill('#ac-name2', 'Joana'); J.fill('#ac-email', 'joana@example.com'); J.fill('#ac-pass', 'senha-joana-1'); J.click('#ac-go'); J.wait_for_timeout(600)
+    DB['users']['joana@example.com']['ok'] = True
+    J.fill('#ac-pass', 'senha-joana-1'); J.click('#ac-go'); J.wait_for_selector('#o-name', timeout=8000)
+    res['Joana: nome da conta no diagnóstico'] = J.input_value('#o-name'); J.click('#o-go'); J.click('#f-go'); J.wait_for_selector('#h-start')
+    res['Joana: nome no topo'] = J.inner_text('header.top .brand small')[:60]
     # RLS simulado: outro usuário não vê nada
     DB['users']['eva@example.com'] = {'id': 'u9', 'pw': 'outrasenha9', 'ok': True}
-    E_ = device(); E_.goto('http://localhost:8776/'); E_.click('#o-sync'); E_.fill('#ac-email', 'eva@example.com'); E_.fill('#ac-pass', 'outrasenha9'); E_.click('#ac-go'); E_.wait_for_timeout(1500)
+    E_ = device(); E_.goto('http://localhost:8776/'); E_.click('[data-ac-tab=in]'); E_.fill('#ac-email', 'eva@example.com'); E_.fill('#ac-pass', 'outrasenha9'); E_.click('#ac-go'); E_.wait_for_timeout(1500)
     res['outra conta não recebe dados do Rick'] = E_.locator('#o-go').count() > 0 or E_.locator('#ac-out').count() > 0
     # apagar dados da nuvem (conta da Eva)
     rows_before = len(DB['rows'])

@@ -56,7 +56,7 @@ try:
 
         # Celular: diagnóstico, estuda, ativa sincronização
         A, ea = device('Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130 Mobile Safari/537.36')
-        A.wait_for_selector('#o-go'); A.click('#o-go'); A.click('#f-go'); A.wait_for_selector('#h-start')
+        A.wait_for_selector('#sy-back'); A.click('#sy-back'); A.click('#o-go'); A.click('#f-go'); A.wait_for_selector('#h-start')
         study(A, 14)
         cardsA = A.evaluate('Object.keys(GF.app.S.st.cards).length')
         A.evaluate("location.hash='#sync'"); enable(A, 'minha-senha-123', 'Celular')
@@ -67,7 +67,7 @@ try:
 
         # PC: aparelho novo, traz o progresso pela sincronização
         B, eb = device('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130 Safari/537.36')
-        B.wait_for_selector('#o-sync'); B.click('#o-sync'); enable(B, 'minha-senha-123', 'PC')
+        enable(B, 'minha-senha-123', 'PC')
         B.wait_for_selector('#h-start', timeout=20000)
         out['pc_cards_after_first_sync'] = B.evaluate('Object.keys(GF.app.S.st.cards).length'); out['phone_cards'] = cardsA
         out['pc_has_profile'] = B.evaluate('!!GF.app.S.st.profile.diag')
@@ -84,7 +84,7 @@ try:
 
         # Senha errada em um 3º aparelho
         C, ec = device('Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130 Mobile Safari/537.36')
-        C.wait_for_selector('#o-sync'); C.click('#o-sync'); enable(C, 'senha-errada-000', 'Tablet')
+        enable(C, 'senha-errada-000', 'Tablet')
         C.wait_for_selector('#sy-now', timeout=20000)
         out['wrong_pass_message'] = C.locator('.fb.bad').inner_text() if C.locator('.fb.bad').count() else None
         out['wrong_pass_no_upload'] = sum(1 for n in GISTS[list(GISTS)[0]]['files'] if n.endswith('.enc'))

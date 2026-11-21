@@ -3363,10 +3363,12 @@ input[type=password]:focus{background:rgba(255,255,255,.7);box-shadow:inset 0 -2
     try { if (/^https?:$/.test(location.protocol) && !/localhost|127\.0\.0\.1/.test(location.hostname)) return location.origin + location.pathname; } catch (e) { /* */ }
     return SITE;
   };
+  /** Nome da pessoa: o que ela digitou ao criar a conta, ou o nome da conta Google. */
+  const metaName = (m) => { m = m || {}; return String(m.name || m.full_name || m.given_name || '').trim().slice(0, 40) || null; };
   function fromTokens(r) {
     if (!r || !r.access_token) return null;
     const exp = r.expires_at ? r.expires_at * 1000 : Date.now() + (r.expires_in || 3600) * 1000;
-    return { access_token: r.access_token, refresh_token: r.refresh_token, expires_at: exp, user: r.user ? { id: r.user.id, email: r.user.email } : null };
+    return { access_token: r.access_token, refresh_token: r.refresh_token, expires_at: exp, user: r.user ? { id: r.user.id, email: r.user.email, name: metaName(r.user.user_metadata) } : null };
   }
   const MSG = {
     invalid_credentials: 'E-mail ou senha incorretos.',
@@ -3420,9 +3422,11 @@ input[type=password]:focus{background:rgba(255,255,255,.7);box-shadow:inset 0 -2
     if (pass !== undefined && String(pass).length < 8) throw new Error('A senha precisa ter pelo menos 8 caracteres.');
   }
 
-  async function signUp(email, pass) {
+  async function signUp(email, pass, name) {
     check(email, pass);
-    const r = await call('/auth/v1/signup?redirect_to=' + encodeURIComponent(redirectTo()), { method: 'POST', body: { email: clean(email), password: pass } });
+    const nm = String(name || '').trim().slice(0, 40);
+    if (!nm) throw new Error('Diga como quer ser chamado.');
+    const r = await call('/auth/v1/signup?redirect_to=' + encodeURIComponent(redirectTo()), { method: 'POST', body: { email: clean(email), password: pass, data: { name: nm } } });
     const s = fromTokens(r); if (s) { saveSession(s); return { session: s }; }
     if (r && Array.isArray(r.identities) && !r.identities.length) throw Object.assign(new Error(MSG.user_already_exists), { code: 'user_already_exists' });
     return { confirm: true };
@@ -3457,7 +3461,7 @@ input[type=password]:focus{background:rgba(255,255,255,.7);box-shadow:inset 0 -2
       return { error: code === 'otp_expired' ? 'Esse link expirou ou já foi usado. Peça outro.' : /provider/i.test(desc) ? 'O login com Google ainda não está ativado no servidor. Use e-mail e senha por enquanto.' : /access_denied|cancel/i.test(p.get('error') + desc) ? 'Login com Google cancelado.' : desc || 'Link inválido.' };
     }
     const s = { access_token: p.get('access_token'), refresh_token: p.get('refresh_token'), expires_at: p.get('expires_at') ? +p.get('expires_at') * 1000 : Date.now() + (+p.get('expires_in') || 3600) * 1000, user: null };
-    try { const payload = JSON.parse(atob(s.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); s.user = { id: payload.sub, email: payload.email }; } catch (e) { /* */ }
+    try { const b = s.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); const payload = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(b + '==='.slice((b.length + 3) % 4)), (c) => c.charCodeAt(0)))); s.user = { id: payload.sub, email: payload.email, name: metaName(payload.user_metadata) }; } catch (e) { /* */ }
     saveSession(s);
     return { type: p.get('type') || 'signin', email: s.user && s.user.email };
   }
@@ -4304,7 +4308,7 @@ Verifique com rigor (gênero, plural, conjugação, ortografia, tradução, natu
       if (!S.st.profile.diag) return renderSync();
     }
     document.addEventListener('click', onLinkClick);
-    if (!S.st.profile.diag) return renderOnboarding();
+    if (!S.st.profile.diag) return wantsLoginFirst() ? renderSync() : renderOnboarding();
     // adaptação + backup automático ao abrir
     if (M.adapt(S.st, now())) commit({ profile: true });
     S.store.autoBackup(now()).then((r) => { if (r && r.saved) log('info', 'backup automático ' + r.saved); if (r && r.tooBig) log('warn', 'histórico grande demais para backup automático; exporte manualmente'); }).catch((e) => log('warn', 'backup automático falhou: ' + (e.code || e.message)));
@@ -4429,13 +4433,14 @@ Verifique com rigor (gênero, plural, conjugação, ortografia, tradução, natu
           <button class="btn" id="ac-wipe">Apagar meus dados da nuvem</button><p class="tiny mut">Apaga o que está no servidor. O progresso deste aparelho continua aqui; se você sincronizar de novo, ele volta a ser enviado.</p></details></div>`;
       if (gistOn) html += `<div class="card"><h2>GitHub (modo antigo)</h2><p class="small">Agora que você está na conta, ela substitui a sincronização pelo GitHub. O que estava no GitHub já foi juntado ao entrar. Pode desligar com segurança.</p><button class="btn" id="sy-off">Desligar GitHub neste aparelho</button></div>`;
     } else {
-      const tab = S.acTab || 'in';
+      const tab = S.acTab || (fresh ? 'up' : 'in');
       html += `<div class="card"><div class="step-k">Formular K-1 · Kontoeröffnung</div><h2>${tab === 'up' ? 'Criar conta' : tab === 'rec' ? 'Recuperar senha' : 'Entrar na conta'}</h2>
         <p class="small">Com uma conta gratuita seu progresso fica salvo na nuvem e aparece no celular e no PC ao mesmo tempo.</p>
         <div class="chips" style="margin:6px 0 12px"><button class="chip ${tab === 'in' ? 'on' : ''}" data-ac-tab="in">Entrar</button><button class="chip ${tab === 'up' ? 'on' : ''}" data-ac-tab="up">Criar conta</button></div>
         ${tab !== 'rec' && GF.cloud.googleAvailable() ? `<button class="btn big google-btn" id="ac-google" type="button"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C.9 16.6 0 20.2 0 24s.9 7.4 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg> Entrar com Google</button>
         <div class="or-sep"><span>ou com e-mail</span></div>` : ''}
         <label class="small" for="ac-email">E-mail</label><input type="text" id="ac-email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" value="${esc(S.acEmail || '')}" placeholder="voce@email.com">
+        ${tab === 'up' ? `<label class="small" for="ac-name2" style="display:block;margin-top:10px">Como quer ser chamado?</label><input type="text" id="ac-name2" autocomplete="given-name" value="${esc(S.acName || '')}" placeholder="Seu nome">` : ''}
         ${tab === 'rec' ? '' : `<label class="small" for="ac-pass" style="display:block;margin-top:10px">Senha${tab === 'up' ? ' (mínimo 8 caracteres)' : ''}</label>${pw('ac-pass', 'senha', tab === 'up' ? 'new-password' : 'current-password')}`}
         ${S.acMsg ? `<div class="fb ${S.acMsg.ok ? 'ok' : 'warn'}" style="min-height:0;padding-right:14px">${S.acMsg.html}</div>` : ''}
         <div style="height:12px"></div><button class="btn pri big" id="ac-go">${tab === 'up' ? 'Criar conta' : tab === 'rec' ? 'Enviar link de nova senha' : 'Entrar'}</button>
@@ -4451,11 +4456,17 @@ Verifique com rigor (gênero, plural, conjugação, ortografia, tradução, natu
         <p class="small mut">Nome deste aparelho:</p><input type="text" id="sy-name" value="${esc(c.name || GF.sync.defaultName())}">
         <div style="height:12px"></div><button class="btn big" id="sy-go">Ativar GitHub e sincronizar</button></details>`;
     }
-    if (fresh) { if (nav) nav.classList.add('hide'); app().innerHTML = `<header class="top"><div class="brand"><div>Stempel<small>Trazer progresso de outro aparelho</small></div></div></header>${html}<button class="btn ghost big" id="sy-back">← Voltar ao diagnóstico</button>`; $('#sy-back').onclick = renderOnboarding; }
+    if (fresh) {
+      if (nav) nav.classList.add('hide');
+      app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">${window.GF_FRITZ ? `<img class="logo" src="${window.GF_FRITZ.logo}" alt="">` : ''}<div>Stempel<small>alemão do zero ao visto</small></div></div></header>
+        ${u ? '' : `<div class="card"><div class="home-head"><div><div class="step-k">Amt für deutsche Sprache</div><h2>Willkommen!</h2><p class="small">Eu sou o <b>Reineke</b>, o fiscal desta repartição. Primeiro, sua identificação: crie sua conta para o seu progresso ficar salvo no celular e no PC.</p></div>${fritz('wartet', 130)}</div></div>`}
+        ${html}<button class="btn ghost big" id="sy-back">${u ? 'Continuar para o diagnóstico →' : 'Continuar sem conta (fica só neste aparelho)'}</button>${installCardHtml()}`;
+      $('#sy-back').onclick = () => { if (!u) { try { localStorage.setItem('gfs-nologin', '1'); } catch (e) { /* */ } } renderOnboarding(); };
+    }
     else shell('mais', html);
 
     $$('[data-show]').forEach((b) => b.onclick = () => { const i = $('#' + b.dataset.show); i.type = i.type === 'password' ? 'text' : 'password'; });
-    $$('[data-ac-tab]').forEach((b) => b.onclick = () => { S.acEmail = ($('#ac-email') || {}).value || S.acEmail; S.acTab = b.dataset.acTab; S.acMsg = null; renderSync(); });
+    $$('[data-ac-tab]').forEach((b) => b.onclick = () => { S.acEmail = ($('#ac-email') || {}).value || S.acEmail; S.acName = ($('#ac-name2') || {}).value || S.acName; S.acTab = b.dataset.acTab; S.acMsg = null; renderSync(); });
     const busy = (b, t) => { if (b) { b.disabled = true; b.dataset.t = b.textContent; b.textContent = t; } };
     const free = (b) => { if (b && b.isConnected) { b.disabled = false; b.textContent = b.dataset.t || b.textContent; } };
     const pullAll = async (first) => {
@@ -4470,12 +4481,12 @@ Verifique com rigor (gênero, plural, conjugação, ortografia, tradução, natu
       renderSync();
     };
     const go = $('#ac-go'); if (go) go.onclick = async () => {
-      const email = $('#ac-email').value; const pass = $('#ac-pass') ? $('#ac-pass').value : ''; S.acEmail = email; const tab = S.acTab || 'in';
+      const email = $('#ac-email').value; const pass = $('#ac-pass') ? $('#ac-pass').value : ''; S.acEmail = email; const tab = S.acTab || (fresh ? 'up' : 'in');
       busy(go, 'Aguarde…');
       try {
         if (tab === 'rec') { await GF.cloud.recover(email); S.acMsg = { ok: true, html: 'Se existir uma conta com esse e-mail, chegou um link para criar uma nova senha. Abra o link <b>neste aparelho</b>.' }; return renderSync(); }
         if (tab === 'up') {
-          const r = await GF.cloud.signUp(email, pass);
+          S.acName = ($('#ac-name2') || {}).value || ''; const r = await GF.cloud.signUp(email, pass, S.acName);
           if (r.confirm) { S.acTab = 'in'; S.acConfirm = true; S.acMsg = { ok: true, html: 'Conta criada! Enviamos um e-mail de confirmação para <b>' + esc(email) + '</b>. Abra o link (veja o spam) e depois toque em <b>Entrar</b>.' }; return renderSync(); }
         } else await GF.cloud.signIn(email, pass);
         S.acMsg = null; S.acConfirm = false; go.textContent = 'Sincronizando…';
@@ -4564,14 +4575,17 @@ Verifique com rigor (gênero, plural, conjugação, ortografia, tradução, natu
   }
 
   /* ---------------- Diagnóstico inicial ---------------- */
+  /** Primeira abertura: tela de conta antes do diagnóstico (dá para pular e usar só neste aparelho). */
+  function wantsLoginFirst() { let skip = false; try { skip = localStorage.getItem('gfs-nologin') === '1'; } catch (e) { /* */ } return !!(GF.cloud && GF.cloud.available() && GF.sync && GF.sync.available() && !cloudOn() && !skip); }
+  function accountName() { const u = cloudOn() && GF.cloud.user(); return (u && u.name) || ''; }
   function renderOnboarding() {
     const nav = $('nav.tabs'); if (nav) nav.classList.add('hide');
-    const D = { name: 'Rick', prior: 'zero', minutes: 20, days: [1, 2, 3, 4, 5], goals: [], pref: 'equilibrado', focus: 20 };
+    const D = { name: accountName() || S.st.profile.name || '', prior: 'zero', minutes: 20, days: [1, 2, 3, 4, 5], goals: [], pref: 'equilibrado', focus: 20 };
     const chips = (key, opts, multi) => `<div class="chips" data-k="${key}">${opts.map(([v, l]) => `<button class="chip" data-v="${v}">${l}</button>`).join('')}</div>`;
     app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">Stempel<small>Diagnóstico inicial · ~2 min</small></div></header>${installCardHtml()}
     <div class="card"><div class="home-head"><div><div class="step-k">Amt für deutsche Sprache</div><h2>Willkommen!</h2><p class="small">Eu sou o <b>Reineke</b>, o fiscal desta repartição. Vou carimbar cada passo seu, do zero até o visto.</p></div>${fritz('wartet', 140)}</div></div>
     <div class="card"><h2>Vamos configurar seu professor</h2><p class="mut small">Só o necessário para montar o plano. Tudo pode ser mudado depois. Seu progresso fica salvo num banco de dados seu, independente da IA usada.</p>
-    <h3>Como quer ser chamado?</h3><input type="text" id="o-name" value="${esc(D.name)}">
+    <h3>Como quer ser chamado?</h3><input type="text" id="o-name" value="${esc(D.name)}" placeholder="Seu nome" autocomplete="given-name">
     <h3>Seu contato com alemão até hoje</h3>${chips('prior', [['zero', 'Nunca estudei'], ['words', 'Sei algumas palavras'], ['some', 'Já estudei um pouco']])}
     <h3>Tempo disponível por dia</h3>${chips('minutes', [[10, '10 min'], [20, '20 min'], [30, '30 min'], [45, '45 min ou mais']])}
     <h3>Dias de estudo na semana</h3>${chips('days', [[1, 'seg'], [2, 'ter'], [3, 'qua'], [4, 'qui'], [5, 'sex'], [6, 'sáb'], [0, 'dom']], true)}
@@ -4579,7 +4593,7 @@ Verifique com rigor (gênero, plural, conjugação, ortografia, tradução, natu
     <h3>O que você quer priorizar?</h3>${chips('pref', [['fala', 'Falar'], ['escuta', 'Entender ouvindo'], ['escrita', 'Ler e escrever'], ['equilibrado', 'Equilibrado']])}
     <h3>Quanto tempo você mantém a concentração sem pausa?</h3>${chips('focus', [[10, '~10 min'], [20, '~20 min'], [30, '30 min ou mais']])}
     <div style="height:14px"></div><button class="btn pri big" id="o-go">Continuar</button>
-    ${GF.sync && GF.sync.available() ? '<button class="btn ghost big" id="o-sync" style="margin-top:6px">Já tenho conta / estudo em outro aparelho → entrar</button>' : ''}</div>`;
+    ${GF.sync && GF.sync.available() ? (cloudOn() ? '' : '<button class="btn ghost big" id="o-sync" style="margin-top:6px">Entrar ou criar conta</button>') : ''}</div>`;
     const sync = () => $$('.chips').forEach((c) => { const k = c.dataset.k; $$('.chip', c).forEach((b) => { const v = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v; b.classList.toggle('on', Array.isArray(D[k]) ? D[k].includes(v) : D[k] === v); }); });
     $$('.chips').forEach((c) => c.addEventListener('click', (e) => {
       const b = e.target.closest('.chip'); if (!b) return; const k = c.dataset.k; const v = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v;

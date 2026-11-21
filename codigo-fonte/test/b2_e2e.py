@@ -7,7 +7,7 @@ try:
   with sync_playwright() as p:
     b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox'])
     pg = b.new_page(viewport={'width': 390, 'height': 844}); pg.on('pageerror', lambda e: errs.append(str(e)))
-    pg.goto('http://localhost:8778/'); pg.click('#o-go'); pg.click('#f-go'); pg.wait_for_selector('#h-start')
+    pg.goto('http://localhost:8778/'); pg.click('#sy-back'); pg.click('#o-go'); pg.click('#f-go'); pg.wait_for_selector('#h-start')
     pg.evaluate("""async () => { const S = GF.app.S; for (const e of GF.content.plan.filter(x => ['A1','A2','B1'].includes(x.level))) S.st.profile.unitState[e.id] = { passed: Date.now() }; await S.store.saveProfile(); }""")
     pg.reload(); pg.wait_for_selector('#h-start')
     res['aula atual'] = pg.evaluate('GF.model.currentUnit(GF.app.S.st)')

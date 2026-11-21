@@ -8,7 +8,7 @@ try:
     b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox'])
     ctx = b.new_context(viewport={'width': 390, 'height': 844}); ctx.grant_permissions(['clipboard-read','clipboard-write'])
     pg = ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)))
-    pg.goto('http://localhost:8775/'); pg.click('#o-go'); pg.click('#f-go'); pg.click('#h-start'); pg.wait_for_timeout(300)
+    pg.goto('http://localhost:8775/'); pg.click('#sy-back'); pg.click('#o-go'); pg.click('#f-go'); pg.click('#h-start'); pg.wait_for_timeout(300)
     pg.click('header [data-rep]'); pg.wait_for_selector('#rep-modal')
     res['enviar desabilitado sem categoria'] = pg.is_disabled('#rep-send')
     pg.click('#rep-cat [data-c=de]'); pg.fill('#rep-txt', 'Artigo errado aqui'); pg.screenshot(path='/home/claude/shots/rep_modal.png')

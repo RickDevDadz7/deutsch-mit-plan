@@ -12,7 +12,7 @@ try:
     b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox'])
     pg = b.new_page(viewport={'width': 390, 'height': 844})
     pg.on('pageerror', lambda e: errs.append(str(e)))
-    pg.goto('http://localhost:8774/'); pg.click('#o-go'); pg.click('#f-go'); pg.wait_for_selector('#h-start')
+    pg.goto('http://localhost:8774/'); pg.click('#sy-back'); pg.click('#o-go'); pg.click('#f-go'); pg.wait_for_selector('#h-start')
     pg.click('nav.tabs a[href="#progresso"]'); pg.go_back(); res['progresso->voltar'] = where(pg)
     pg.click('nav.tabs a[href="#mais"]'); pg.click('a[href="#calendario"]'); res['calendario'] = where(pg)
     pg.go_back(); res['calendario->voltar'] = where(pg)

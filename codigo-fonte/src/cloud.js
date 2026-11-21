@@ -18,10 +18,12 @@
     try { if (/^https?:$/.test(location.protocol) && !/localhost|127\.0\.0\.1/.test(location.hostname)) return location.origin + location.pathname; } catch (e) { /* */ }
     return SITE;
   };
+  /** Nome da pessoa: o que ela digitou ao criar a conta, ou o nome da conta Google. */
+  const metaName = (m) => { m = m || {}; return String(m.name || m.full_name || m.given_name || '').trim().slice(0, 40) || null; };
   function fromTokens(r) {
     if (!r || !r.access_token) return null;
     const exp = r.expires_at ? r.expires_at * 1000 : Date.now() + (r.expires_in || 3600) * 1000;
-    return { access_token: r.access_token, refresh_token: r.refresh_token, expires_at: exp, user: r.user ? { id: r.user.id, email: r.user.email } : null };
+    return { access_token: r.access_token, refresh_token: r.refresh_token, expires_at: exp, user: r.user ? { id: r.user.id, email: r.user.email, name: metaName(r.user.user_metadata) } : null };
   }
   const MSG = {
     invalid_credentials: 'E-mail ou senha incorretos.',
@@ -75,9 +77,11 @@
     if (pass !== undefined && String(pass).length < 8) throw new Error('A senha precisa ter pelo menos 8 caracteres.');
   }
 
-  async function signUp(email, pass) {
+  async function signUp(email, pass, name) {
     check(email, pass);
-    const r = await call('/auth/v1/signup?redirect_to=' + encodeURIComponent(redirectTo()), { method: 'POST', body: { email: clean(email), password: pass } });
+    const nm = String(name || '').trim().slice(0, 40);
+    if (!nm) throw new Error('Diga como quer ser chamado.');
+    const r = await call('/auth/v1/signup?redirect_to=' + encodeURIComponent(redirectTo()), { method: 'POST', body: { email: clean(email), password: pass, data: { name: nm } } });
     const s = fromTokens(r); if (s) { saveSession(s); return { session: s }; }
     if (r && Array.isArray(r.identities) && !r.identities.length) throw Object.assign(new Error(MSG.user_already_exists), { code: 'user_already_exists' });
     return { confirm: true };
@@ -112,7 +116,7 @@
       return { error: code === 'otp_expired' ? 'Esse link expirou ou já foi usado. Peça outro.' : /provider/i.test(desc) ? 'O login com Google ainda não está ativado no servidor. Use e-mail e senha por enquanto.' : /access_denied|cancel/i.test(p.get('error') + desc) ? 'Login com Google cancelado.' : desc || 'Link inválido.' };
     }
     const s = { access_token: p.get('access_token'), refresh_token: p.get('refresh_token'), expires_at: p.get('expires_at') ? +p.get('expires_at') * 1000 : Date.now() + (+p.get('expires_in') || 3600) * 1000, user: null };
-    try { const payload = JSON.parse(atob(s.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); s.user = { id: payload.sub, email: payload.email }; } catch (e) { /* */ }
+    try { const b = s.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); const payload = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(b + '==='.slice((b.length + 3) % 4)), (c) => c.charCodeAt(0)))); s.user = { id: payload.sub, email: payload.email, name: metaName(payload.user_metadata) }; } catch (e) { /* */ }
     saveSession(s);
     return { type: p.get('type') || 'signin', email: s.user && s.user.email };
   }

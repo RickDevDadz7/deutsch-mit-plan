@@ -9,7 +9,7 @@ try:
   with sync_playwright() as p:
     b = p.chromium.launch(executable_path='/usr/bin/google-chrome', args=['--no-sandbox'])
     pg = b.new_page(viewport={'width': 360, 'height': 740}, device_scale_factor=3, is_mobile=True, has_touch=True, user_agent='Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130 Mobile Safari/537.36')
-    pg.goto('http://localhost:8767/'); pg.wait_for_selector('#o-go'); res['onboarding'] = pg.evaluate(MEASURE)
+    pg.goto('http://localhost:8767/'); pg.wait_for_selector('#sy-back'); res['boas-vindas'] = pg.evaluate(MEASURE); pg.click('#sy-back'); pg.wait_for_selector('#o-go'); res['onboarding'] = pg.evaluate(MEASURE)
     pg.click('#o-go'); pg.click('#f-go'); pg.wait_for_selector('#h-start')
     pg.click('#h-start')
     seen = set()

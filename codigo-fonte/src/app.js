@@ -350,7 +350,7 @@
       if (!S.st.profile.diag) return renderSync();
     }
     document.addEventListener('click', onLinkClick);
-    if (!S.st.profile.diag) return renderOnboarding();
+    if (!S.st.profile.diag) return wantsLoginFirst() ? renderSync() : renderOnboarding();
     // adaptação + backup automático ao abrir
     if (M.adapt(S.st, now())) commit({ profile: true });
     S.store.autoBackup(now()).then((r) => { if (r && r.saved) log('info', 'backup automático ' + r.saved); if (r && r.tooBig) log('warn', 'histórico grande demais para backup automático; exporte manualmente'); }).catch((e) => log('warn', 'backup automático falhou: ' + (e.code || e.message)));
@@ -475,13 +475,14 @@
           <button class="btn" id="ac-wipe">Apagar meus dados da nuvem</button><p class="tiny mut">Apaga o que está no servidor. O progresso deste aparelho continua aqui; se você sincronizar de novo, ele volta a ser enviado.</p></details></div>`;
       if (gistOn) html += `<div class="card"><h2>GitHub (modo antigo)</h2><p class="small">Agora que você está na conta, ela substitui a sincronização pelo GitHub. O que estava no GitHub já foi juntado ao entrar. Pode desligar com segurança.</p><button class="btn" id="sy-off">Desligar GitHub neste aparelho</button></div>`;
     } else {
-      const tab = S.acTab || 'in';
+      const tab = S.acTab || (fresh ? 'up' : 'in');
       html += `<div class="card"><div class="step-k">Formular K-1 · Kontoeröffnung</div><h2>${tab === 'up' ? 'Criar conta' : tab === 'rec' ? 'Recuperar senha' : 'Entrar na conta'}</h2>
         <p class="small">Com uma conta gratuita seu progresso fica salvo na nuvem e aparece no celular e no PC ao mesmo tempo.</p>
         <div class="chips" style="margin:6px 0 12px"><button class="chip ${tab === 'in' ? 'on' : ''}" data-ac-tab="in">Entrar</button><button class="chip ${tab === 'up' ? 'on' : ''}" data-ac-tab="up">Criar conta</button></div>
         ${tab !== 'rec' && GF.cloud.googleAvailable() ? `<button class="btn big google-btn" id="ac-google" type="button"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.6 13.3l7.8 6C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.4 5.7c4.3-4 6.9-9.9 6.9-17.1z"/><path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6C.9 16.6 0 20.2 0 24s.9 7.4 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.4-5.7c-2.1 1.4-4.8 2.3-8.5 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6C6.6 42.6 14.6 48 24 48z"/></svg> Entrar com Google</button>
         <div class="or-sep"><span>ou com e-mail</span></div>` : ''}
         <label class="small" for="ac-email">E-mail</label><input type="text" id="ac-email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" value="${esc(S.acEmail || '')}" placeholder="voce@email.com">
+        ${tab === 'up' ? `<label class="small" for="ac-name2" style="display:block;margin-top:10px">Como quer ser chamado?</label><input type="text" id="ac-name2" autocomplete="given-name" value="${esc(S.acName || '')}" placeholder="Seu nome">` : ''}
         ${tab === 'rec' ? '' : `<label class="small" for="ac-pass" style="display:block;margin-top:10px">Senha${tab === 'up' ? ' (mínimo 8 caracteres)' : ''}</label>${pw('ac-pass', 'senha', tab === 'up' ? 'new-password' : 'current-password')}`}
         ${S.acMsg ? `<div class="fb ${S.acMsg.ok ? 'ok' : 'warn'}" style="min-height:0;padding-right:14px">${S.acMsg.html}</div>` : ''}
         <div style="height:12px"></div><button class="btn pri big" id="ac-go">${tab === 'up' ? 'Criar conta' : tab === 'rec' ? 'Enviar link de nova senha' : 'Entrar'}</button>
@@ -497,11 +498,17 @@
         <p class="small mut">Nome deste aparelho:</p><input type="text" id="sy-name" value="${esc(c.name || GF.sync.defaultName())}">
         <div style="height:12px"></div><button class="btn big" id="sy-go">Ativar GitHub e sincronizar</button></details>`;
     }
-    if (fresh) { if (nav) nav.classList.add('hide'); app().innerHTML = `<header class="top"><div class="brand"><div>Stempel<small>Trazer progresso de outro aparelho</small></div></div></header>${html}<button class="btn ghost big" id="sy-back">← Voltar ao diagnóstico</button>`; $('#sy-back').onclick = renderOnboarding; }
+    if (fresh) {
+      if (nav) nav.classList.add('hide');
+      app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">${window.GF_FRITZ ? `<img class="logo" src="${window.GF_FRITZ.logo}" alt="">` : ''}<div>Stempel<small>alemão do zero ao visto</small></div></div></header>
+        ${u ? '' : `<div class="card"><div class="home-head"><div><div class="step-k">Amt für deutsche Sprache</div><h2>Willkommen!</h2><p class="small">Eu sou o <b>Reineke</b>, o fiscal desta repartição. Primeiro, sua identificação: crie sua conta para o seu progresso ficar salvo no celular e no PC.</p></div>${fritz('wartet', 130)}</div></div>`}
+        ${html}<button class="btn ghost big" id="sy-back">${u ? 'Continuar para o diagnóstico →' : 'Continuar sem conta (fica só neste aparelho)'}</button>${installCardHtml()}`;
+      $('#sy-back').onclick = () => { if (!u) { try { localStorage.setItem('gfs-nologin', '1'); } catch (e) { /* */ } } renderOnboarding(); };
+    }
     else shell('mais', html);
 
     $$('[data-show]').forEach((b) => b.onclick = () => { const i = $('#' + b.dataset.show); i.type = i.type === 'password' ? 'text' : 'password'; });
-    $$('[data-ac-tab]').forEach((b) => b.onclick = () => { S.acEmail = ($('#ac-email') || {}).value || S.acEmail; S.acTab = b.dataset.acTab; S.acMsg = null; renderSync(); });
+    $$('[data-ac-tab]').forEach((b) => b.onclick = () => { S.acEmail = ($('#ac-email') || {}).value || S.acEmail; S.acName = ($('#ac-name2') || {}).value || S.acName; S.acTab = b.dataset.acTab; S.acMsg = null; renderSync(); });
     const busy = (b, t) => { if (b) { b.disabled = true; b.dataset.t = b.textContent; b.textContent = t; } };
     const free = (b) => { if (b && b.isConnected) { b.disabled = false; b.textContent = b.dataset.t || b.textContent; } };
     const pullAll = async (first) => {
@@ -516,12 +523,12 @@
       renderSync();
     };
     const go = $('#ac-go'); if (go) go.onclick = async () => {
-      const email = $('#ac-email').value; const pass = $('#ac-pass') ? $('#ac-pass').value : ''; S.acEmail = email; const tab = S.acTab || 'in';
+      const email = $('#ac-email').value; const pass = $('#ac-pass') ? $('#ac-pass').value : ''; S.acEmail = email; const tab = S.acTab || (fresh ? 'up' : 'in');
       busy(go, 'Aguarde…');
       try {
         if (tab === 'rec') { await GF.cloud.recover(email); S.acMsg = { ok: true, html: 'Se existir uma conta com esse e-mail, chegou um link para criar uma nova senha. Abra o link <b>neste aparelho</b>.' }; return renderSync(); }
         if (tab === 'up') {
-          const r = await GF.cloud.signUp(email, pass);
+          S.acName = ($('#ac-name2') || {}).value || ''; const r = await GF.cloud.signUp(email, pass, S.acName);
           if (r.confirm) { S.acTab = 'in'; S.acConfirm = true; S.acMsg = { ok: true, html: 'Conta criada! Enviamos um e-mail de confirmação para <b>' + esc(email) + '</b>. Abra o link (veja o spam) e depois toque em <b>Entrar</b>.' }; return renderSync(); }
         } else await GF.cloud.signIn(email, pass);
         S.acMsg = null; S.acConfirm = false; go.textContent = 'Sincronizando…';
@@ -610,14 +617,17 @@
   }
 
   /* ---------------- Diagnóstico inicial ---------------- */
+  /** Primeira abertura: tela de conta antes do diagnóstico (dá para pular e usar só neste aparelho). */
+  function wantsLoginFirst() { let skip = false; try { skip = localStorage.getItem('gfs-nologin') === '1'; } catch (e) { /* */ } return !!(GF.cloud && GF.cloud.available() && GF.sync && GF.sync.available() && !cloudOn() && !skip); }
+  function accountName() { const u = cloudOn() && GF.cloud.user(); return (u && u.name) || ''; }
   function renderOnboarding() {
     const nav = $('nav.tabs'); if (nav) nav.classList.add('hide');
-    const D = { name: 'Rick', prior: 'zero', minutes: 20, days: [1, 2, 3, 4, 5], goals: [], pref: 'equilibrado', focus: 20 };
+    const D = { name: accountName() || S.st.profile.name || '', prior: 'zero', minutes: 20, days: [1, 2, 3, 4, 5], goals: [], pref: 'equilibrado', focus: 20 };
     const chips = (key, opts, multi) => `<div class="chips" data-k="${key}">${opts.map(([v, l]) => `<button class="chip" data-v="${v}">${l}</button>`).join('')}</div>`;
     app().innerHTML = `${desktopModeWarn()}<header class="top"><div class="brand">Stempel<small>Diagnóstico inicial · ~2 min</small></div></header>${installCardHtml()}
     <div class="card"><div class="home-head"><div><div class="step-k">Amt für deutsche Sprache</div><h2>Willkommen!</h2><p class="small">Eu sou o <b>Reineke</b>, o fiscal desta repartição. Vou carimbar cada passo seu, do zero até o visto.</p></div>${fritz('wartet', 140)}</div></div>
     <div class="card"><h2>Vamos configurar seu professor</h2><p class="mut small">Só o necessário para montar o plano. Tudo pode ser mudado depois. Seu progresso fica salvo num banco de dados seu, independente da IA usada.</p>
-    <h3>Como quer ser chamado?</h3><input type="text" id="o-name" value="${esc(D.name)}">
+    <h3>Como quer ser chamado?</h3><input type="text" id="o-name" value="${esc(D.name)}" placeholder="Seu nome" autocomplete="given-name">
     <h3>Seu contato com alemão até hoje</h3>${chips('prior', [['zero', 'Nunca estudei'], ['words', 'Sei algumas palavras'], ['some', 'Já estudei um pouco']])}
     <h3>Tempo disponível por dia</h3>${chips('minutes', [[10, '10 min'], [20, '20 min'], [30, '30 min'], [45, '45 min ou mais']])}
     <h3>Dias de estudo na semana</h3>${chips('days', [[1, 'seg'], [2, 'ter'], [3, 'qua'], [4, 'qui'], [5, 'sex'], [6, 'sáb'], [0, 'dom']], true)}
@@ -625,7 +635,7 @@
     <h3>O que você quer priorizar?</h3>${chips('pref', [['fala', 'Falar'], ['escuta', 'Entender ouvindo'], ['escrita', 'Ler e escrever'], ['equilibrado', 'Equilibrado']])}
     <h3>Quanto tempo você mantém a concentração sem pausa?</h3>${chips('focus', [[10, '~10 min'], [20, '~20 min'], [30, '30 min ou mais']])}
     <div style="height:14px"></div><button class="btn pri big" id="o-go">Continuar</button>
-    ${GF.sync && GF.sync.available() ? '<button class="btn ghost big" id="o-sync" style="margin-top:6px">Já tenho conta / estudo em outro aparelho → entrar</button>' : ''}</div>`;
+    ${GF.sync && GF.sync.available() ? (cloudOn() ? '' : '<button class="btn ghost big" id="o-sync" style="margin-top:6px">Entrar ou criar conta</button>') : ''}</div>`;
     const sync = () => $$('.chips').forEach((c) => { const k = c.dataset.k; $$('.chip', c).forEach((b) => { const v = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v; b.classList.toggle('on', Array.isArray(D[k]) ? D[k].includes(v) : D[k] === v); }); });
     $$('.chips').forEach((c) => c.addEventListener('click', (e) => {
       const b = e.target.closest('.chip'); if (!b) return; const k = c.dataset.k; const v = isNaN(+b.dataset.v) ? b.dataset.v : +b.dataset.v;
