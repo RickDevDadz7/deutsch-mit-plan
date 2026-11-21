@@ -169,6 +169,16 @@
     for (const o of old) await this.b.del('backups/b/' + o.id);
     return { saved: wk };
   };
+  /** Apaga TODOS os dados deste aparelho (usado ao sair da conta, para outra pessoa poder entrar). */
+  Store.prototype.wipeLocal = async function (now) {
+    await this.flush();
+    const b = this.b; const y = new Date(now || Date.now()).getFullYear();
+    const colls = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((l) => 'srs/' + l).concat(['mistakes/m', 'assess/a', 'ext/d', 'gen/u', 'reports/r', 'backups/b']);
+    for (let k = y + 1; k >= 2024; k--) colls.push('days/' + k);
+    for (const c of colls) { const items = await b.list(c); for (const it of items) await b.del(c + '/' + it.id); }
+    await b.del('profile');
+    this.state = null; this.queue = {}; this.pendingN = 0;
+  };
   Store.prototype.listBackups = async function () { return (await this.b.list('backups/b')).map((x) => ({ id: x.id, at: x.data.at, size: (x.data.json || '').length, json: x.data.json })).sort((a, b) => b.at - a.at); };
 
   GF.store = { Store, DbBackend, MemoryBackend, validateBackup, fnv, stable, SCHEMA, safeId };

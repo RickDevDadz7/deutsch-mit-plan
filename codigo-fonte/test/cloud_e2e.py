@@ -96,6 +96,13 @@ try:
     res['Google: definiu senha'] = DB['users']['rick@example.com']['pw']
     DB['google_off'] = True; H = device(); H.goto('http://localhost:8776/'); H.click('#ac-google', no_wait_after=True); H.wait_for_timeout(2500)
     res['Google desligado: mensagem'] = H.locator('.fb').first.inner_text() if H.locator('.fb').count() else None
+    # Sair da conta: envia, apaga o aparelho e volta para a tela inicial
+    before = DB['rows'][('u1', G.evaluate("JSON.parse(localStorage.getItem('gfs-sync')).deviceId"))]['updated_at']
+    G.click('nav.tabs a[href="#mais"]'); G.click('a[href="#sync"]'); G.wait_for_selector('#ac-out'); G.wait_for_timeout(1100); G.click('#ac-out'); G.wait_for_selector('#ac-go', timeout=10000); G.wait_for_timeout(500)
+    dev = G.evaluate("JSON.parse(localStorage.getItem('gfs-sync')).deviceId")
+    res['sair: enviou antes'] = DB['rows'][('u1', dev)]['updated_at'] >= before
+    res['sair: aparelho limpo'] = G.evaluate("(() => { const d = JSON.parse(localStorage.getItem('gfs-local-v1') || '{}'); return Object.keys(d).length; })()")
+    res['sair: sem sessão e na tela inicial'] = [G.evaluate("localStorage.getItem('gfs-cloud')"), G.locator('#sy-back').count(), G.locator('.toast').all_inner_texts()]
     # Conta nova pela tela de boas-vindas: o nome digitado vai para o diagnóstico
     J = device(); J.goto('http://localhost:8776/'); J.wait_for_selector('#ac-name2'); J.fill('#ac-name2', 'Joana'); J.fill('#ac-email', 'joana@example.com'); J.fill('#ac-pass', 'senha-joana-1'); J.click('#ac-go'); J.wait_for_timeout(600)
     DB['users']['joana@example.com']['ok'] = True

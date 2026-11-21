@@ -350,6 +350,7 @@
       if (!S.st.profile.diag) return renderSync();
     }
     document.addEventListener('click', onLinkClick);
+    try { if (sessionStorage.getItem('gfs-bye')) { sessionStorage.removeItem('gfs-bye'); setTimeout(() => toast('Você saiu da conta. Os dados deste aparelho foram apagados.', 4000), 300); } } catch (e) { /* */ }
     if (!S.st.profile.diag) return wantsLoginFirst() ? renderSync() : renderOnboarding();
     // adaptação + backup automático ao abrir
     if (M.adapt(S.st, now())) commit({ profile: true });
@@ -543,7 +544,7 @@
     const np = $('#ac-np-go'); if (np) np.onclick = async () => { busy(np, 'Salvando…'); try { await GF.cloud.updatePassword($('#ac-np').value); S.recovery = false; toast('Senha alterada.'); renderSync(); } catch (e) { toast(e.message, 5000); free(np); } };
     const sp = $('#ac-sp-go'); if (sp) sp.onclick = async () => { busy(sp, 'Salvando…'); try { await GF.cloud.updatePassword($('#ac-sp').value); toast('Senha salva. Agora dá para entrar com e-mail e senha também.', 4000); free(sp); $('#ac-sp').value = ''; } catch (e) { toast(e.message, 5000); free(sp); } };
     const nm = $('#ac-name-go'); if (nm) nm.onclick = () => { GF.sync.setName($('#ac-name').value); toast('Nome salvo. Vale a partir da próxima sincronização.'); };
-    const out = $('#ac-out'); if (out) out.onclick = async () => { if (!confirm('Sair da conta neste aparelho? Seu progresso continua salvo aqui e na nuvem.')) return; await GF.cloud.signOut(); toast('Você saiu da conta. Os dados deste aparelho continuam aqui.'); renderSync(); };
+    const out = $('#ac-out'); if (out) out.onclick = () => signOutAndWipe(out);
     const wipe = $('#ac-wipe'); if (wipe) wipe.onclick = async () => {
       if (!confirm('Apagar todos os seus dados do servidor? O progresso deste aparelho continua aqui.')) return;
       busy(wipe, 'Apagando…'); try { await GF.sync.wipeCloud(); toast('Dados da nuvem apagados.'); renderSync(); } catch (e) { toast(e.message, 5000); free(wipe); }
@@ -617,6 +618,21 @@
   }
 
   /* ---------------- Diagnóstico inicial ---------------- */
+  /** Sair da conta: envia o progresso para a nuvem, apaga os dados deste aparelho e volta para a tela inicial.
+   * Assim outra pessoa pode entrar com a própria conta sem herdar nada. Preferências do aparelho (voz, sons) ficam. */
+  async function signOutAndWipe(btn) {
+    if (!confirm('Sair da conta?\n\nSeu progresso vai ser enviado para a nuvem e depois apagado deste aparelho. Para continuar, é só entrar de novo.')) return;
+    if (btn) { btn.disabled = true; btn.textContent = 'Enviando seu progresso…'; }
+    let saved = false;
+    try { await S.store.flush(); await GF.sync.run(S.store, { via: 'cloud' }); saved = true; } catch (e) { log('warn', 'sync antes de sair: ' + e.message); }
+    if (!saved && !confirm('Não foi possível enviar seu progresso agora (sem internet?).\n\nSe sair, o que você fez desde a última sincronização será PERDIDO. Sair mesmo assim?')) { if (btn) { btn.disabled = false; btn.textContent = 'Sair da conta'; } return; }
+    if (btn) btn.textContent = 'Saindo…';
+    try { await GF.cloud.signOut(); } catch (e) { /* já saiu localmente */ }
+    try { await S.store.wipeLocal(now()); } catch (e) { log('error', 'apagar dados locais: ' + e.message); }
+    try { const c = GF.sync.cfg(); GF.sync.saveCfg({ deviceId: c.deviceId }); ['gfs-nologin', 'gfs-ai-settings'].forEach((k) => localStorage.removeItem(k)); } catch (e) { /* */ }
+    try { sessionStorage.setItem('gfs-bye', '1'); } catch (e) { /* */ }
+    location.replace(location.pathname + location.search);
+  }
   /** Primeira abertura: tela de conta antes do diagnóstico (dá para pular e usar só neste aparelho). */
   function wantsLoginFirst() { let skip = false; try { skip = localStorage.getItem('gfs-nologin') === '1'; } catch (e) { /* */ } return !!(GF.cloud && GF.cloud.available() && GF.sync && GF.sync.available() && !cloudOn() && !skip); }
   function accountName() { const u = cloudOn() && GF.cloud.user(); return (u && u.name) || ''; }
