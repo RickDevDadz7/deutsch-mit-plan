@@ -53,7 +53,7 @@ try:
         def enable(pg, pw, name):
             # modo antigo (Gist): a tela de ativação saiu do app; quem já tinha configurado continua sincronizando
             pg.wait_for_selector('#ac-go'); pg.evaluate("([t, p, n]) => GF.sync.setup({ token: t, pass: p, name: n })", [TOKEN, pw, name])
-            pg.reload(); pg.wait_for_selector('#sy-now'); pg.click('#sy-now'); pg.wait_for_function("GF.sync.cfg().lastSync || GF.sync.cfg().lastError", timeout=20000); pg.wait_for_timeout(800)
+            pg.reload(); pg.wait_for_selector('#sy-now'); pg.click('#sy-now'); [pg.wait_for_timeout(250) for _ in range(80) if not pg.evaluate("!!(GF.sync.cfg().lastSync || GF.sync.cfg().lastError)")]; pg.wait_for_timeout(800)
 
         # Celular: diagnóstico, estuda, ativa sincronização
         A, ea = device('Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/130 Mobile Safari/537.36')

@@ -481,7 +481,10 @@
   recomputeOrder();
 
   /* Registra uma unidade criada pela IA (ou carregada do banco). Itens e regras recebem ids com prefixo da unidade. */
+  /** Unidades geradas pela IA (ou recebidas pela sincronização) só podem ter <b>, <i> e <br> nos textos que viram HTML. */
+  const onlySafeTags = (h) => String(h == null ? '' : h).replace(/<(?!\/?(?:b|i)>|br\s*\/?>)[^>]*>?/gi, '').replace(/javascript:/gi, '');
   function addUnit(u) {
+    if (u && u.gen) for (const g of Object.values(u.grammarData || {})) { g.explain = onlySafeTags(g.explain); g.compare = onlySafeTags(g.compare); }
     if (!u || !u.id || units[u.id] && !units[u.id].gen) return false; // nunca substitui conteúdo fixo
     for (const it of u.itemsData || []) items[it.id] = Object.assign({ ex: [], note: '' }, it, { unit: u.id });
     for (const [gid, g] of Object.entries(u.grammarData || {})) grammar[gid] = Object.assign({}, g, { unit: u.id });

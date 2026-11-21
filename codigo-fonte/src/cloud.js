@@ -86,8 +86,15 @@
     if (r && Array.isArray(r.identities) && !r.identities.length) throw Object.assign(new Error(MSG.user_already_exists), { code: 'user_already_exists' });
     return { confirm: true };
   }
+  // Freio contra tentativa e erro de senha neste aparelho (o Supabase também limita no servidor).
+  const fails = [];
   async function signIn(email, pass) {
     check(email, pass);
+    const t = Date.now(); while (fails.length && t - fails[0] > 10 * 60000) fails.shift();
+    if (fails.length >= 5 && t - fails[fails.length - 1] < 60000) throw Object.assign(new Error('Muitas tentativas erradas. Espere 1 minuto e tente de novo.'), { code: 'local_rate_limit' });
+    try { return await signInRaw(email, pass); } catch (e) { if (e.code === 'invalid_credentials') fails.push(Date.now()); throw e; }
+  }
+  async function signInRaw(email, pass) {
     const s = fromTokens(await call('/auth/v1/token?grant_type=password', { method: 'POST', body: { email: clean(email), password: pass } }));
     saveSession(s); return s;
   }

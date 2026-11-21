@@ -181,5 +181,5 @@
   };
   Store.prototype.listBackups = async function () { return (await this.b.list('backups/b')).map((x) => ({ id: x.id, at: x.data.at, size: (x.data.json || '').length, json: x.data.json })).sort((a, b) => b.at - a.at); };
 
-  GF.store = { Store, DbBackend, MemoryBackend, validateBackup, fnv, stable, SCHEMA, safeId };
+  GF.store = { Store, DbBackend, MemoryBackend, validateBackup, validCard, fnv, stable, SCHEMA, safeId };
 })(globalThis.GF = globalThis.GF || {});

@@ -69,3 +69,12 @@ test('reportes: união entre aparelhos, a versão mais recente vence', () => {
   const again = GF.sync.mergeRemote(st, remote, { id: 'dev2', name: 'PC', at: 9 });
   assert.equal(again.reports.length, 0);
 });
+
+test('segurança: dados de outro aparelho com formato errado são descartados', () => {
+  const r = GF.sync.cleanRemote({ cards: [{ id: 'x' }, null, 'lixo'], mistakes: [{ key: 'k' }, {}], assess: [{ id: 'a' }, { id: 5 }], reports: [{ id: 'r1', text: 'x'.repeat(5000) }], days: { '2026-11-20': { date: '2026-11-20', minutes: 5 }, '<img>': { date: '<img>' } }, gen: [{ id: 'g' }], ext: [{ id: 'dev-1' }, { nome: 1 }] });
+  assert.equal(r.cards.length, 0, 'carta sem estágios válidos');
+  assert.equal(r.mistakes.length, 1); assert.equal(r.assess.length, 1);
+  assert.equal(r.reports[0].text.length, 2000);
+  assert.deepEqual(Object.keys(r.days), ['2026-11-20']);
+  assert.equal(r.gen.length, 0); assert.equal(r.ext.length, 1);
+});

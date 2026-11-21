@@ -48,3 +48,10 @@ test('B2: leitura com perguntas e material autêntico em todas as unidades', () 
     assert.ok((u.authentic || []).length >= 2, e.id + ' material autêntico');
   }
 });
+
+test('segurança: unidade gerada só mantém <b>, <i> e <br> nos textos com HTML', () => {
+  GF.content.addUnit({ id: 'ZZ-SEC', gen: true, title: 't', subtitle: 's', goals: [], itemsData: [], grammarData: { g_zz_sec: { title: 'x', explain: 'ok <b>sim</b><img src=x onerror=alert(1)><script>alert(2)</script><a href="javascript:alert(3)">l</a><br>', compare: '<i>c</i><iframe src="//x"></iframe>', examples: [], drills: [] } } });
+  const g = GF.content.grammar.g_zz_sec;
+  assert.ok(!/<img|<script|<a |<iframe|onerror|javascript:/i.test(g.explain + g.compare), g.explain + g.compare);
+  assert.ok(g.explain.includes('<b>sim</b>') && g.explain.includes('<br>') && g.compare.includes('<i>c</i>'));
+});

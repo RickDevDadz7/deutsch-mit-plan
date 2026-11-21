@@ -128,7 +128,23 @@
     }
     return { v: out, changed };
   }
+  /** Dados vindos de fora são conferidos antes de entrar: formato errado é descartado. */
+  function cleanRemote(r) {
+    const S = GF.store || {}; const str = (x, n) => typeof x === 'string' && x.length > 0 && x.length <= n;
+    const arr = (x) => Array.isArray(x) ? x : [];
+    const out = Object.assign({}, r || {});
+    out.cards = arr(r && r.cards).filter((c) => (S.validCard ? S.validCard(c) : c && str(c.id, 200)));
+    out.mistakes = arr(r && r.mistakes).filter((m) => m && str(m.key, 300));
+    out.assess = arr(r && r.assess).filter((a) => a && str(a.id, 200));
+    out.reports = arr(r && r.reports).filter((x) => x && str(x.id, 80)).map((x) => Object.assign({}, x, { text: String(x.text || '').slice(0, 2000) }));
+    out.gen = arr(r && r.gen).filter((g) => g && str(g.id, 40) && Array.isArray(g.itemsData));
+    out.ext = arr(r && r.ext).filter((e) => e && str(e.id, 64));
+    const days = {}; for (const [k, d] of Object.entries((r && r.days) || {})) if (/^\d{4}-\d{2}-\d{2}$/.test(k) && d && d.date === k) days[k] = d; out.days = days;
+    if (out.profile && typeof out.profile !== 'object') out.profile = null;
+    return out;
+  }
   function mergeRemote(state, remote, remoteDevice) {
+    remote = cleanRemote(remote);
     const t = { profile: false, cards: [], mistakes: [], assess: [], ext: false, gen: [], reports: [] };
     state.gen = state.gen || {};
     state.reports = state.reports || {};
@@ -249,7 +265,7 @@
       st._me = me; touched.days = [];
       for (const d of await tr.list()) {
         devices.push({ id: d.id, name: d.name, at: d.at, me: d.id === me });
-        const data = await d.load();
+        const data = cleanRemote(await d.load());
         if (d.id === me) {
           // a própria linha também é juntada: se os dados deste aparelho foram apagados (sair da conta, reinstalar), eles voltam
           const own = Object.assign({}, data, { days: {}, ext: [] });
@@ -301,5 +317,5 @@
   function disable() { const c = cfg(); saveCfg({ deviceId: c.deviceId, name: c.name }); keyCache = null; }
   const available = () => typeof fetch !== 'undefined' && typeof crypto !== 'undefined' && !!crypto.subtle && !globalThis.claude;
 
-  GF.sync = { mergeDays, cfg, saveCfg, deviceId, setup, disable, run, available, mode, setName, defaultName, wipeCloud, packText, unpackText, mergeCard, mergeMistake, mergeProfile, mergeUnit, mergeRemote, encrypt, decrypt, deriveKey, DESC };
+  GF.sync = { mergeDays, cleanRemote, cfg, saveCfg, deviceId, setup, disable, run, available, mode, setName, defaultName, wipeCloud, packText, unpackText, mergeCard, mergeMistake, mergeProfile, mergeUnit, mergeRemote, encrypt, decrypt, deriveKey, DESC };
 })(globalThis.GF = globalThis.GF || {});
